@@ -1,0 +1,51 @@
+version: '3'
+services:
+  inferrer:
+    container_name: inferrer
+    restart: always
+    build: ../inferrer/flask_app
+    ports:
+    - ${INFERRER_API_EXPOSE_PORT}:8000
+    networks:
+      fractalmlserver_network:
+        ipv4_address: ${INFERRER_IP}
+    volumes:
+      - ../inferrer/logs:/home/logs
+      - ./.env:/home/.env
+
+  modelhost:
+    container_name: modelhost
+    restart: always
+    build: ../modelhost/flask_app
+    ports:
+    - ${MODELHOST_API_EXPOSE_PORT}:8000
+    networks:
+      fractalmlserver_network:
+        ipv4_address: ${MODELHOST_IP}
+    volumes:
+      - ../modelhost/logs:/home/logs
+      - .env:/home/.env
+
+  prometheus:
+    container_name: prometheus
+    restart: always
+    build: ../metrics/prometheus
+    ports:
+      - ${PROMETHEUS_PORT}:9090
+
+  # nginx:
+  #   container_name: nginx
+  #   restart: always
+  #   build: ./nginx
+  #   ports:
+  #     - "80:80"
+  #   depends_on:
+  #     - flask_app
+
+networks:
+  fractalmlserver_network:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: ${FRACTALMLSERVER_SUBNET}
+         gateway: ${FRACTALMLSERVER_GATEWAY}
