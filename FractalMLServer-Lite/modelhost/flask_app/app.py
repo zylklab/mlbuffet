@@ -9,6 +9,7 @@ from utils import metric_manager
 from utils.container_logger import Logger
 from utils.modelhost_pojos import HttpJsonResponse, Prediction, Description
 
+
 # TODO: poner más métricas de prometheus por ahí
 
 # constant variables
@@ -58,6 +59,7 @@ for i in model_list:
     session_list.append(cosa)
 
 
+
 @auth.verify_token
 def verify_token(token):
     return token == auth_token
@@ -72,6 +74,7 @@ def hello_world():
                                                     'For more information, visit /help').json()
 
 
+
 @server.route('/api/test', methods=['GET'])
 def get_test():
     metric_manager.increment_test_counter()
@@ -79,7 +82,7 @@ def get_test():
     return HttpJsonResponse(200).json()
 
 @server.route('/api/test/frominferrer/get/<data>', methods=['GET'])
-def test_frommaitre_send_kitchen(data):
+def _test_frommaitre_send_kitchen(data):
     print(data)
     return HttpJsonResponse(200, http_status_description='recibido ' + data + ', prediccion desde kitchen (node:' + str(KITCHEN_NODE_UNIQ_ID) + ')').json()
 

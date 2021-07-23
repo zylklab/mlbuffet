@@ -22,6 +22,7 @@ RUN mkdir /home/logs
 RUN ["chmod", "+x", "./api_test.py"]
 #RUN python ./api_test.py
 
+
 #http
 CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:8000", "wsgi:server"]
 

@@ -46,6 +46,7 @@ def hello_world():
                                                     'For more information, visit /help').json()
 
 
+
 @server.route('/help', methods=['GET'])
 def show_help():
     return index.header + index.help + '\n'
@@ -136,6 +137,7 @@ def getPrediction(model):
         return HttpJsonResponse(422, http_status_description='New observation is not a list enclosed by'
                                                              ' squared brackets').json()
     hash = modelhost_cache.get_hash(model=model, input=new_observation)
+
     check = modelhost_cache.check_hash(hash=hash)
 
     if check == "Key exists":

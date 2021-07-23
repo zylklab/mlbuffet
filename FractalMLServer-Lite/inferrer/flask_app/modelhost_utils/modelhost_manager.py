@@ -90,6 +90,7 @@ class ModelhostQueryUtils:
         # -- debug
 
         # Execute all queries with gather (one query every request)
+
         async with aiohttp.ClientSession() as session:
             return await asyncio.gather(
                 *[self.post_query_async(observation_list, session, url)])
@@ -185,3 +186,4 @@ class Logger():
         # with this pattern, it's rarely necessary to propagate the error up to parent
         logger.propagate = False
         return logger
+
