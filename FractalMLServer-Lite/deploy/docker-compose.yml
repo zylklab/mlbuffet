@@ -32,6 +32,8 @@ services:
     build: ../metrics/prometheus
     ports:
       - ${PROMETHEUS_PORT}:9090
+    networks:
+      - fractalmlserver_network
 
   # nginx:
   #   container_name: nginx
