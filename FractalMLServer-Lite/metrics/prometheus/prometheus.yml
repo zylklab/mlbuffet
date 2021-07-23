@@ -18,11 +18,6 @@ scrape_configs:
 
     - job_name: 'fractalmlserver'
       metrics_path: '/metrics'
-      authorization:
-        type: Bearer
-        credentials: password
       scrape_interval: 5s
       static_configs:
-      - targets: ['fractalmlserver:8443']
-        labels:
-          alias: "fractalmlserver"
+      - targets: ['172.24.0.3:8000','172.24.0.2:8000']

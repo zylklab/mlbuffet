@@ -40,11 +40,13 @@ services:
       - .env:/home/.env
 
   prometheus:
-    container_name: fractal
+    container_name: prometheus-fractal
     restart: always
     build: ../metrics/prometheus
     ports:
       - ${PROMETHEUS_PORT}:9090
+    networks:
+      - fractalmlserver_network
 
   nginx:
       container_name: nginx-fractal

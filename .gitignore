@@ -7,10 +7,10 @@
 /captures
 .externalNativeBuild
 .cxx
-./logs
-./logs/*
-.idea/
-venv/
-FractalMLServer-Lite/inferrer/logs/
-FractalMLServer-Lite/modelhost/logs/
-
+./venv
+./.idea
+./FractalMLServer-Lite/.idea/
+./FractalMLServer-Lite/venv/
+./FractalMLServer-Lite/.venv/
+./FractalMLServer-Lite/inferrer/logs/
+./FractalMLServer-Lite/modelhost/logs/
