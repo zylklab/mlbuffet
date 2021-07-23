@@ -9,8 +9,7 @@
 .cxx
 ./logs
 ./logs/*
-.idea/
+./FractalMLServer-Lite/.idea/
 venv/
 FractalMLServer-Lite/inferrer/logs/
 FractalMLServer-Lite/modelhost/logs/
-
