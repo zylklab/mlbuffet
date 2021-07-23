@@ -5,7 +5,7 @@ services:
     restart: always
     build: ../inferrer/flask_app
     ports:
-    - ${INFERRER_API_EXPOSE_PORT}:8000
+    - ${INFERRER_API_BIND_TO_PORT}:8000
     networks:
       fractalmlserver_network:
         ipv4_address: ${INFERRER_IP}
@@ -13,34 +13,52 @@ services:
       - ../inferrer/logs:/home/logs
       - ./.env:/home/.env
 
-  modelhost:
-    container_name: modelhost
+  modelhost_1:
+    container_name: modelhost_1
     restart: always
     build: ../modelhost/flask_app
     ports:
-    - ${MODELHOST_API_EXPOSE_PORT}:8000
+    - ${MODELHOST_1_API_BIND_TO_PORT}:8000
     networks:
       fractalmlserver_network:
-        ipv4_address: ${MODELHOST_IP}
+        ipv4_address: ${MODELHOST_1_IP}
+    volumes:
+      - ../modelhost/logs:/home/logs
+      - .env:/home/.env
+
+  modelhost_2:
+    container_name: modelhost_2
+    restart: always
+    build: ../modelhost/flask_app
+    ports:
+    - ${MODELHOST_2_API_BIND_TO_PORT}:8000
+    networks:
+      fractalmlserver_network:
+        ipv4_address: ${MODELHOST_2_IP}
     volumes:
       - ../modelhost/logs:/home/logs
       - .env:/home/.env
 
   prometheus:
-    container_name: prometheus
+    container_name: fractal
     restart: always
     build: ../metrics/prometheus
     ports:
       - ${PROMETHEUS_PORT}:9090
 
-  # nginx:
-  #   container_name: nginx
-  #   restart: always
-  #   build: ./nginx
-  #   ports:
-  #     - "80:80"
-  #   depends_on:
-  #     - flask_app
+  nginx:
+      container_name: nginx-fractal
+      restart: always
+      build: ../inferrer/nginx
+      ports:
+        - "80:80"
+      depends_on:
+        - inferrer
+      networks:
+        fractalmlserver_network:
+          ipv4_address: ${LOAD_BALANCER_IP}
+      volumes:
+        - ./service-configurations/nginx-config/:/etc/nginx/conf.d/
 
 networks:
   fractalmlserver_network:

@@ -57,6 +57,18 @@ def get_test():
 
     return HttpJsonResponse(200).json()
 
+@server.route('/api/test/sendtomodelhost/', methods=['GET'])
+def _test_send_to_modelhost():
+    modelhostclient = ModelhostClientManager()
+    data_array = request.json['data']
+    print(data_array)
+    predictions = modelhostclient._test_get_kitchen_predictions(data_array)
+    for p in predictions:
+        print("respuesta en api " + p)
+
+    return "recibido"
+
+
 
 @server.route('/metrics', methods=['GET', 'POST'])
 @auth.login_required  # it needs a header "Authorization: Bearer <token>"

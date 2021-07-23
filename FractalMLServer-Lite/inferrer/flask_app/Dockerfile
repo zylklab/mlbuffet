@@ -11,7 +11,6 @@ COPY requirements.txt .
 COPY api_test.py .
 #COPY init.sh .
 
-COPY models models
 RUN pwd
 COPY utils utils
 COPY modelhost_utils modelhost_utils

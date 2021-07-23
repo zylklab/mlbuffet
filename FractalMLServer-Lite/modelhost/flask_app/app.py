@@ -4,7 +4,7 @@ import onnxruntime as rt
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
-
+import random
 from utils import metric_manager
 from utils.container_logger import Logger
 from utils.modelhost_pojos import HttpJsonResponse, Prediction, Description
@@ -16,6 +16,9 @@ API_BASE_URL = '/api/v1/'
 MODELHOST_BASE_URL = "/modelhost/"
 MODEL_FOLDER = path.join(getcwd(), 'models')
 auth_token = 'password'  # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
+
+#uniq id for testing kitchen instances
+KITCHEN_NODE_UNIQ_ID = "{:06d}".format(random.randint(1, 99999))
 
 # logger initialization
 logger = Logger('modelhost-logger').get_logger('modelhost-logger')
@@ -29,6 +32,7 @@ auth.auth_error_callback = lambda *args, **kwargs: handle_exception(Unauthorized
 server = Flask(__name__)
 logger.info('... Flask API succesfully started')
 
+
 model_list = listdir(MODEL_FOLDER)
 
 
@@ -36,6 +40,7 @@ model_list = listdir(MODEL_FOLDER)
 session_list = []
 # List with the index of the models on session_list
 model_index = []
+#TODO este for debería ir a un método de un utils
 for i in model_list:
     sess = rt.InferenceSession(path.join(MODEL_FOLDER, i))
     model = onnx.load(path.join(MODEL_FOLDER, i))
@@ -72,6 +77,11 @@ def get_test():
     metric_manager.increment_test_counter()
 
     return HttpJsonResponse(200).json()
+
+@server.route('/api/test/frominferrer/get/<data>', methods=['GET'])
+def test_frommaitre_send_kitchen(data):
+    print(data)
+    return HttpJsonResponse(200, http_status_description='recibido ' + data + ', prediccion desde kitchen (node:' + str(KITCHEN_NODE_UNIQ_ID) + ')').json()
 
 
 @server.route('/metrics', methods=['GET', 'POST'])
@@ -133,6 +143,7 @@ def prediction(model_name):
     return Prediction(200, http_status_description='Prediction successful', values=pred).json()
 
 
+#TODO este do_prediction debería ir a un método de un utils (al ModelManager o algo similar)
 # Function that makes the inference
 def do_prediction(model, input):
     index = model_index.index(model)
