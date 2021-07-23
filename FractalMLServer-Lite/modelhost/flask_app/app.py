@@ -75,7 +75,6 @@ def get_test():
 
 
 @server.route('/metrics', methods=['GET', 'POST'])
-@auth.login_required  # it needs a header "Authorization: Bearer <token>"
 def get_metrics():
     # force refresh system metrics
     metric_manager.compute_system_metrics()
