@@ -59,7 +59,6 @@ def get_test():
 
 
 @server.route('/metrics', methods=['GET', 'POST'])
-@auth.login_required  # it needs a header "Authorization: Bearer <token>"
 def get_metrics():
     # force refresh system metrics
     metric_manager.compute_system_metrics()
@@ -182,7 +181,7 @@ def getInfo(model):
         ).json()
 
 
-@server.route('/test/postinfo/<model>', methods=['POST'])
+@server.route(path.join(API_BASE_URL, '/test/postinfo/<model>', methods=['POST'])
 def postInfo(model):
     t0 = time.time()
     metric_manager.increment_model_counter()
