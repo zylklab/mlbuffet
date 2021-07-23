@@ -15,7 +15,7 @@ from modelhost_utils.modelhost_manager import ModelhostClientManager
 from modelhost_utils.modelhost_cache import modelhost_cache
 
 # constant variables
-API_BASE_URL = '/api/v1/'
+API_BASE_URL: str = '/api/v1/'
 ALLOWED_EXTENSIONS = ['onnx']
 MODEL_FOLDER = path.join(getcwd(), 'models')
 auth_token = 'password'  # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
@@ -181,7 +181,7 @@ def getInfo(model):
         ).json()
 
 
-@server.route(path.join(API_BASE_URL, '/test/postinfo/<model>', methods=['POST'])
+@server.route(path.join(API_BASE_URL, 'updateinfo/<model>'), methods=['POST'])
 def postInfo(model):
     t0 = time.time()
     metric_manager.increment_model_counter()

@@ -61,12 +61,18 @@ Some pre-trained models are already uploaded and can be updated manually through
 
 **Get model information**
 
-`curl -X GET http://localhost:8002/api/v1/models/iris.onnx/information`
+`curl -X GET http://localhost:8001/api/v1/models/iris.onnx/information`
+
+**Update model information**
+
+The information you got is in Spanish, and probably hardly readable. You can update a model's description with the POST method:
+
+`curl -X POST -H "Content-Type: application/json" --data '{"model_description":"This model classifies a 4 element array input between different species of Iris flowers."}' http://localhost:8001/test/postinfo/iris.onnx`
 
 **Get a prediction!**
 
 Once models have been correctly uploaded, deployed and described, the server is ready for inference. Requests must be done with an input in json format.
 
-`curl -X GET -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 5]}' http://0.0.0.0:8001/test/getprediction/iris.onnx`
+`curl -X GET -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 5]}' http://localhost:8001/api/v1/models/iris.onnx/prediction`
 
 This command will send an HTTP request to the server asking for a prediction on a given flower.
