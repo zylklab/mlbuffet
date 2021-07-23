@@ -11,7 +11,6 @@ COPY requirements.txt .
 COPY api_test.py .
 #COPY init.sh .
 
-COPY models models
 RUN pwd
 COPY utils utils
 COPY modelhost_utils modelhost_utils
@@ -28,7 +27,7 @@ COPY cache/inferrer-cache.json /root/.cache/fractalmlserver/inferrer-cache.json
 
 
 
-RUN ["chmod", "+x", "./api_test.py"]
+#RUN ["chmod", "+x", "./api_test.py"]
 #TODO adaptar a nueva api
 #RUN python ./api_test.py
 

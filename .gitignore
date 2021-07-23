@@ -1,0 +1,16 @@
+*.pyc
+*.iml
+.gradle
+/local.properties
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+./venv
+./.idea
+./FractalMLServer-Lite/.idea/
+./FractalMLServer-Lite/venv/
+./FractalMLServer-Lite/.venv/
+./FractalMLServer-Lite/inferrer/logs/
+./FractalMLServer-Lite/modelhost/logs/
