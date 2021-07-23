@@ -28,7 +28,7 @@ COPY cache/inferrer-cache.json /root/.cache/fractalmlserver/inferrer-cache.json
 
 
 
-RUN ["chmod", "+x", "./api_test.py"]
+#RUN ["chmod", "+x", "./api_test.py"]
 #TODO adaptar a nueva api
 #RUN python ./api_test.py
 
