@@ -234,17 +234,14 @@ def showModels():
     metric_manager.increment_model_counter()
     modelhost = ModelhostClientManager()
     models = modelhost.get_modelhost_models()[0]
-    potatoe = json.loads(models)
-    print(potatoe["description"])
-    print(type(potatoe["description"]))
-    descriptions = [file for file in potatoe["description"]]
-    # descriptions = ["hey"]
-    print(descriptions)
-    print(type(descriptions))
+    models = json.loads(models)
+
+    descriptions = [file for file in models["description"]]
+
     t1 = time.time()
     tiempo = t1 - t0
     logger.info("Time getting model_list: " + str(tiempo))
-    return ModelList(http_status_code=200, http_status_description='Prediction successful', model_list=1)
+    return ModelList(200, model_list=descriptions).json()
 
 
 @server.route(path.join(API_BASE_URL, 'models/information'), methods=['GET'])
@@ -253,11 +250,13 @@ def showModelsDescription():
     metric_manager.increment_model_counter()
     modelhost = ModelhostClientManager()
     models = modelhost.get_modelhost_models_description()[0]
-    print(models["description"])
+    models = json.loads(models)
+    descriptions = [file for file in models["description"]]
+
     t1 = time.time()
     tiempo = t1 - t0
     logger.info("Time getting model_list_description: " + str(tiempo))
-    return ModelList(200, model_list=models["description"])
+    return ModelList(200, model_list=descriptions).json()
 
 
 if __name__ == '__main__':

@@ -83,7 +83,8 @@ class ModelhostClientManager:
 
     def _test_get_kitchen_predictions(self, observation_list):
         t0 = round(time.time() * 1000)
-        # llamada a la ejecucion asincrona de kitchen    #toda esta gestion del loop se podria sustituir por asyncio.run()
+        # llamada a la ejecucion asincrona de kitchen    #toda esta gestion del loop se podria sustituir por
+        # asyncio.run()
         loop = asyncio.new_event_loop()  # asyncio.get_event_loop()
         try:
             predictions = loop.run_until_complete(self.modelhostUtils._test_get_kitchen_predictions(observation_list))
@@ -111,7 +112,7 @@ class ModelhostQueryUtils:
         url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
 
         # debug --
-        url = 'http://172.24.0.3:8000' + URL_METHOD
+        # url = 'http://172.24.0.3:8000' + URL_METHOD
         # -- debug
 
         # Execute all queries with gather (one query every request)
@@ -124,7 +125,7 @@ class ModelhostQueryUtils:
         url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
 
         # debug --
-        url = 'http://172.24.0.3:8000' + URL_METHOD
+        # url = 'http://172.24.0.3:8000' + URL_METHOD
         # -- debug
         data = {"model": model}
         # Execute all queries with gather (one query every request)
@@ -137,7 +138,7 @@ class ModelhostQueryUtils:
         url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
 
         # debug --
-        url = 'http://172.24.0.3:8000' + URL_METHOD
+        # url = 'http://172.24.0.3:8000' + URL_METHOD
         # -- debug
         data = {"model": model, "model_description": description}
         # Execute all queries with gather (one query every request)
@@ -150,7 +151,7 @@ class ModelhostQueryUtils:
         url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
 
         # debug --
-        url = 'http://172.24.0.3:8000' + URL_METHOD
+        # url = 'http://172.24.0.3:8000' + URL_METHOD
         # -- debug
         data = None
         # Execute all queries with gather (one query every request)
@@ -163,7 +164,7 @@ class ModelhostQueryUtils:
         url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
 
         # debug --
-        url = 'http://172.24.0.3:8000' + URL_METHOD
+        # url = 'http://172.24.0.3:8000' + URL_METHOD
         # -- debug
         data = None
         # Execute all queries with gather (one query every request)
