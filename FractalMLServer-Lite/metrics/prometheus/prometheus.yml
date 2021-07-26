@@ -1,3 +1,6 @@
+###TODO This file should be revisited for non hardcoded IPs and adding these values from a .env file
+### but this functionality does not seem to be supported by prometheus yet.
+
 # my global config
 global:
     scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
@@ -20,4 +23,14 @@ scrape_configs:
       metrics_path: '/metrics'
       scrape_interval: 5s
       static_configs:
-      - targets: ['172.24.0.3:8000','172.24.0.2:8000']
+      - targets:
+          - 172.24.0.2:8000
+          - 172.24.0.11:8000
+          - 172.24.0.12:8000
+          - 172.24.0.13:8000
+          - 172.24.0.14:8000
+          - 172.24.0.15:8000
+          - 172.24.0.16:8000
+          - 172.24.0.17:8000
+          - 172.24.0.18:8000
+          - 172.24.0.19:8000
