@@ -81,6 +81,18 @@ class ModelhostClientManager:
         self.logger.info("modelhost get_modelhost_models_description() call elapsed time: " + str(t1 - t0) + " ms")
         return info
 
+    def _test_get_kitchen_predictions(self, observation_list):
+        t0 = round(time.time() * 1000)
+        # llamada a la ejecucion asincrona de kitchen    #toda esta gestion del loop se podria sustituir por asyncio.run()
+        loop = asyncio.new_event_loop()  # asyncio.get_event_loop()
+        try:
+            predictions = loop.run_until_complete(self.modelhostUtils._test_get_kitchen_predictions(observation_list))
+        finally:
+            loop.close()
+        t1 = round(time.time() * 1000)
+        print("kitchen get_kitchen_predictions() call elapsed time: " + str(t1 - t0) + " ms")  # TODO logger
+        return predictions
+
     # TODO def get_modelhost_descriptions(self, model_list):
 
 
@@ -161,6 +173,14 @@ class ModelhostQueryUtils:
 
     # TODO async def get_modelhost_descriptions(self, model_list):
 
+    async def _test_get_kitchen_predictions(self, observation_list):
+        URL_METHOD = '/api/test/frominferrer/get/'
+        url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
+        # execute all queries and gather results
+        async with aiohttp.ClientSession() as session:
+            return await asyncio.gather(*[self._test_get_query_async(observation, session, url) for observation in observation_list])
+
+
     """ASYNC HTTP QUERIES"""
 
     # TODO async def post_query_async(self, observation, session, url, payload):
@@ -182,7 +202,16 @@ class ModelhostQueryUtils:
         prediction_data = await resp.text()
         return prediction_data
 
+    async def _test_get_query_async(self, observation, session, url):
+        endpoint = url + observation
+        print(endpoint)
+        resp = await session.request(method="GET", url=endpoint)
+        resp.raise_for_status()
+        print("Got response [%s] for URL: %s", resp.status, endpoint)  # TODO logger
+        prediction_data = await resp.text()
+        return prediction_data
 
+#TODO este Logger debería estar en un clase de utils dedicadas e importado en esta para ser utilizado
 class Logger():
 
     def __init__(self, filename):
