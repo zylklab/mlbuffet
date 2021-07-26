@@ -9,7 +9,7 @@ from werkzeug.utils import secure_filename
 
 from utils import metric_manager, index
 from utils.container_logger import Logger
-from utils.inferer_pojos import HttpJsonResponse, Prediction, ModelInformation
+from utils.inferer_pojos import HttpJsonResponse, Prediction, ModelInformation, ModelList
 
 from modelhost_utils.modelhost_manager import ModelhostClientManager
 from modelhost_utils.modelhost_cache import modelhost_cache
@@ -182,7 +182,7 @@ def getInfo(model):
         ).json()
 
 
-@server.route('/test/postinfo/<model>', methods=['POST'])
+@server.route(path.join(API_BASE_URL, 'models/<model>/information'), methods=['POST'])
 def postInfo(model):
     t0 = time.time()
     metric_manager.increment_model_counter()
@@ -215,6 +215,38 @@ def postInfo(model):
     return HttpJsonResponse(200, http_status_description=f'Model description updated! Visit '
                                                          f'GET {path.join(API_BASE_URL, model_name, "information")} '
                                                          f'to check available info about the current model').json()
+
+
+@server.route(path.join(API_BASE_URL, 'models'), methods=['GET'])
+def showModels():
+    t0 = time.time()
+    metric_manager.increment_model_counter()
+    modelhost = ModelhostClientManager()
+    models = modelhost.get_modelhost_models()[0]
+    potatoe = json.loads(models)
+    print(potatoe["description"])
+    print(type(potatoe["description"]))
+    descriptions = [file for file in potatoe["description"]]
+    # descriptions = ["hey"]
+    print(descriptions)
+    print(type(descriptions))
+    t1 = time.time()
+    tiempo = t1 - t0
+    logger.info("Time getting model_list: " + str(tiempo))
+    return ModelList(http_status_code=200, http_status_description='Prediction successful', model_list=1)
+
+
+@server.route(path.join(API_BASE_URL, 'models/information'), methods=['GET'])
+def showModelsDescription():
+    t0 = time.time()
+    metric_manager.increment_model_counter()
+    modelhost = ModelhostClientManager()
+    models = modelhost.get_modelhost_models_description()[0]
+    print(models["description"])
+    t1 = time.time()
+    tiempo = t1 - t0
+    logger.info("Time getting model_list_description: " + str(tiempo))
+    return ModelList(200, model_list=models["description"])
 
 
 if __name__ == '__main__':

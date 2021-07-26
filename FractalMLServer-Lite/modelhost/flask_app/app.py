@@ -31,7 +31,6 @@ logger.info('... Flask API succesfully started')
 
 model_list = listdir(MODEL_FOLDER)
 
-
 # List with the models preloaded to do the inference and their information
 session_list = []
 # List with the index of the models on session_list
@@ -46,11 +45,15 @@ for i in model_list:
     outputs = sess.get_outputs()[0].type
     model_type = model.graph.node[0].name
     description = model.doc_string
-    full_description = {"inputs_type": input_name, "num_imputs": num_inputs, "outputs": outputs, "model_type": model_type,
-                   "description": description}
+    full_description = {"inputs_type": input_name, "num_imputs": num_inputs, "outputs": outputs,
+                        "model_type": model_type,
+                        "description": description}
     model_index.append(i)
     cosa = [i, sess, input_name, label_name, full_description]
     session_list.append(cosa)
+
+print(model_list)
+print(model_index)
 
 
 @auth.verify_token
@@ -153,6 +156,25 @@ def get_model_information():
     index = model_index.index(model_name)
     desc = session_list[index][4]
     return Description(200, http_status_description='Model description', description=desc).json()
+
+
+@server.route(path.join(MODELHOST_BASE_URL, 'models'), methods=['GET'])
+def get_model_list():
+    list = model_list
+    return Description(200, http_status_description='Model description', description=list).json()
+
+
+@server.route(path.join(MODELHOST_BASE_URL, 'models/information'), methods=['GET'])
+def get_model_list_information():
+    list = model_list
+    models_descr = []
+    for i in list:
+        index = model_index.index(i)
+        descr = session_list[index][4]["description"]
+        model_descr = {"model": i, "description": descr}
+        models_descr.append(model_descr)
+    print(models_descr)
+    return Description(200, http_status_description='Model description', description=models_descr).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'information'), methods=['POST'])

@@ -59,7 +59,6 @@ class ModelList(HttpJsonResponse):
                  model_list=None):
         if model_list is None:
             model_list = []
-
         super().__init__(http_status_code, http_status_name, http_status_description)
 
         self.data['model_list'] = model_list

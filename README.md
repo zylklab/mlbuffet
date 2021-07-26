@@ -61,7 +61,7 @@ Some pre-trained models are already uploaded and can be updated manually through
 
 **Get model information**
 
-`curl -X GET http://localhost:8002/api/v1/models/iris.onnx/information`
+`curl -X GET http://localhost:8001/api/v1/models/iris.onnx/information`
 
 **Get a prediction!**
 

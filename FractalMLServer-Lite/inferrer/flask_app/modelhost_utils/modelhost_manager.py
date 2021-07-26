@@ -23,13 +23,14 @@ class ModelhostClientManager:
 
         loop = asyncio.new_event_loop()
         try:
-            observation = {"values":observation_list}
+            observation = {"values": observation_list}
             prediction = loop.run_until_complete(
                 self.modelhostUtils.get_modelhost_predictions(model, observation))
         finally:
             loop.close()
         t1 = round(time.time() * 1000)
-        self.logger.info("Modelhost get_modelhost_predictions() call elapsed time: " + str(t1 - t0) + " ms")  # TODO logger
+        self.logger.info(
+            "Modelhost get_modelhost_predictions() call elapsed time: " + str(t1 - t0) + " ms")  # TODO logger
         return prediction
 
     def get_modelhost_info(self, model):
@@ -55,6 +56,30 @@ class ModelhostClientManager:
         t1 = round(time.time() * 1000)
         self.logger.info("modelhost get_modelhost_info() call elapsed time: " + str(t1 - t0) + " ms")
         return response
+
+    def get_modelhost_models(self):
+        t0 = round(time.time() * 1000)
+        # Call to the asynchronous execution of modelhost
+        loop = asyncio.new_event_loop()  # asyncio.get_event_loop()
+        try:
+            info = loop.run_until_complete(self.modelhostUtils.get_modelhost_models())
+        finally:
+            loop.close()
+        t1 = round(time.time() * 1000)
+        self.logger.info("modelhost get_modelhost_models() call elapsed time: " + str(t1 - t0) + " ms")
+        return info
+
+    def get_modelhost_models_description(self):
+        t0 = round(time.time() * 1000)
+        # Call to the asynchronous execution of modelhost
+        loop = asyncio.new_event_loop()  # asyncio.get_event_loop()
+        try:
+            info = loop.run_until_complete(self.modelhostUtils.get_modelhost_models_description())
+        finally:
+            loop.close()
+        t1 = round(time.time() * 1000)
+        self.logger.info("modelhost get_modelhost_models_description() call elapsed time: " + str(t1 - t0) + " ms")
+        return info
 
     # TODO def get_modelhost_descriptions(self, model_list):
 
@@ -107,6 +132,32 @@ class ModelhostQueryUtils:
         async with aiohttp.ClientSession() as session:
             return await asyncio.gather(
                 *[self.post_query_async(data=data, session=session, url=url)])
+
+    async def get_modelhost_models(self):
+        URL_METHOD = "/modelhost/models"
+        url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
+
+        # debug --
+        url = 'http://172.24.0.3:8000' + URL_METHOD
+        # -- debug
+        data = None
+        # Execute all queries with gather (one query every request)
+        async with aiohttp.ClientSession() as session:
+            return await asyncio.gather(
+                *[self.get_query_async(data=data, session=session, url=url)])
+
+    async def get_modelhost_models_description(self):
+        URL_METHOD = "/modelhost/models/information"
+        url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
+
+        # debug --
+        url = 'http://172.24.0.3:8000' + URL_METHOD
+        # -- debug
+        data = None
+        # Execute all queries with gather (one query every request)
+        async with aiohttp.ClientSession() as session:
+            return await asyncio.gather(
+                *[self.get_query_async(data=data, session=session, url=url)])
 
     # TODO async def get_modelhost_descriptions(self, model_list):
 
