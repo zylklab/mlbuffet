@@ -46,7 +46,8 @@ services:
     ports:
       - ${PROMETHEUS_PORT}:9090
     networks:
-      - fractalmlserver_network
+      fractalmlserver_network:
+        ipv4_address: ${PROMETHEUS_IP}
 
   nginx:
       container_name: nginx-fractal
@@ -61,7 +62,6 @@ services:
           ipv4_address: ${LOAD_BALANCER_IP}
       volumes:
         - ./service-configurations/nginx-config/:/etc/nginx/conf.d/
-
 
 networks:
   fractalmlserver_network:
