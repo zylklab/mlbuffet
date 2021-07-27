@@ -58,22 +58,22 @@ The welcome message should be displayed.
 ## Test the inferrer API and rebalance queries to modelhost nodes.
 
 To test the inferrer API, there are some methods with the '_test_' prefix that are used to show the comunication between the inferrer, the load balancer and the modelhost nodes.
- 
-The following query can be used to call inferrer node 
+
+The following query can be used to call inferrer node
 `curl -X GET -H "Content-Type: application/json" --data '{"data": ["ONE", "TWO", "THREE", "FOUR"]}'  http://172.24.0.2:8000/api/test/sendtomodelhost/`
 
 The communication flow includes:
 - the query HTTP query is send to the inferrer API REST <INFERRER_IP:8000>
-- the API method uses ModelHostClientManager class to make the queries to the modelhost nodes. 
+- the API method uses ModelHostClientManager class to make the queries to the modelhost nodes.
 This is done by calling the LOAD BALANCER, which is in charge of redirecting the queries to the modelhost nodes.
 - in te modelhost method responds with a ping message, incluiding an unique ID for each of the modelhost nodes, which allows to distinguish which modelhost node has executed the query.
 - results are gatherer by the ModelHostClientManager and presented on the inferrer API.
 
 To add or remove modelhost nodes to the architecture, the following files have to be updated:
 - on the deploy module, add the new endpoint properties to the `.env` file, on the modelhost sectioon
-     `MODELHOST_N_IP=<NODE_N_IP>` and 
+     `MODELHOST_N_IP=<NODE_N_IP>` and
       `MODELHOST_N_API_BIND_TO_PORT=<NODE_N_PORT>`
-- then on the deploy module, add to the `docker-compose` the new service instance: 
+- then on the deploy module, add to the `docker-compose` the new service instance:
          ```docker
            modelhost_N:
             container_name: modelhost_N
@@ -109,7 +109,9 @@ The information you got is in Spanish. You can update a model's description with
 
 **Upload a new model**
 
-To be done
+You can upload your own .onnx models to the server by using the /upload<model_name> method.
+
+`curl -X POST -F "path=@/path/to/directory/<model_name>.onnx" http://localhost:8002/api/v1/models/upload_<model_name>.onnx`
 
 **Delete a model**
 
