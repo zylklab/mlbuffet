@@ -290,10 +290,6 @@ class ModelhostQueryUtils:
         prediction_data = await resp.text()
         return prediction_data
 
-<<<<<<< HEAD
-=======
-
-
 #TODO este Logger debería estar en un clase de utils dedicadas e importado en esta para ser utilizado
 class Logger():
 
@@ -319,4 +315,3 @@ class Logger():
         # with this pattern, it's rarely necessary to propagate the error up to parent
         logger.propagate = False
         return logger
->>>>>>> 8fc44b0473eb197985f88b6a96ae8d89f6cb3ed1
