@@ -138,6 +138,6 @@ To be done.
 
 Once models have been correctly uploaded, deployed and described, the server is ready for inference. Requests must be done with an input in json format.
 
-`curl -X GET -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 5]}' http://localhost:8001/api/v1/models/iris.onnx/prediction`
+`curl -X GET -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 5]}' http://localhost:8002/api/v1/models/iris.onnx/prediction`
 
 This command will send an HTTP request to the server asking for a prediction on a given flower.
