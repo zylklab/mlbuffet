@@ -104,6 +104,10 @@ def log_response(response):
         pass
     elif request.path == '/help':  # don't display the whole help
         logger.info('Help displayed')
+    elif request.path == '/api/v1/models':
+        logger.info('Models list displayed')
+    elif request.path == '/api/v1/models/information':
+        logger.info('Models & description list displayed')
     elif response:
         logger.info(response.get_json())
 
