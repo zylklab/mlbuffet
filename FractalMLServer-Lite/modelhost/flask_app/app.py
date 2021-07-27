@@ -84,7 +84,7 @@ def get_test():
 def _test_frominferrer_send_modelhost(data):
 
     print(data)
-    return HttpJsonResponse(200, http_status_description='recibido ' + data + ', modelhost prediction (node:' + str(
+    return HttpJsonResponse(200, http_status_description='Received: ' + data + ', modelhost prediction (node:' + str(
         MODELHOST_NODE_UNIQ_ID) + ')').json()
 
 

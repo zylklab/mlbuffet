@@ -62,14 +62,15 @@ def get_test():
 
 @server.route('/api/test/sendtomodelhost/', methods=['GET'])
 def _test_send_to_modelhost():
-    modelhostclient = ModelhostClientManager()
+    modelhost = ModelhostClientManager()
     data_array = request.json['data']
     print(data_array)
-    predictions = modelhostclient._test_get_kitchen_predictions(data_array)
+    predictions = modelhost._test_get_modelhost_predictions(data_array)
     for p in predictions:
-        print("respuesta en api " + p)
+        print("API Response: " + p)
 
-    return "recibido"
+    print("\n")
+    return "Received  \n"
 
 
 @server.route('/metrics', methods=['GET', 'POST'])

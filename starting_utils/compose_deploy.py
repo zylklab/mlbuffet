@@ -62,8 +62,10 @@ for i in range(n):
                 '        ipv4_address: ${MODELHOST_' + str(j) +'_IP}\n ' \
                 '    volumes:\n ' \
                 '      - ../modelhost/logs:/home/logs\n ' \
-                '      - .env:/home/.env\n\n'
-    f.write(modelhost)
+                '      - .env:/home/.env\n' \
+                '      - ../modelhost/flask_app/models:/usr/src/flask_app/models\n\n'
+
+f.write(modelhost)
 f.write(prometheus)
 f.write(nginx)
 f.write(networks)
