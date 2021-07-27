@@ -20,7 +20,7 @@ class modelhost_cache:
         return dict
 
     # Escribe la predicción en el json
-    def put_prediction(self=None, new_data=None, filename='/root/.cache/fractalmlserver/inferrer-cache.json'):
+    def put_prediction(self=None, new_data=None, filename='/.cache/inferrer-cache.json'):
         with open(filename, 'r+') as file:
             # First we load existing data into a dict.
             file_data = json.load(file)
@@ -32,7 +32,7 @@ class modelhost_cache:
             json.dump(file_data, file, indent=2)
 
     # Coge la predicción del json
-    def get_prediction(self=None, hash=None, filename='/root/.cache/fractalmlserver/inferrer-cache.json'):
+    def get_prediction(self=None, hash=None, filename='/.cache/inferrer-cache.json'):
         with open(filename, "r") as f:
             file_data = json.load(f)
             for i in file_data:
@@ -41,7 +41,7 @@ class modelhost_cache:
                     return a
 
     # Comprueba la existencia del hash en el json
-    def check_hash(self=None, hash=None, filename="/root/.cache/fractalmlserver/inferrer-cache.json"):
+    def check_hash(self=None, hash=None, filename="/.cache/inferrer-cache.json"):
         with open(filename, "r") as f:
             file_data = json.load(f)
             for i in file_data:
