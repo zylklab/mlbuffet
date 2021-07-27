@@ -18,8 +18,8 @@ MODELHOST_BASE_URL = "/modelhost/"
 MODEL_FOLDER = path.join(getcwd(), 'models')
 auth_token = 'password'  # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
 
-#uniq id for testing kitchen instances
-KITCHEN_NODE_UNIQ_ID = "{:06d}".format(random.randint(1, 99999))
+# uniq id for testing modelhost instances
+MODELHOST_NODE_UNIQ_ID = "{:06d}".format(random.randint(1, 99999))
 
 # logger initialization
 logger = Logger('modelhost-logger').get_logger('modelhost-logger')
@@ -33,15 +33,12 @@ auth.auth_error_callback = lambda *args, **kwargs: handle_exception(Unauthorized
 server = Flask(__name__)
 logger.info('... Flask API succesfully started')
 
-
 model_list = listdir(MODEL_FOLDER)
-
 
 # List with the models preloaded to do the inference and their information
 session_list = []
 # List with the index of the models on session_list
-model_index = []
-#TODO este for debería ir a un método de un utils
+# TODO este for debería ir a un método de un utils
 for i in model_list:
     sess = rt.InferenceSession(path.join(MODEL_FOLDER, i))
     model = onnx.load(path.join(MODEL_FOLDER, i))
@@ -52,9 +49,9 @@ for i in model_list:
     outputs = sess.get_outputs()[0].type
     model_type = model.graph.node[0].name
     description = model.doc_string
-    full_description = {"inputs_type": input_name, "num_imputs": num_inputs, "outputs": outputs, "model_type": model_type,
-                   "description": description}
-    model_index.append(i)
+    full_description = {"inputs_type": input_name, "num_imputs": num_inputs, "outputs": outputs,
+                        "model_type": model_type,
+                        "description": description}
     cosa = [i, sess, input_name, label_name, full_description]
     session_list.append(cosa)
 
@@ -81,10 +78,13 @@ def get_test():
 
     return HttpJsonResponse(200).json()
 
+
 @server.route('/api/test/frominferrer/get/<data>', methods=['GET'])
-def _test_frommaitre_send_kitchen(data):
+def _test_frominferrer_send_modelhost(data):
+
     print(data)
-    return HttpJsonResponse(200, http_status_description='recibido ' + data + ', prediccion desde kitchen (node:' + str(KITCHEN_NODE_UNIQ_ID) + ')').json()
+    return HttpJsonResponse(200, http_status_description='recibido ' + data + ', modelhost prediction (node:' + str(
+        MODELHOST_NODE_UNIQ_ID) + ')').json()
 
 
 @server.route('/metrics', methods=['GET', 'POST'])
@@ -121,6 +121,10 @@ def log_response(response):
         pass
     elif request.path == '/help':  # don't display the whole help
         logger.info('Help displayed')
+    elif request.path == '/modelhost/models':
+        logger.info('Models list provided')
+    elif request.path == '/modelhost/models/information':
+        logger.info('Models & description list provided')
     elif response:
         logger.info(response.get_json())
 
@@ -132,7 +136,7 @@ def prediction(model_name):
     metric_manager.increment_model_counter()
 
     try:
-        model_index.index(model_name)
+        model_list.index(model_name)
     except Exception:
         return HttpJsonResponse(404, http_status_description=f'{model_name} does not exist. '
                                                              f'Visit GET {path.join(API_BASE_URL, "models")} '
@@ -145,10 +149,10 @@ def prediction(model_name):
     return Prediction(200, http_status_description='Prediction successful', values=pred).json()
 
 
-#TODO este do_prediction debería ir a un método de un utils (al ModelManager o algo similar)
+# TODO este do_prediction debería ir a un método de un utils (al ModelManager o algo similar)
 # Function that makes the inference
 def do_prediction(model, input):
-    index = model_index.index(model)
+    index = model_list.index(model)
     session = session_list[index][1]
     input_names = session_list[index][2]
     output_names = session_list[index][3]
@@ -163,9 +167,27 @@ def do_prediction(model, input):
 @server.route(path.join(MODELHOST_BASE_URL, 'information'), methods=['GET'])
 def get_model_information():
     model_name = request.json['model']
-    index = model_index.index(model_name)
+    index = model_list.index(model_name)
     desc = session_list[index][4]
     return Description(200, http_status_description='Model description', description=desc).json()
+
+
+@server.route(path.join(MODELHOST_BASE_URL, 'models'), methods=['GET'])
+def get_model_list():
+    list = model_list
+    return Description(200, http_status_description='Model description', description=list).json()
+
+
+@server.route(path.join(MODELHOST_BASE_URL, 'models/information'), methods=['GET'])
+def get_model_list_information():
+    list = model_list
+    models_descr = []
+    for i in list:
+        index = model_list.index(i)
+        descr = session_list[index][4]["description"]
+        model_descr = {"model": i, "description": descr}
+        models_descr.append(model_descr)
+    return Description(200, http_status_description='Model description', description=models_descr).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'information'), methods=['POST'])
@@ -173,19 +195,25 @@ def model_post_information():
     model_name = request.json['model']
     model_path = path.join(MODEL_FOLDER, model_name)
     model_description = request.json['model_description']
-    index = model_index.index(model_name)
+    index = model_list.index(model_name)
     model = onnx.load(model_path)
     model.doc_string = model_description
     session_list[index][4]["description"] = model_description
     onnx.save(model, model_path)
     return HttpJsonResponse(200, http_status_description='success').json()
 
+@server.route(path.join(MODELHOST_BASE_URL, 'models/upload_<model>'), methods=['POST'])
+def post_upload_model(model):
+    # get model
+    modelpath = request.files['file']
+
+    # save the model in model folder
+    modelpath.save(path.join(MODEL_FOLDER, model))
+
+    return HttpJsonResponse(200, http_status_description='success').json()
+
 
 ##TODO:
-# Upload model
-# @server.route(path.join(API_BASE_URL, 'model_index/<model_name>'), methods=['PUT'])
-# def upload_model(model_name):
-#
 #
 # # Download model
 # @server.route(path.join(API_BASE_URL, 'model_index/<model_name>'), methods=['GET'])

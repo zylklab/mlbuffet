@@ -1,3 +1,4 @@
+import os
 from os import getcwd, path
 from pathlib import Path
 import time
@@ -9,7 +10,7 @@ from werkzeug.utils import secure_filename
 
 from utils import metric_manager, index
 from utils.container_logger import Logger
-from utils.inferer_pojos import HttpJsonResponse, Prediction, ModelInformation
+from utils.inferer_pojos import HttpJsonResponse, Prediction, ModelInformation, ModelList
 
 from modelhost_utils.modelhost_manager import ModelhostClientManager
 from modelhost_utils.modelhost_cache import modelhost_cache
@@ -17,7 +18,7 @@ from modelhost_utils.modelhost_cache import modelhost_cache
 # constant variables
 API_BASE_URL: str = '/api/v1/'
 ALLOWED_EXTENSIONS = ['onnx']
-MODEL_FOLDER = path.join(getcwd(), 'models')
+MODEL_FOLDER = path.join(getcwd(), '/.cache/')
 auth_token = 'password'  # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
 
 # logger initialization
@@ -58,6 +59,7 @@ def get_test():
 
     return HttpJsonResponse(200).json()
 
+
 @server.route('/api/test/sendtomodelhost/', methods=['GET'])
 def _test_send_to_modelhost():
     modelhostclient = ModelhostClientManager()
@@ -68,7 +70,6 @@ def _test_send_to_modelhost():
         print("respuesta en api " + p)
 
     return "recibido"
-
 
 
 @server.route('/metrics', methods=['GET', 'POST'])
@@ -105,6 +106,10 @@ def log_response(response):
         pass
     elif request.path == '/help':  # don't display the whole help
         logger.info('Help displayed')
+    elif request.path == '/api/v1/models':
+        logger.info('Models list displayed')
+    elif request.path == '/api/v1/models/information':
+        logger.info('Models & description list displayed')
     elif response:
         logger.info(response.get_json())
 
@@ -229,6 +234,70 @@ def postInfo(model):
                                                          f'GET {path.join(API_BASE_URL, model_name, "information")} '
                                                          f'to check available info about the current model').json()
 
+
+@server.route(path.join(API_BASE_URL, 'models'), methods=['GET'])
+def showModels():
+    t0 = time.time()
+    metric_manager.increment_model_counter()
+    modelhost = ModelhostClientManager()
+    models = modelhost.get_modelhost_models()[0]
+    models = json.loads(models)
+
+    descriptions = [file for file in models["description"]]
+
+    t1 = time.time()
+    tiempo = t1 - t0
+    logger.info("Time getting model_list: " + str(tiempo))
+    return ModelList(200, model_list=descriptions).json()
+
+
+@server.route(path.join(API_BASE_URL, 'models/information'), methods=['GET'])
+def showModelsDescription():
+    t0 = time.time()
+    metric_manager.increment_model_counter()
+    modelhost = ModelhostClientManager()
+    models = modelhost.get_modelhost_models_description()[0]
+    models = json.loads(models)
+    descriptions = [file for file in models["description"]]
+
+    t1 = time.time()
+    tiempo = t1 - t0
+    logger.info("Time getting model_list_description: " + str(tiempo))
+    return ModelList(200, model_list=descriptions).json()
+
+
+@server.route(path.join(API_BASE_URL, 'models/upload_<model>'), methods=['POST'])
+def uploadModel(model):
+    t0 = time.time()
+    metric_manager.increment_test_counter()
+
+    model = secure_filename(model)
+    # if there is no file
+    if 'path' not in request.files:
+        return HttpJsonResponse(422, http_status_description='No path specified').json()
+
+    # get model
+    modelpath = request.files['path']
+
+    # if file extension is not allowed
+    if get_file_extension(model) not in ALLOWED_EXTENSIONS:
+        return HttpJsonResponse(415, http_status_description=f'File extension not allowed. '
+                                                             f'Please use one of these: {ALLOWED_EXTENSIONS}').json()
+
+    # save the model in cache
+    modelpath.save(path.join(MODEL_FOLDER, model))
+
+    # send the model as HTTP post request
+    modelhost = ModelhostClientManager()
+    modelhost.post_modelhost_upload_model(model, str(path.join(MODEL_FOLDER, model)))
+
+    # delete the model from inferrer
+    os.remove(path.join(MODEL_FOLDER, model))
+
+    t1 = time.time()
+    tiempo = t1 - t0
+    logger.info("Time uploading model: " + str(tiempo))
+    return HttpJsonResponse(201, http_status_description=f'{model} uploaded!').json()
 
 if __name__ == '__main__':
     server.run()

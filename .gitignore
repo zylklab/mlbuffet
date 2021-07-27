@@ -14,3 +14,7 @@
 ./FractalMLServer-Lite/.venv/
 ./FractalMLServer-Lite/inferrer/logs/
 ./FractalMLServer-Lite/modelhost/logs/
+.idea
+venv
+FractalMLServer-Lite/inferrer/logs/
+FractalMLServer-Lite/modelhost/logs/
