@@ -17,8 +17,8 @@ MODELHOST_BASE_URL = "/modelhost/"
 MODEL_FOLDER = path.join(getcwd(), 'models')
 auth_token = 'password'  # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
 
-# uniq id for testing kitchen instances
-KITCHEN_NODE_UNIQ_ID = "{:06d}".format(random.randint(1, 99999))
+# uniq id for testing modelhost instances
+MODELHOST_NODE_UNIQ_ID = "{:06d}".format(random.randint(1, 99999))
 
 # logger initialization
 logger = Logger('modelhost-logger').get_logger('modelhost-logger')
@@ -77,10 +77,10 @@ def get_test():
 
 
 @server.route('/api/test/frominferrer/get/<data>', methods=['GET'])
-def test_frommaitre_send_kitchen(data):
+def test_frominferrer_send_modelhost(data):
     print(data)
-    return HttpJsonResponse(200, http_status_description='recibido ' + data + ', prediccion desde kitchen (node:' + str(
-        KITCHEN_NODE_UNIQ_ID) + ')').json()
+    return HttpJsonResponse(200, http_status_description='recibido ' + data + ', modelhost prediction (node:' + str(
+        MODELHOST_NODE_UNIQ_ID) + ')').json()
 
 
 @server.route('/metrics', methods=['GET', 'POST'])
@@ -194,12 +194,18 @@ def model_post_information():
     onnx.save(model, model_path)
     return HttpJsonResponse(200, http_status_description='success').json()
 
+@server.route(path.join(MODELHOST_BASE_URL, 'models/upload_<model>'), methods=['POST'])
+def post_upload_model(model):
+    # get model
+    modelpath = request.files['file']
+
+    # save the model in model folder
+    modelpath.save(path.join(MODEL_FOLDER, model))
+
+    return HttpJsonResponse(200, http_status_description='success').json()
+
 
 ##TODO:
-# Upload model
-# @server.route(path.join(API_BASE_URL, 'model_index/<model_name>'), methods=['PUT'])
-# def upload_model(model_name):
-#
 #
 # # Download model
 # @server.route(path.join(API_BASE_URL, 'model_index/<model_name>'), methods=['GET'])

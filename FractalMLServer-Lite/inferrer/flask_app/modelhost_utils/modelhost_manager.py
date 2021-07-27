@@ -81,7 +81,26 @@ class ModelhostClientManager:
         self.logger.info("modelhost get_modelhost_models_description() call elapsed time: " + str(t1 - t0) + " ms")
         return info
 
-    def _test_get_kitchen_predictions(self, observation_list):
+    def post_modelhost_upload_model(self, model, modelpath):
+
+        t0 = round(time.time() * 1000)
+
+        # Call to the asynchronous execution of modelhost
+        loop = asyncio.new_event_loop()
+
+        try:
+            upload = loop.run_until_complete(
+                self.modelhostUtils.post_modelhost_upload_model(model, modelpath))
+
+        finally:
+            loop.close()
+        t1 = round(time.time() * 1000)
+        self.logger.info(
+            "Modelhost post.modelhost_upload_model call elapsed time: " + str(t1 - t0) + " ms")  # TODO logger
+
+        return upload
+
+    def _test_get_modelhost_predictions(self, observation_list):
         t0 = round(time.time() * 1000)
         # llamada a la ejecucion asincrona de kitchen    #toda esta gestion del loop se podria sustituir por
         # asyncio.run()
@@ -172,9 +191,25 @@ class ModelhostQueryUtils:
             return await asyncio.gather(
                 *[self.get_query_async(data=data, session=session, url=url)])
 
+    async def post_modelhost_upload_model(self, model, modelpath):
+        URL_METHOD = '/modelhost/models/upload_' + model
+        url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
+
+        # Open the file
+        files = {'file': open(modelpath, 'rb')}
+
+        # debug --
+        # url = 'http://172.24.0.3:8000' + URL_METHOD
+        # -- debug
+
+        # Execute all queries with gather (one query every request)
+        async with aiohttp.ClientSession() as session:
+            return await asyncio.gather(
+                *[self.post_file_query_async(file=files, session=session, url=url)])
+
     # TODO async def get_modelhost_descriptions(self, model_list):
 
-    async def _test_get_kitchen_predictions(self, observation_list):
+    async def _test_get_modelhost_predictions(self, observation_list):
         URL_METHOD = '/api/test/frominferrer/get/'
         url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
         # execute all queries and gather results
@@ -202,6 +237,15 @@ class ModelhostQueryUtils:
         print("Got response [%s] for URL: %s", resp.status, endpoint)  # TODO logger
         prediction_data = await resp.text()
         return prediction_data
+
+    async def post_file_query_async(self, file, session, url):
+        endpoint = url
+        resp = await session.post(url=endpoint, data=file)
+        resp.raise_for_status()
+        print("Got response [%s] for URL: %s", resp.status, endpoint)  # TODO logger
+        response = await resp.text()
+
+        return response
 
     async def _test_get_query_async(self, observation, session, url):
         endpoint = url + observation
