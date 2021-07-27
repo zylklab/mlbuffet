@@ -40,10 +40,14 @@ First make sure that you have Docker-Engine and Docker-Compose installed. Some T
 
 -TCP 9090
 
-Go to the deploy directory and run the following command: `docker-compose up -d`
+Then, execute the file `start_FractalMLServer-Lite.sh` (if you cannot execute that file, change the permissions of the file). The installing file will ask how many hodelhosts nodes you want to build, and then, it will build the server.
+
+If you do not want to execute the file `start_FractalMLServer-Lite`, go to the deploy directory and run the following command: `docker-compose up -d`
 Docker-Compose will begin building the images of the containers to be created. Once it is done building (usually takes around 3-4 minutes), containers will be created and services will be deployed. Make sure that services are up and running by running `docker ps`. In case any of the services are not available, run `docker logs <container_name>` to see the possible reason.
 
 Once you are over, run `docker-compose down` to remove the containers. `docker-compose down --rm all --remove-orphans` will also remove the images in case you don't need them anymore (they can be rebuilt).
+
+
 
 
 
@@ -58,22 +62,22 @@ The welcome message should be displayed.
 ## Test the inferrer API and rebalance queries to modelhost nodes.
 
 To test the inferrer API, there are some methods with the '_test_' prefix that are used to show the comunication between the inferrer, the load balancer and the modelhost nodes.
- 
-The following query can be used to call inferrer node 
+
+The following query can be used to call inferrer node
 `curl -X GET -H "Content-Type: application/json" --data '{"data": ["ONE", "TWO", "THREE", "FOUR"]}'  http://172.24.0.2:8000/api/test/sendtomodelhost/`
 
 The communication flow includes:
 - the query HTTP query is send to the inferrer API REST <INFERRER_IP:8000>
-- the API method uses ModelHostClientManager class to make the queries to the modelhost nodes. 
+- the API method uses ModelHostClientManager class to make the queries to the modelhost nodes.
 This is done by calling the LOAD BALANCER, which is in charge of redirecting the queries to the modelhost nodes.
 - in te modelhost method responds with a ping message, incluiding an unique ID for each of the modelhost nodes, which allows to distinguish which modelhost node has executed the query.
 - results are gatherer by the ModelHostClientManager and presented on the inferrer API.
 
 To add or remove modelhost nodes to the architecture, the following files have to be updated:
 - on the deploy module, add the new endpoint properties to the `.env` file, on the modelhost sectioon
-     `MODELHOST_N_IP=<NODE_N_IP>` and 
+     `MODELHOST_N_IP=<NODE_N_IP>` and
       `MODELHOST_N_API_BIND_TO_PORT=<NODE_N_PORT>`
-- then on the deploy module, add to the `docker-compose` the new service instance: 
+- then on the deploy module, add to the `docker-compose` the new service instance:
          ```docker
            modelhost_N:
             container_name: modelhost_N
