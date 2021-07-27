@@ -1,3 +1,4 @@
+import os
 from os import getcwd, path, remove, listdir
 import onnx
 import onnxruntime as rt
@@ -66,7 +67,7 @@ def get_test():
 @server.route('/api/test/frominferrer/get/<data>', methods=['GET'])
 def _test_frominferrer_send_modelhost(data):
     print(data)
-    return HttpJsonResponse(200, http_status_description='recibido ' + data + ', modelhost prediction (node:' + str(
+    return HttpJsonResponse(200, http_status_description='Received: ' + data + ', modelhost prediction (node:' + str(
         MODELHOST_NODE_UNIQ_ID) + ')').json()
 
 
@@ -197,7 +198,17 @@ def post_upload_model(model):
     append_model(model, session_list, MODEL_FOLDER)
     return HttpJsonResponse(200, http_status_description='success').json()
 
-
+@server.route(path.join(MODELHOST_BASE_URL, 'models/delete_<model>'), methods=['DELETE'])
+def delete_model(model):
+    # check that model exists
+    if os.path.isfile(path.join(MODEL_FOLDER, model)):
+        # delete the model in model folder
+        os.remove(path.join(MODEL_FOLDER, model))
+        return HttpJsonResponse(200, http_status_description='success').json()
+    else:
+        return HttpJsonResponse(404, http_status_description=f'{model} does not exist. '
+                                                             f'Visit GET {path.join(API_BASE_URL, "models")} '
+                                                             f'for a list of avaliable model_index').json()
 ##TODO:
 # # Delete model
 # @server.route(path.join(API_BASE_URL, 'model_index/<model_name>'), methods=['DELETE'])

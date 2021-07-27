@@ -61,14 +61,15 @@ def get_test():
 
 @server.route('/api/test/sendtomodelhost/', methods=['GET'])
 def _test_send_to_modelhost():
-    modelhostclient = ModelhostClientManager()
+    modelhost = ModelhostClientManager()
     data_array = request.json['data']
     print(data_array)
-    predictions = modelhostclient._test_get_kitchen_predictions(data_array)
+    predictions = modelhost._test_get_modelhost_predictions(data_array)
     for p in predictions:
-        print("respuesta en api " + p)
+        print("API Response: " + p)
 
-    return "recibido"
+    print("\n")
+    return "Received  \n"
 
 
 @server.route('/metrics', methods=['GET', 'POST'])
@@ -297,6 +298,22 @@ def uploadModel(model):
     tiempo = t1 - t0
     logger.info("Time uploading model: " + str(tiempo))
     return HttpJsonResponse(201, http_status_description=f'{model} uploaded!').json()
+
+
+@server.route(path.join(API_BASE_URL, 'models/delete_<model>'), methods=['DELETE'])
+def deleteModel(model):
+    t0 = time.time()
+    metric_manager.increment_test_counter()
+
+    model_name = secure_filename(model)
+    # send the model as HTTP post request
+    modelhost = ModelhostClientManager()
+    modelhost.delete_modelhost_delete_model(model_name)
+
+    t1 = time.time()
+    tiempo = t1 - t0
+    logger.info("Time deleting model: " + str(tiempo))
+    return HttpJsonResponse(200, http_status_description=f'{model} deleted!').json()
 
 
 if __name__ == '__main__':
