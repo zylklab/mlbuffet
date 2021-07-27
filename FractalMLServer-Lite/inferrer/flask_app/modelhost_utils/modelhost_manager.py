@@ -92,22 +92,22 @@ class ModelhostClientManager:
         finally:
             loop.close()
         t1 = round(time.time() * 1000)
-        self.logger.info(
-            "Modelhost post.modelhost_upload_model call elapsed time: " + str(t1 - t0) + " ms")  # TODO logger
+        #self.logger.info(
+        #    "Modelhost post_modelhost_upload_model call elapsed time: " + str(t1 - t0) + " ms")  # TODO logger
 
         return upload
 
     def _test_get_modelhost_predictions(self, observation_list):
         t0 = round(time.time() * 1000)
-        # llamada a la ejecucion asincrona de kitchen    #toda esta gestion del loop se podria sustituir por
+        # llamada a la ejecucion asincrona de modelhost    #toda esta gestion del loop se podria sustituir por
         # asyncio.run()
         loop = asyncio.new_event_loop()  # asyncio.get_event_loop()
         try:
-            predictions = loop.run_until_complete(self.modelhostUtils._test_get_kitchen_predictions(observation_list))
+            predictions = loop.run_until_complete(self.modelhostUtils._test_get_modelhost_predictions(observation_list))
         finally:
             loop.close()
         t1 = round(time.time() * 1000)
-        # print("kitchen get_kitchen_predictions() call elapsed time: " + str(t1 - t0) + " ms")  # TODO logger
+        # print("modelhost get_modelhost_predictions() call elapsed time: " + str(t1 - t0) + " ms")  # TODO logger
         return predictions
 
     # TODO def get_modelhost_descriptions(self, model_list):
