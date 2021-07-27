@@ -21,9 +21,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 #run integration testing
 RUN mkdir /home/logs
 
-RUN mkdir /root/.cache/fractalmlserver
-
-COPY cache/inferrer-cache.json /root/.cache/fractalmlserver/inferrer-cache.json
+COPY cache/inferrer-cache.json /.cache/inferrer-cache.json
 
 
 

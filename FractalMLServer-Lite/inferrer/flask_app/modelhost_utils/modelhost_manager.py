@@ -78,17 +78,36 @@ class ModelhostClientManager:
         # self.logger.info("modelhost get_modelhost_models_description() call elapsed time: " + str(t1 - t0) + " ms")
         return info
 
-    def _test_get_kitchen_predictions(self, observation_list):
+    def post_modelhost_upload_model(self, model, modelpath):
+
         t0 = round(time.time() * 1000)
-        # llamada a la ejecucion asincrona de kitchen    #toda esta gestion del loop se podria sustituir por
-        # asyncio.run()
-        loop = asyncio.new_event_loop()  # asyncio.get_event_loop()
+
+        # Call to the asynchronous execution of modelhost
+        loop = asyncio.new_event_loop()
+
         try:
-            predictions = loop.run_until_complete(self.modelhostUtils._test_get_kitchen_predictions(observation_list))
+            upload = loop.run_until_complete(
+                self.modelhostUtils.post_modelhost_upload_model(model, modelpath))
+
         finally:
             loop.close()
         t1 = round(time.time() * 1000)
-        # print("kitchen get_kitchen_predictions() call elapsed time: " + str(t1 - t0) + " ms")  # TODO logger
+        #self.logger.info(
+        #    "Modelhost post_modelhost_upload_model call elapsed time: " + str(t1 - t0) + " ms")  # TODO logger
+
+        return upload
+
+    def _test_get_modelhost_predictions(self, observation_list):
+        t0 = round(time.time() * 1000)
+        # llamada a la ejecucion asincrona de modelhost    #toda esta gestion del loop se podria sustituir por
+        # asyncio.run()
+        loop = asyncio.new_event_loop()  # asyncio.get_event_loop()
+        try:
+            predictions = loop.run_until_complete(self.modelhostUtils._test_get_modelhost_predictions(observation_list))
+        finally:
+            loop.close()
+        t1 = round(time.time() * 1000)
+        # print("modelhost get_modelhost_predictions() call elapsed time: " + str(t1 - t0) + " ms")  # TODO logger
         return predictions
 
     # TODO def get_modelhost_descriptions(self, model_list):
@@ -114,6 +133,7 @@ class ModelhostQueryUtils:
         # -- debug
 
         # Execute all queries with gather (one query every request)
+
         async with aiohttp.ClientSession() as session:
             return await asyncio.gather(
                 *[self.post_query_async(observation_list, session, url)])
@@ -170,9 +190,25 @@ class ModelhostQueryUtils:
             return await asyncio.gather(
                 *[self.get_query_async(data=data, session=session, url=url)])
 
+    async def post_modelhost_upload_model(self, model, modelpath):
+        URL_METHOD = '/modelhost/models/upload_' + model
+        url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
+
+        # Open the file
+        files = {'file': open(modelpath, 'rb')}
+
+        # debug --
+        # url = 'http://172.24.0.3:8000' + URL_METHOD
+        # -- debug
+
+        # Execute all queries with gather (one query every request)
+        async with aiohttp.ClientSession() as session:
+            return await asyncio.gather(
+                *[self.post_file_query_async(file=files, session=session, url=url)])
+
     # TODO async def get_modelhost_descriptions(self, model_list):
 
-    async def _test_get_kitchen_predictions(self, observation_list):
+    async def _test_get_modelhost_predictions(self, observation_list):
         URL_METHOD = '/api/test/frominferrer/get/'
         url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
         # execute all queries and gather results
@@ -201,6 +237,15 @@ class ModelhostQueryUtils:
         prediction_data = await resp.text()
         return prediction_data
 
+    async def post_file_query_async(self, file, session, url):
+        endpoint = url
+        resp = await session.post(url=endpoint, data=file)
+        resp.raise_for_status()
+        print("Got response [%s] for URL: %s", resp.status, endpoint)  # TODO logger
+        response = await resp.text()
+
+        return response
+
     async def _test_get_query_async(self, observation, session, url):
         endpoint = url + observation
         print(endpoint)
@@ -211,3 +256,28 @@ class ModelhostQueryUtils:
         return prediction_data
 
 
+#TODO este Logger debería estar en un clase de utils dedicadas e importado en esta para ser utilizado
+class Logger():
+
+    def __init__(self, filename):
+        self.FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
+        self.LOG_FILE = f'/home/logs/{filename}-{time.time()}.log'
+
+    def get_console_handler(self):
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setFormatter(self.FORMATTER)
+        return console_handler
+
+    def get_file_handler(self):
+        file_handler = TimedRotatingFileHandler(self.LOG_FILE, when='midnight')
+        file_handler.setFormatter(self.FORMATTER)
+        return file_handler
+
+    def get_logger(self, logger_name):
+        logger = logging.getLogger(logger_name)
+        logger.setLevel(logging.DEBUG)  # better to have too much log than not enough
+        logger.addHandler(self.get_console_handler())
+        logger.addHandler(self.get_file_handler())
+        # with this pattern, it's rarely necessary to propagate the error up to parent
+        logger.propagate = False
+        return logger

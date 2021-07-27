@@ -113,7 +113,9 @@ The information you got is in Spanish. You can update a model's description with
 
 **Upload a new model**
 
-To be done
+You can upload your own .onnx models to the server by using the /upload<model_name> method.
+
+`curl -X POST -F "path=@/path/to/directory/<model_name>.onnx" http://localhost:8002/api/v1/models/upload_<model_name>.onnx`
 
 **Delete a model**
 

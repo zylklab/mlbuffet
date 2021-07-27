@@ -6,3 +6,4 @@ RUN rm /etc/nginx/conf.d/default.conf
 
 #this configuration files is included from deploy/docker-compose
 #COPY project.conf /etc/nginx/conf.d/
+
