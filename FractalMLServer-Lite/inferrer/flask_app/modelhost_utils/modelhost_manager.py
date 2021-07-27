@@ -97,6 +97,19 @@ class ModelhostClientManager:
 
         return upload
 
+    def delete_modelhost_delete_model(self, model):
+
+        t0 = round(time.time() * 1000)
+        # Call to the asynchronous execution of modelhost
+        loop = asyncio.new_event_loop()  # asyncio.get_event_loop()
+        try:
+            info = loop.run_until_complete(self.modelhostUtils.delete_modelhost_delete_model(model))
+        finally:
+            loop.close()
+        t1 = round(time.time() * 1000)
+        # self.logger.info("modelhost delete_modelhost_delete_model() call elapsed time: " + str(t1 - t0) + " ms")
+        return info
+
     def _test_get_modelhost_predictions(self, observation_list):
         t0 = round(time.time() * 1000)
         # llamada a la ejecucion asincrona de modelhost    #toda esta gestion del loop se podria sustituir por
@@ -206,6 +219,19 @@ class ModelhostQueryUtils:
             return await asyncio.gather(
                 *[self.post_file_query_async(file=files, session=session, url=url)])
 
+    async def delete_modelhost_delete_model(self, model):
+        URL_METHOD = '/modelhost/models/delete_' + model
+        url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
+
+        # debug --
+        # url = 'http://172.24.0.3:8000' + URL_METHOD
+        # -- debug
+
+        # Execute all queries with gather (one query every request)
+        async with aiohttp.ClientSession() as session:
+            return await asyncio.gather(
+                *[self.delete_query_async(session=session, url=url)])
+
     # TODO async def get_modelhost_descriptions(self, model_list):
 
     async def _test_get_modelhost_predictions(self, observation_list):
@@ -246,6 +272,14 @@ class ModelhostQueryUtils:
 
         return response
 
+    async def delete_query_async(self, session, url):
+        endpoint = url
+        resp = await session.request(method="DELETE", url=endpoint)
+        resp.raise_for_status()
+        # self.logger.info("Got response [%s] for URL: %s", resp.status, endpoint)  # TODO logger
+        response= await resp.text()
+        return response
+
     async def _test_get_query_async(self, observation, session, url):
         endpoint = url + observation
         print(endpoint)
@@ -254,6 +288,7 @@ class ModelhostQueryUtils:
         # self.logger.info("Got response [%s] for URL: %s", resp.status, endpoint)  # TODO logger
         prediction_data = await resp.text()
         return prediction_data
+
 
 
 #TODO este Logger debería estar en un clase de utils dedicadas e importado en esta para ser utilizado

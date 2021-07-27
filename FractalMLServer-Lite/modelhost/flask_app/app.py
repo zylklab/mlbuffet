@@ -1,3 +1,4 @@
+import os
 from os import getcwd, path, remove, listdir
 import onnx
 import onnxruntime as rt
@@ -212,7 +213,17 @@ def post_upload_model(model):
 
     return HttpJsonResponse(200, http_status_description='success').json()
 
-
+@server.route(path.join(MODELHOST_BASE_URL, 'models/delete_<model>'), methods=['DELETE'])
+def delete_model(model):
+    # check that model exists
+    if os.path.isfile(path.join(MODEL_FOLDER, model)):
+        # delete the model in model folder
+        os.remove(path.join(MODEL_FOLDER, model))
+        return HttpJsonResponse(200, http_status_description='success').json()
+    else:
+        return HttpJsonResponse(404, http_status_description=f'{model} does not exist. '
+                                                             f'Visit GET {path.join(API_BASE_URL, "models")} '
+                                                             f'for a list of avaliable model_index').json()
 ##TODO:
 #
 # # Download model
