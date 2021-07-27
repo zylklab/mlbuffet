@@ -2,7 +2,6 @@
 echo 'Welcome to FractalMLServer-Lite'
 echo "This is the installing configuration helper"
 echo 'Please, how many modelhosts do you want build'
-
 read num
 
 echo "$num modelhosts will be builded"

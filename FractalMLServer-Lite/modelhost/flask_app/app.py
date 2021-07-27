@@ -1,3 +1,4 @@
+import os
 from os import getcwd, path, remove, listdir
 import onnx
 import onnxruntime as rt
@@ -6,9 +7,9 @@ from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
 import random
 from utils import metric_manager
+from utils.modelhost_manager import list_of_models, append_model
 from utils.container_logger import Logger
 from utils.modelhost_pojos import HttpJsonResponse, Prediction, Description
-
 
 # TODO: poner más métricas de prometheus por ahí
 
@@ -37,24 +38,9 @@ model_list = listdir(MODEL_FOLDER)
 
 # List with the models preloaded to do the inference and their information
 session_list = []
-# List with the index of the models on session_list
 # TODO este for debería ir a un método de un utils
-for i in model_list:
-    sess = rt.InferenceSession(path.join(MODEL_FOLDER, i))
-    model = onnx.load(path.join(MODEL_FOLDER, i))
-    input_name = sess.get_inputs()[0].name
-    label_name = sess.get_outputs()[0].name
 
-    num_inputs = sess.get_inputs()[0].shape[1]
-    outputs = sess.get_outputs()[0].type
-    model_type = model.graph.node[0].name
-    description = model.doc_string
-    full_description = {"inputs_type": input_name, "num_imputs": num_inputs, "outputs": outputs,
-                        "model_type": model_type,
-                        "description": description}
-    cosa = [i, sess, input_name, label_name, full_description]
-    session_list.append(cosa)
-
+list_of_models(model_list, MODEL_FOLDER, session_list)
 
 
 @auth.verify_token
@@ -71,7 +57,6 @@ def hello_world():
                                                     'For more information, visit /help').json()
 
 
-
 @server.route('/api/test', methods=['GET'])
 def get_test():
     metric_manager.increment_test_counter()
@@ -81,9 +66,8 @@ def get_test():
 
 @server.route('/api/test/frominferrer/get/<data>', methods=['GET'])
 def _test_frominferrer_send_modelhost(data):
-
     print(data)
-    return HttpJsonResponse(200, http_status_description='recibido ' + data + ', modelhost prediction (node:' + str(
+    return HttpJsonResponse(200, http_status_description='Received: ' + data + ', modelhost prediction (node:' + str(
         MODELHOST_NODE_UNIQ_ID) + ')').json()
 
 
@@ -202,6 +186,7 @@ def model_post_information():
     onnx.save(model, model_path)
     return HttpJsonResponse(200, http_status_description='success').json()
 
+
 @server.route(path.join(MODELHOST_BASE_URL, 'models/upload_<model>'), methods=['POST'])
 def post_upload_model(model):
     # get model
@@ -209,17 +194,22 @@ def post_upload_model(model):
 
     # save the model in model folder
     modelpath.save(path.join(MODEL_FOLDER, model))
-
+    model_list.append(model)
+    append_model(model, session_list, MODEL_FOLDER)
     return HttpJsonResponse(200, http_status_description='success').json()
 
-
+@server.route(path.join(MODELHOST_BASE_URL, 'models/delete_<model>'), methods=['DELETE'])
+def delete_model(model):
+    # check that model exists
+    if os.path.isfile(path.join(MODEL_FOLDER, model)):
+        # delete the model in model folder
+        os.remove(path.join(MODEL_FOLDER, model))
+        return HttpJsonResponse(200, http_status_description='success').json()
+    else:
+        return HttpJsonResponse(404, http_status_description=f'{model} does not exist. '
+                                                             f'Visit GET {path.join(API_BASE_URL, "models")} '
+                                                             f'for a list of avaliable model_index').json()
 ##TODO:
-#
-# # Download model
-# @server.route(path.join(API_BASE_URL, 'model_index/<model_name>'), methods=['GET'])
-# def download_model(model_name):
-#
-#
 # # Delete model
 # @server.route(path.join(API_BASE_URL, 'model_index/<model_name>'), methods=['DELETE'])
 # def delete_model(model_name):

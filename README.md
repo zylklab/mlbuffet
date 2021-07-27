@@ -1,4 +1,4 @@
-This repo contains the work for the DEMO of the FRACTAL project, which will take place at the beggining of October 2021.
+This repo contains the work for the DEMO of the FRACTAL project, which will take place at the beginning of October 2021.
 
 The DEMO is initially based on the Model Server developed by Zylk, during the research of this project.
 
@@ -40,18 +40,28 @@ First make sure that you have Docker-Engine and Docker-Compose installed. Some T
 
 -TCP 9090
 
-Go to the deploy directory and run the following command: `docker-compose up -d`
+Then, execute the file `start_FractalMLServer-Lite.sh` (if you cannot execute that file, change the permissions of the file). The installing file will ask how many hodelhosts nodes you want to build, and then, it will build the server.
+
+If you do not want to execute the file `start_FractalMLServer-Lite`, go to the deploy directory and run the following command: `docker-compose up -d`
 Docker-Compose will begin building the images of the containers to be created. Once it is done building (usually takes around 3-4 minutes), containers will be created and services will be deployed. Make sure that services are up and running by running `docker ps`. In case any of the services are not available, run `docker logs <container_name>` to see the possible reason.
 
 Once you are over, run `docker-compose down` to remove the containers. `docker-compose down --rm all --remove-orphans` will also remove the images in case you don't need them anymore (they can be rebuilt).
+
+### Recommended build
+
+You can deploy the services like described above, however, you may want to add more modelhosts to the service cluster. In case you need to increase the number of modelhosts, a script probes.sh that you can execute with `bash probes.sh` has been included.
+
+Upon execution, the script will prompt the user how many modelhost nodes he needs, and then will format the docker-compose.yaml and nginx configuration accordingly. Then, it will execute all the commands to build the images and get the containers up and running, so no more interaction from the user is required.
+
+This is the recommended way of building the services because the project is thought to have an increasing number of nodes.
 
 
 
 ## Test the API and welcome.
 
-The module used to communicate with and the one to which the HTTP requests must be made is the Inferrer, with an associated container called inferrer and its 8000 port binded to localhost:8081. HTTP requests can be done through the localhost port or the internal Docker network, but the first method is preferred.
+The module used to communicate with and the one to which the HTTP requests must be made is the Inferrer, with an associated container called inferrer and its 8000 port binded to localhost:8002. HTTP requests can be done through the localhost port or the internal Docker network, but the first is preferred.
 
-To get welcomed by the API, use `curl http://localhost:8001/`
+To get welcomed by the API, use `curl http://localhost:8002/`
 
 The welcome message should be displayed.
 
@@ -62,14 +72,16 @@ To test the inferrer API, there are some methods with the '_test_' prefix that a
 The following query can be used to call inferrer node
 `curl -X GET -H "Content-Type: application/json" --data '{"data": ["ONE", "TWO", "THREE", "FOUR"]}'  http://172.24.0.2:8000/api/test/sendtomodelhost/`
 
-The communication flow includes:
-- the query HTTP query is send to the inferrer API REST <INFERRER_IP:8000>
-- the API method uses ModelHostClientManager class to make the queries to the modelhost nodes.
-This is done by calling the LOAD BALANCER, which is in charge of redirecting the queries to the modelhost nodes.
-- in te modelhost method responds with a ping message, incluiding an unique ID for each of the modelhost nodes, which allows to distinguish which modelhost node has executed the query.
-- results are gatherer by the ModelHostClientManager and presented on the inferrer API.
+Then, do `docker logs inferrer` to confirm that the modelhost APIs responded correctly and the load was correctly balanced between nodes (each node has a unique identifier and it can be seen which node attended each request).
 
-To add or remove modelhost nodes to the architecture, the following files have to be updated:
+The communication flow includes:
+- The HTTP request is sent to the inferrer API REST <INFERRER_IP:8000>
+- The API method uses ModelHostClientManager class to make the queries to the modelhost nodes.
+This is done by calling the LOAD BALANCER, which is in charge of redirecting the queries to the modelhost nodes.
+- In the modelhost, the corresponding method responds with a ping message, incluiding an unique ID for each of the modelhost nodes, which allows to distinguish which modelhost node has executed the query.
+- Results are gatherer by the ModelHostClientManager and presented on the inferrer API.
+
+To manually add or remove modelhost nodes to the architecture, the following files have to be updated:
 - on the deploy module, add the new endpoint properties to the `.env` file, on the modelhost sectioon
      `MODELHOST_N_IP=<NODE_N_IP>` and
       `MODELHOST_N_API_BIND_TO_PORT=<NODE_N_PORT>`
@@ -90,6 +102,7 @@ To add or remove modelhost nodes to the architecture, the following files have t
 - finally, on the deploy module, add update the nginx configuration on `service-configurations/nginx-config/project.conf`:
   add the line `server MODELHOST_N_IP:8000;` for example  `server 172.24.0.5:8000;`
 
+However, these steps must only be followed if you skipped the Recommended build section or want to add additional nodes once the services have already been deployed.
 
 
 ## Model Handling
@@ -98,14 +111,14 @@ Some pre-trained models are already uploaded and can be updated manually through
 
 **Get model information**
 
-`curl -X GET http://localhost:8001/api/v1/models/iris.onnx/information`
+`curl -X GET http://localhost:8002/api/v1/models/iris.onnx/information`
 
 
 **Update model information**
 
 The information you got is in Spanish. You can update a model's description with the POST method:
 
-`curl -X POST -H "Content-Type: application/json" --data '{"model_description":"This model classifies a 4 element array input between different species of Iris flowers."}' http://localhost:8001/api/v1/updateinfo/iris.onnx`
+`curl -X POST -H "Content-Type: application/json" --data '{"model_description":"This model classifies a 4 element array input between different species of Iris flowers."}' http://localhost:8002/api/v1/updateinfo/iris.onnx`
 
 **Upload a new model**
 
@@ -115,15 +128,20 @@ You can upload your own .onnx models to the server by using the /upload<model_na
 
 **Delete a model**
 
-To be done
+Delete the models you don't need anymore with the /delete_<model_name> method.
+
+`curl -X DELETE http://localhost:8002/api/v1/models/delete_<model_name>.onnx`
 
 **Deploy a new model**
+
+To be done.
+
 
 ## Model Predictions
 **Get a prediction!**
 
 Once models have been correctly uploaded, deployed and described, the server is ready for inference. Requests must be done with an input in json format.
 
-`curl -X GET -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 5]}' http://localhost:8001/api/v1/models/iris.onnx/prediction`
+`curl -X GET -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 5]}' http://localhost:8002/api/v1/models/iris.onnx/prediction`
 
 This command will send an HTTP request to the server asking for a prediction on a given flower.
