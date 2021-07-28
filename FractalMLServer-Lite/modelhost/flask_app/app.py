@@ -7,7 +7,7 @@ from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
 import random
 from utils import metric_manager
-from utils.modelhost_manager import list_of_models, append_model
+import utils.modelhost_manager as manager
 from utils.container_logger import Logger
 from utils.modelhost_pojos import HttpJsonResponse, Prediction, Description
 
@@ -34,13 +34,11 @@ auth.auth_error_callback = lambda *args, **kwargs: handle_exception(Unauthorized
 server = Flask(__name__)
 logger.info('... Flask API succesfully started')
 
-model_list = listdir(MODEL_FOLDER)
-
 # List with the models preloaded to do the inference and their information
 session_list = []
-# TODO este for debería ir a un método de un utils
 
-list_of_models(model_list, MODEL_FOLDER, session_list)
+#Function that updates the model_list according to the MODEL_FOLDER
+model_list = manager.refresh_model_list(MODEL_FOLDER, session_list)
 
 
 @auth.verify_token
@@ -132,22 +130,6 @@ def prediction(model_name):
 
     return Prediction(200, http_status_description='Prediction successful', values=pred).json()
 
-
-# TODO este do_prediction debería ir a un método de un utils (al ModelManager o algo similar)
-# Function that makes the inference
-def do_prediction(model, input):
-    index = model_list.index(model)
-    session = session_list[index][1]
-    input_names = session_list[index][2]
-    output_names = session_list[index][3]
-
-    pred = session.run(
-        [output_names],
-        {input_names: [input]}
-    )[0]
-    return pred
-
-
 @server.route(path.join(MODELHOST_BASE_URL, 'information'), methods=['GET'])
 def get_model_information():
     model_name = request.json['model']
@@ -158,12 +140,13 @@ def get_model_information():
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models'), methods=['GET'])
 def get_model_list():
-    list = model_list
-    return Description(200, http_status_description='Model description', description=list).json()
+    list = manager.refresh_model_list(model_list, session_list)
+    return Description(200, http_status_description='List of available models', list=list).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/information'), methods=['GET'])
 def get_model_list_information():
+    model_list = manager.refresh_model_list(MODEL_FOLDER, session_list)
     list = model_list
     models_descr = []
     for i in list:
@@ -194,8 +177,8 @@ def post_upload_model(model):
 
     # save the model in model folder
     modelpath.save(path.join(MODEL_FOLDER, model))
-    model_list.append(model)
-    append_model(model, session_list, MODEL_FOLDER)
+    manager.refresh_model_list(MODEL_FOLDER, session_list)
+
     return HttpJsonResponse(200, http_status_description='success').json()
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/delete_<model>'), methods=['DELETE'])
@@ -204,16 +187,13 @@ def delete_model(model):
     if os.path.isfile(path.join(MODEL_FOLDER, model)):
         # delete the model in model folder
         os.remove(path.join(MODEL_FOLDER, model))
+        manager.refresh_model_list(MODEL_FOLDER, session_list)
+
         return HttpJsonResponse(200, http_status_description='success').json()
     else:
         return HttpJsonResponse(404, http_status_description=f'{model} does not exist. '
                                                              f'Visit GET {path.join(API_BASE_URL, "models")} '
                                                              f'for a list of avaliable model_index').json()
-##TODO:
-# # Delete model
-# @server.route(path.join(API_BASE_URL, 'model_index/<model_name>'), methods=['DELETE'])
-# def delete_model(model_name):
-
 
 if __name__ == '__main__':
     server.run()

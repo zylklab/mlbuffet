@@ -1,6 +1,6 @@
 import onnxruntime as rt
 import onnx
-from os import path
+from os import path, listdir
 
 
 def list_of_models(model_list, MODEL_FOLDER, session_list):
@@ -23,4 +23,27 @@ def append_model(model, session_list, MODEL_FOLDER):
                         "description": description}
     cosa = [model, sess, input_name, label_name, full_description]
     session_list.append(cosa)
+
+
+#Call this function every time the MODEL_FOLDER is modified (Upload/Delete models)
+def refresh_model_list(MODEL_FOLDER, session_list):
+    model_list = listdir(MODEL_FOLDER)
+
+    list_of_models(model_list, MODEL_FOLDER, session_list)
+
+    return model_list
+
+
+# Function that makes the inference
+def do_prediction(model, input):
+    index = model_list.index(model)
+    session = session_list[index][1]
+    input_names = session_list[index][2]
+    output_names = session_list[index][3]
+
+    pred = session.run(
+        [output_names],
+        {input_names: [input]}
+    )[0]
+    return pred
 
