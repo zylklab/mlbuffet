@@ -49,11 +49,19 @@ Once you are over, run `docker-compose down` to remove the containers. `docker-c
 
 ### Recommended build
 
-You can deploy the services like described above, however, you may want to add more modelhosts to the service cluster. In case you need to increase the number of modelhosts, a script probes.sh that you can execute with `bash probes.sh` has been included.
+You can deploy the services like described above, however, you may want to add more modelhosts to the service cluster. In case you need to increase the number of modelhosts, a script that you can execute with `$ ./start_FractalMLServer-Lite.sh` has been included.
 
 Upon execution, the script will prompt the user how many modelhost nodes he needs, and then will format the docker-compose.yaml and nginx configuration accordingly. Then, it will execute all the commands to build the images and get the containers up and running, so no more interaction from the user is required.
 
-This is the recommended way of building the services because the project is thought to have an increasing number of nodes.
+This is the recommended way of building the services because the project is thought to have an increasing number of nodes. Take into account that with this boot method, the server will take control of the terminal session, so you will need to open a new one to work.
+
+```
+prometheus-fractal | level=info ts=2021-07-27T12:29:56.880Z caller=main.go:775 msg="Server is ready to receive web requests."
+inferrer       | 2021-07-27 12:29:57,489 — inferrer — INFO — Starting FRACTAL - ML SERVER - INFERRER API...
+inferrer       | 2021-07-27 12:29:57,491 — inferrer — INFO — ... FRACTAL - ML SERVER - INFERRER API succesfully started
+modelhost_1    | 2021-07-27 12:29:57,499 — modelhost-logger — INFO — Starting Flask API...
+modelhost_1    | 2021-07-27 12:29:57,501 — modelhost-logger — INFO — ... Flask API succesfully started
+```
 
 
 
@@ -64,6 +72,28 @@ The module used to communicate with and the one to which the HTTP requests must 
 To get welcomed by the API, use `curl http://localhost:8002/`
 
 The welcome message should be displayed.
+
+```json
+{
+  "http_status": {
+    "code": 200,
+    "description": "Greetings from Fractal - ML Server - Inferrer, the Machine Learning model server. For more information, visit /help",
+    "name": "OK"
+  }
+}
+```
+Or you can try asking for some help:
+
+`curl http://localhost:8002/help`
+
+
+```
+    #############################
+    #### FRACTAL - ML SERVER ####
+    #############################
+
+FRACTAL - ML SERVER is a model server developed by Zylk.net
+```
 
 ## Test the inferrer API and rebalance queries to modelhost nodes.
 
@@ -107,9 +137,53 @@ However, these steps must only be followed if you skipped the Recommended build 
 
 ## Model Handling
 
-Some pre-trained models are already uploaded and can be updated manually through the inferrer/models/ directory. However, model handling is supported by Fractal - ML Server. Several methods for model handling can be used from the API:
+Some pre-trained models are already uploaded and can be updated manually through the modelhost/models/ directory. However, model handling is supported by Fractal - ML Server. Each of the modelhost servers can access the models directory so they share a pool of common models.
+
+Several methods for model handling can be used from the API:
+
+**Get the list of available models**
+
+`curl -X GET http://localhost:8002/api/v1/models`
+
+```json
+{
+  "http_status": {
+    "code": 200,
+    "description": "OK",
+    "name": "OK"
+  },
+  "model_list": [
+    "diabetes.onnx",
+    "iris.onnx"
+  ]
+}
+```
+
+This method however, only displays a list of models, but a description of the models can be added in case the number of models get larger. The complete available information about the models can be accessed through `curl -X GET http://172.24.0.1:8002/api/v1/models/information`
+
+```json
+{
+  "http_status": {
+    "code": 200,
+    "description": "OK",
+    "name": "OK"
+  },
+  "model_list": [
+    {
+      "description": "",
+      "model": "diabetes.onnx"
+    },
+    {
+      "description": "Clasificación de especies de flores de Iris. Se clasifican en setosa, versicolor o virginica dependiendo de las medidas de sépalo y pétalo",
+      "model": "iris.onnx"
+    }
+  ]
+}
+```
 
 **Get model information**
+
+The specific information of any model can also be requested by the /api/v1/models/<model_name>/information method:
 
 `curl -X GET http://localhost:8002/api/v1/models/iris.onnx/information`
 
