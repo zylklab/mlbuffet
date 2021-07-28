@@ -190,7 +190,7 @@ The specific information of any model can also be requested by the /api/v1/model
 
 **Update model information**
 
-The information you got is in Spanish. You can update a model's description with the POST method:
+A model may have incomplete information, wrong information or no information at all. You can update a model's description with the POST method:
 
 `curl -X POST -H "Content-Type: application/json" --data '{"model_description":"This model classifies a 4 element array input between different species of Iris flowers."}' http://localhost:8002/api/v1/updateinfo/iris.onnx`
 
@@ -216,6 +216,22 @@ To be done.
 
 Once models have been correctly uploaded, deployed and described, the server is ready for inference. Requests must be done with an input in json format.
 
-`curl -X GET -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 5]}' http://localhost:8002/api/v1/models/iris.onnx/prediction`
+`curl -X GET -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 4]}' http://localhost:8002/api/v1/models/iris.onnx/prediction`
 
 This command will send an HTTP request to the server asking for a prediction on a given flower.
+
+```json
+{
+  "http_status": {
+    "code": 200,
+    "description": "Prediction successful",
+    "name": "OK"
+  },
+  "values": [
+    1
+  ]
+}
+
+```
+
+The field "values":[1] is the prediction for the input flower. You are now ready to upload your own models and make predictions!
