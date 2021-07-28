@@ -266,6 +266,19 @@ def showModelsDescription():
     return ModelList(200, model_list=descriptions).json()
 
 
+@server.route(path.join(API_BASE_URL, 'models/update'), methods=['POST'])
+def updateModels():
+    t0 = time.time()
+    metric_manager.increment_model_counter()
+    modelhost = ModelhostClientManager()
+    modelhost.update_modelhost_models()
+
+    t1 = time.time()
+    tiempo = t1 - t0
+    logger.info("Time getting model_list_description: " + str(tiempo))
+    return HttpJsonResponse(200, http_status_description=f'Models updated!').json()
+
+
 @server.route(path.join(API_BASE_URL, 'models/upload_<model>'), methods=['POST'])
 def uploadModel(model):
     t0 = time.time()
@@ -292,8 +305,8 @@ def uploadModel(model):
     modelhost.post_modelhost_upload_model(model, str(path.join(MODEL_FOLDER, model)))
 
     # delete the model from inferrer
+    modelhost.update_modelhost_models()
     os.remove(path.join(MODEL_FOLDER, model))
-
     t1 = time.time()
     tiempo = t1 - t0
     logger.info("Time uploading model: " + str(tiempo))
@@ -309,7 +322,7 @@ def deleteModel(model):
     # send the model as HTTP post request
     modelhost = ModelhostClientManager()
     modelhost.delete_modelhost_delete_model(model_name)
-
+    modelhost.update_modelhost_models()
     t1 = time.time()
     tiempo = t1 - t0
     logger.info("Time deleting model: " + str(tiempo))

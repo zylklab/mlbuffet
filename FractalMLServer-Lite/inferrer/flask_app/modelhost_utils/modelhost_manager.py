@@ -110,6 +110,18 @@ class ModelhostClientManager:
         # self.logger.info("modelhost delete_modelhost_delete_model() call elapsed time: " + str(t1 - t0) + " ms")
         return info
 
+    def update_modelhost_models(self):
+        t0 = round(time.time() * 1000)
+        # Call to the asynchronous execution of modelhost
+        loop = asyncio.new_event_loop()  # asyncio.get_event_loop()
+        try:
+            info = loop.run_until_complete(self.modelhostUtils.update_modelhost_models())
+        finally:
+            loop.close()
+        t1 = round(time.time() * 1000)
+        # self.logger.info("modelhost delete_modelhost_delete_model() call elapsed time: " + str(t1 - t0) + " ms")
+        return info
+
     def _test_get_modelhost_predictions(self, observation_list):
         t0 = round(time.time() * 1000)
         # llamada a la ejecucion asincrona de modelhost    #toda esta gestion del loop se podria sustituir por
@@ -133,6 +145,7 @@ class ModelhostQueryUtils:
     def __init__(self):
         self.LOAD_BALANCER_ENDPOINT = os.getenv('LOAD_BALANCER_ENDPOINT')
         self.URL_PREFIX = 'http://'
+        self.NUMBER_OF_MODELHOSTS = int(os.getenv("NUMBER_MODELHOST_NODES"))
         # self.logger = Logger("manager_logger").get_logger("manager_logger")
 
     """ASYNC MODELHOST METHODS"""
@@ -227,11 +240,42 @@ class ModelhostQueryUtils:
         # debug --
         # url = 'http://172.24.0.3:8000' + URL_METHOD
         # -- debug
-
+        # n = self.NUMBER_OF_MODELHOSTS
+        # for i in range(n):
+        #     lru = self.URL_PREFIX + '172.24.0.' + str(i + 11) + ':8000' + URL_METHOD
+        #     print(lru)
+        #     data = None
+        #     # Execute all queries with gather (one query every request)
+        #     async with aiohttp.ClientSession() as session:
+        #         await asyncio.gather(
+        #             *[self.delete_query_async(session=session, url=lru)])
+        # return "done"
         # Execute all queries with gather (one query every request)
         async with aiohttp.ClientSession() as session:
             return await asyncio.gather(
                 *[self.delete_query_async(session=session, url=url)])
+
+    async def update_modelhost_models(self):
+        URL_METHOD = '/modelhost/models/update'
+        url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
+
+        # debug --
+        # url = 'http://172.24.0.3:8000' + URL_METHOD
+        # -- debug
+        n = self.NUMBER_OF_MODELHOSTS
+        for i in range(n):
+            lru = self.URL_PREFIX + '172.24.0.' + str(i + 11) + ':8000' + URL_METHOD
+            print(lru)
+            data = None
+            # Execute all queries with gather (one query every request)
+            async with aiohttp.ClientSession() as session:
+                await asyncio.gather(
+                    *[self.post_query_async(session=session, url=lru, data=data)])
+        return "done"
+        # Execute all queries with gather (one query every request)
+        # async with aiohttp.ClientSession() as session:
+        #     return await asyncio.gather(
+        #         *[self.delete_query_async(session=session, url=url)])
 
     # TODO async def get_modelhost_descriptions(self, model_list):
 
@@ -290,28 +334,4 @@ class ModelhostQueryUtils:
         prediction_data = await resp.text()
         return prediction_data
 
-#TODO este Logger debería estar en un clase de utils dedicadas e importado en esta para ser utilizado
-class Logger():
 
-    def __init__(self, filename):
-        self.FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
-        self.LOG_FILE = f'/home/logs/{filename}-{time.time()}.log'
-
-    def get_console_handler(self):
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setFormatter(self.FORMATTER)
-        return console_handler
-
-    def get_file_handler(self):
-        file_handler = TimedRotatingFileHandler(self.LOG_FILE, when='midnight')
-        file_handler.setFormatter(self.FORMATTER)
-        return file_handler
-
-    def get_logger(self, logger_name):
-        logger = logging.getLogger(logger_name)
-        logger.setLevel(logging.DEBUG)  # better to have too much log than not enough
-        logger.addHandler(self.get_console_handler())
-        logger.addHandler(self.get_file_handler())
-        # with this pattern, it's rarely necessary to propagate the error up to parent
-        logger.propagate = False
-        return logger
