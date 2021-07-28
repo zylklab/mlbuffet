@@ -198,6 +198,19 @@ def post_upload_model(model):
     append_model(model, session_list, MODEL_FOLDER)
     return HttpJsonResponse(200, http_status_description='success').json()
 
+
+@server.route(path.join(MODELHOST_BASE_URL, 'models/update'), methods=['POST'])
+def update_models():
+    # check that model exists
+    global model_list
+    global session_list
+    model_list = []
+    session_list = []
+    model_list = listdir(MODEL_FOLDER)
+    list_of_models(model_list, MODEL_FOLDER, session_list)
+    return HttpJsonResponse(200, http_status_description='success').json()
+
+
 @server.route(path.join(MODELHOST_BASE_URL, 'models/delete_<model>'), methods=['DELETE'])
 def delete_model(model):
     # check that model exists
@@ -209,6 +222,8 @@ def delete_model(model):
         return HttpJsonResponse(404, http_status_description=f'{model} does not exist. '
                                                              f'Visit GET {path.join(API_BASE_URL, "models")} '
                                                              f'for a list of avaliable model_index').json()
+
+
 ##TODO:
 # # Delete model
 # @server.route(path.join(API_BASE_URL, 'model_index/<model_name>'), methods=['DELETE'])

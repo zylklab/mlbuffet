@@ -266,6 +266,19 @@ def showModelsDescription():
     return ModelList(200, model_list=descriptions).json()
 
 
+@server.route(path.join(API_BASE_URL, 'models/update'), methods=['POST'])
+def updateModels():
+    t0 = time.time()
+    metric_manager.increment_model_counter()
+    modelhost = ModelhostClientManager()
+    modelhost.update_modelhost_models()
+
+    t1 = time.time()
+    tiempo = t1 - t0
+    logger.info("Time getting model_list_description: " + str(tiempo))
+    return HttpJsonResponse(200, http_status_description=f'Models updated!').json()
+
+
 @server.route(path.join(API_BASE_URL, 'models/upload_<model>'), methods=['POST'])
 def uploadModel(model):
     t0 = time.time()
