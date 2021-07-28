@@ -1,4 +1,5 @@
 *.pyc
+**/*.pyc
 *.iml
 .gradle
 /local.properties
