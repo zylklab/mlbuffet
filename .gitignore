@@ -1,5 +1,6 @@
 *.pyc
 **/*.pyc
+**/__pycache__/**
 *.iml
 .gradle
 /local.properties
