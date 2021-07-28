@@ -1,13 +1,12 @@
 import os
 from os import getcwd, path, remove, listdir
 import onnx
-import onnxruntime as rt
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
 import random
 from utils import metric_manager
-from utils.modelhost_manager import list_of_models, append_model
+import utils.modelhost_manager as manager
 from utils.container_logger import Logger
 from utils.modelhost_pojos import HttpJsonResponse, Prediction, Description
 
@@ -34,13 +33,11 @@ auth.auth_error_callback = lambda *args, **kwargs: handle_exception(Unauthorized
 server = Flask(__name__)
 logger.info('... Flask API succesfully started')
 
-model_list = listdir(MODEL_FOLDER)
-
 # List with the models preloaded to do the inference and their information
 session_list = []
-# TODO este for debería ir a un método de un utils
 
-list_of_models(model_list, MODEL_FOLDER, session_list)
+# Function that updates the model_list according to the MODEL_FOLDER
+model_list = manager.refresh_model_list(MODEL_FOLDER=MODEL_FOLDER, session_list=session_list)
 
 
 @auth.verify_token
@@ -128,24 +125,9 @@ def prediction(model_name):
 
     # get new observation
     new_observation = request.json['values']
-    pred = do_prediction(model_name, new_observation)
+    pred = manager.do_prediction(model=model_name, input=new_observation, model_list=model_list, session_list=session_list)
 
     return Prediction(200, http_status_description='Prediction successful', values=pred).json()
-
-
-# TODO este do_prediction debería ir a un método de un utils (al ModelManager o algo similar)
-# Function that makes the inference
-def do_prediction(model, input):
-    index = model_list.index(model)
-    session = session_list[index][1]
-    input_names = session_list[index][2]
-    output_names = session_list[index][3]
-
-    pred = session.run(
-        [output_names],
-        {input_names: [input]}
-    )[0]
-    return pred
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'information'), methods=['GET'])
@@ -159,11 +141,12 @@ def get_model_information():
 @server.route(path.join(MODELHOST_BASE_URL, 'models'), methods=['GET'])
 def get_model_list():
     list = model_list
-    return Description(200, http_status_description='Model description', description=list).json()
+    return Description(200, http_status_description='List of available models', description=list).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/information'), methods=['GET'])
 def get_model_list_information():
+    model_list = manager.refresh_model_list(MODEL_FOLDER, session_list)
     list = model_list
     models_descr = []
     for i in list:
@@ -194,20 +177,19 @@ def post_upload_model(model):
 
     # save the model in model folder
     modelpath.save(path.join(MODEL_FOLDER, model))
-    model_list.append(model)
-    append_model(model, session_list, MODEL_FOLDER)
+    # manager.refresh_model_list(MODEL_FOLDER, session_list)
+
     return HttpJsonResponse(200, http_status_description='success').json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/update'), methods=['POST'])
 def update_models():
-    # check that model exists
-    global model_list
+    # List with the models preloaded to do the inference and their information
     global session_list
-    model_list = []
     session_list = []
-    model_list = listdir(MODEL_FOLDER)
-    list_of_models(model_list, MODEL_FOLDER, session_list)
+    global model_list
+    # Function that updates the model_list according to the MODEL_FOLDER
+    model_list = manager.refresh_model_list(MODEL_FOLDER=MODEL_FOLDER, session_list=session_list)
     return HttpJsonResponse(200, http_status_description='success').json()
 
 
@@ -217,6 +199,8 @@ def delete_model(model):
     if os.path.isfile(path.join(MODEL_FOLDER, model)):
         # delete the model in model folder
         os.remove(path.join(MODEL_FOLDER, model))
+        # manager.refresh_model_list(MODEL_FOLDER, session_list)
+
         return HttpJsonResponse(200, http_status_description='success').json()
     else:
         return HttpJsonResponse(404, http_status_description=f'{model} does not exist. '

@@ -305,8 +305,8 @@ def uploadModel(model):
     modelhost.post_modelhost_upload_model(model, str(path.join(MODEL_FOLDER, model)))
 
     # delete the model from inferrer
+    modelhost.update_modelhost_models()
     os.remove(path.join(MODEL_FOLDER, model))
-
     t1 = time.time()
     tiempo = t1 - t0
     logger.info("Time uploading model: " + str(tiempo))
@@ -322,7 +322,7 @@ def deleteModel(model):
     # send the model as HTTP post request
     modelhost = ModelhostClientManager()
     modelhost.delete_modelhost_delete_model(model_name)
-
+    modelhost.update_modelhost_models()
     t1 = time.time()
     tiempo = t1 - t0
     logger.info("Time deleting model: " + str(tiempo))
