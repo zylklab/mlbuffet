@@ -23,9 +23,9 @@ services:
        fractalmlserver_network:
          ipv4_address: ${MODELHOST_1_IP}
      volumes:
-       - ../modelhost/logs:/home/logs
-       - .env:/home/.env
-       - ../modelhost/flask_app/models:/usr/src/flask_app/models
+         - ../modelhost/logs:/home/logs
+         - .env:/home/.env
+         - ../modelhost/flask_app/models:/usr/src/flask_app/models
 
   modelhost_2:
      container_name: modelhost_2
@@ -37,9 +37,9 @@ services:
        fractalmlserver_network:
          ipv4_address: ${MODELHOST_2_IP}
      volumes:
-       - ../modelhost/logs:/home/logs
-       - .env:/home/.env
-       - ../modelhost/flask_app/models:/usr/src/flask_app/models
+         - ../modelhost/logs:/home/logs
+         - .env:/home/.env
+         - ../modelhost/flask_app/models:/usr/src/flask_app/models
 
   prometheus:
      container_name: prometheus-fractal
