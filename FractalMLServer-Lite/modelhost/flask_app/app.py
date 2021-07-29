@@ -177,9 +177,22 @@ def post_upload_model(model):
 
     # save the model in model folder
     modelpath.save(path.join(MODEL_FOLDER, model))
-    # manager.refresh_model_list(MODEL_FOLDER, session_list)
 
     return HttpJsonResponse(200, http_status_description='success').json()
+
+
+@server.route(path.join(MODELHOST_BASE_URL, 'models/delete_<model>'), methods=['DELETE'])
+def delete_model(model):
+    # check that model exists
+    if os.path.isfile(path.join(MODEL_FOLDER, model)):
+        # delete the model in model folder
+        os.remove(path.join(MODEL_FOLDER, model))
+
+        return HttpJsonResponse(200, http_status_description='success').json()
+    else:
+        return HttpJsonResponse(404, http_status_description=f'{model} does not exist. '
+                                                             f'Visit GET {path.join(API_BASE_URL, "models")} '
+                                                             f'for a list of avaliable model_index').json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/update'), methods=['POST'])
@@ -191,28 +204,6 @@ def update_models():
     # Function that updates the model_list according to the MODEL_FOLDER
     model_list = manager.refresh_model_list(MODEL_FOLDER=MODEL_FOLDER, session_list=session_list)
     return HttpJsonResponse(200, http_status_description='success').json()
-
-
-@server.route(path.join(MODELHOST_BASE_URL, 'models/delete_<model>'), methods=['DELETE'])
-def delete_model(model):
-    # check that model exists
-    if os.path.isfile(path.join(MODEL_FOLDER, model)):
-        # delete the model in model folder
-        os.remove(path.join(MODEL_FOLDER, model))
-        # manager.refresh_model_list(MODEL_FOLDER, session_list)
-
-        return HttpJsonResponse(200, http_status_description='success').json()
-    else:
-        return HttpJsonResponse(404, http_status_description=f'{model} does not exist. '
-                                                             f'Visit GET {path.join(API_BASE_URL, "models")} '
-                                                             f'for a list of avaliable model_index').json()
-
-
-##TODO:
-# # Delete model
-# @server.route(path.join(API_BASE_URL, 'model_index/<model_name>'), methods=['DELETE'])
-# def delete_model(model_name):
-
 
 if __name__ == '__main__':
     server.run()

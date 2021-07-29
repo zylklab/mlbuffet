@@ -19,7 +19,7 @@ class modelhost_cache:
         dict = {"hash": hash, "data": {"model": model, "input": input, "prediction": prediction}}
         return dict
 
-    # Escribe la predicción en el json
+    # Rewrite prediction as json format
     def put_prediction(self=None, new_data=None, filename='/.cache/inferrer-cache.json'):
         with open(filename, 'r+') as file:
             # First we load existing data into a dict.
@@ -31,7 +31,7 @@ class modelhost_cache:
             # convert back to json.
             json.dump(file_data, file, indent=2)
 
-    # Coge la predicción del json
+    # Read prediction from json
     def get_prediction(self=None, hash=None, filename='/.cache/inferrer-cache.json'):
         with open(filename, "r") as f:
             file_data = json.load(f)
@@ -40,7 +40,7 @@ class modelhost_cache:
                     a = i["data"]["prediction"]
                     return a
 
-    # Comprueba la existencia del hash en el json
+    # Check the existence of a hash in the json
     def check_hash(self=None, hash=None, filename="/.cache/inferrer-cache.json"):
         with open(filename, "r") as f:
             file_data = json.load(f)
