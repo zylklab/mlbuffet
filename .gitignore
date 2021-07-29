@@ -19,9 +19,4 @@ venv
 FractalMLServer-Lite/inferrer/logs/
 
 ./FractalMLServer-Lite/modelhost/flask_app/models/
-FractalMLServer-Lite/deploy/.env
-FractalMLServer-Lite/deploy/docker-compose.yml
-FractalMLServer-Lite/deploy/service-configurations/nginx-config/project.conf
-**/.env
-**/docker-compose.yml
-**/project.conf
+
