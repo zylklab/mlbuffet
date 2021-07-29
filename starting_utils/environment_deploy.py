@@ -32,7 +32,6 @@ cab = '### GLOBAL ###\n' \
       '    # if adding more instances, changes should be done on\n' \
       '    # - nginx: ./service-configurations/nginx-config/project.conf adding a server line\n' \
       '    # - docker-compose: adding a service instance with Nth IP/PORT params\n' \
-      '    #TODO this could be done by config-file initialization script (array of nodes)\n\n' \
       'NUMBER_MODELHOST_NODES=' + str(n) + '\n\n'
 f.write(cab)
 for i in range(n):

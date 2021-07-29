@@ -15,7 +15,7 @@ class Logger():
 
         # TODO
         # self.LOG_LEVEL = DEBUG
-        # esto debería ir a un properties
+        # This should go to a properties
 
     def get_console_handler(self):
         console_handler = logging.StreamHandler(sys.stdout)

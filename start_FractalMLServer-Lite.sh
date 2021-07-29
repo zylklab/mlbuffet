@@ -1,19 +1,18 @@
 #!/bin/bash
 echo 'Welcome to FractalMLServer-Lite'
 echo "This is the installing configuration helper"
-echo 'Please, how many modelhosts do you want build'
+echo 'How many modelhosts do you want to build'
 read num
 
-echo "$num modelhosts will be builded"
+echo "$num modelhosts will be built"
 cd starting_utils
-echo 'creating environment on deploy:'
+echo 'Creating deploy environment:'
 python3 environment_deploy.py $num
 python3 compose_deploy.py $num
-echo 'environment on deploy done'
-echo 'creating environment on nginx'
+
+echo 'Creating Nginx environment'
 python3 nginx-project.py $num
-echo 'environment on nginx done'
-echo 'growing FractalMLServer-Lite'
-pwd
+
+echo 'Building FractalMLServer-Lite'
 cd ../FractalMLServer-Lite/deploy
 exec docker-compose up --build
