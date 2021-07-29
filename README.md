@@ -40,7 +40,7 @@ First make sure that you have Docker-Engine and Docker-Compose installed. Some T
 
 -TCP 9090
 
-Then, execute the file `start_FractalMLServer-Lite.sh` (if you cannot execute that file, change the permissions of the file). The installing file will ask how many hodelhosts nodes you want to build, and then, it will build the server.
+Then, execute the file `start_FractalMLServer-Lite.sh` (if you cannot execute that file, change the permissions of the file). The installing file will ask how many modelhosts nodes you want to build, and then, it will build the server.
 
 If you do not want to execute the file `start_FractalMLServer-Lite`, go to the deploy directory and run the following command: `docker-compose up -d`
 Docker-Compose will begin building the images of the containers to be created. Once it is done building (usually takes around 3-4 minutes), containers will be created and services will be deployed. Make sure that services are up and running by running `docker ps`. In case any of the services are not available, run `docker logs <container_name>` to see the possible reason.
