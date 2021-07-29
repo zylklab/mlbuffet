@@ -1,4 +1,6 @@
 *.pyc
+**/*.pyc
+**/__pycache__/**
 *.iml
 .gradle
 /local.properties
@@ -8,8 +10,7 @@
 .externalNativeBuild
 .cxx
 ./venv
-./.idea
-./FractalMLServer-Lite/.idea/
+**/.idea/**
 ./FractalMLServer-Lite/venv/
 ./FractalMLServer-Lite/.venv/
 ./FractalMLServer-Lite/inferrer/logs/
