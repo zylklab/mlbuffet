@@ -92,7 +92,7 @@ class ModelhostClientManager:
         finally:
             loop.close()
         t1 = round(time.time() * 1000)
-        #self.logger.info(
+        # self.logger.info(
         #    "Modelhost post_modelhost_upload_model call elapsed time: " + str(t1 - t0) + " ms")  # TODO logger
 
         return upload
@@ -236,46 +236,30 @@ class ModelhostQueryUtils:
     async def delete_modelhost_delete_model(self, model):
         URL_METHOD = '/modelhost/models/delete_' + model
         url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
-
-        # debug --
-        # url = 'http://172.24.0.3:8000' + URL_METHOD
-        # -- debug
-        # n = self.NUMBER_OF_MODELHOSTS
-        # for i in range(n):
-        #     lru = self.URL_PREFIX + '172.24.0.' + str(i + 11) + ':8000' + URL_METHOD
-        #     print(lru)
-        #     data = None
-        #     # Execute all queries with gather (one query every request)
-        #     async with aiohttp.ClientSession() as session:
-        #         await asyncio.gather(
-        #             *[self.delete_query_async(session=session, url=lru)])
-        # return "done"
         # Execute all queries with gather (one query every request)
         async with aiohttp.ClientSession() as session:
             return await asyncio.gather(
                 *[self.delete_query_async(session=session, url=url)])
 
     async def update_modelhost_models(self):
+        # This is a 'force brute' method. It tries to communicate with all
+        # modelhosts taking the N variables 'MODELHOST_N_IP' from de .env file
+        # Probably, is not the most beautiful way, but it works.
         URL_METHOD = '/modelhost/models/update'
-        url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
-
         # debug --
         # url = 'http://172.24.0.3:8000' + URL_METHOD
         # -- debug
         n = self.NUMBER_OF_MODELHOSTS
         for i in range(n):
-            lru = self.URL_PREFIX + '172.24.0.' + str(i + 11) + ':8000' + URL_METHOD
-            print(lru)
+            # url = self.URL_PREFIX + '172.24.0.' + str(i + 11) + ':8000' + URL_METHOD
+            ip = os.getenv('MODELHOST_' + str(i + 1) + '_IP:8000')
+            url = self.URL_PREFIX + ip + URL_METHOD
             data = None
             # Execute all queries with gather (one query every request)
             async with aiohttp.ClientSession() as session:
                 await asyncio.gather(
-                    *[self.post_query_async(session=session, url=lru, data=data)])
+                    *[self.post_query_async(session=session, url=url, data=data)])
         return "done"
-        # Execute all queries with gather (one query every request)
-        # async with aiohttp.ClientSession() as session:
-        #     return await asyncio.gather(
-        #         *[self.delete_query_async(session=session, url=url)])
 
     # TODO async def get_modelhost_descriptions(self, model_list):
 
@@ -322,7 +306,7 @@ class ModelhostQueryUtils:
         resp = await session.request(method="DELETE", url=endpoint)
         resp.raise_for_status()
         # self.logger.info("Got response [%s] for URL: %s", resp.status, endpoint)  # TODO logger
-        response= await resp.text()
+        response = await resp.text()
         return response
 
     async def _test_get_query_async(self, observation, session, url):
@@ -333,5 +317,3 @@ class ModelhostQueryUtils:
         # self.logger.info("Got response [%s] for URL: %s", resp.status, endpoint)  # TODO logger
         prediction_data = await resp.text()
         return prediction_data
-
-
