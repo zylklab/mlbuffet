@@ -2,7 +2,7 @@ import logging
 import sys
 from logging.handlers import TimedRotatingFileHandler
 import time
-# TODO este logger_modelhost debería estar en un clase de utils dedicadas e importado en esta para ser utilizado
+
 class Logger:
 
     def __init__(self, filename):

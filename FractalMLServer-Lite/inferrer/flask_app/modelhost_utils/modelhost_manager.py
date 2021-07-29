@@ -124,8 +124,8 @@ class ModelhostClientManager:
 
     def _test_get_modelhost_predictions(self, observation_list):
         t0 = round(time.time() * 1000)
-        # llamada a la ejecucion asincrona de modelhost    #toda esta gestion del loop se podria sustituir por
-        # asyncio.run()
+        # Call to the asynchronous execution of modelhost
+        # This loop management could be done by asyncio.run()
         loop = asyncio.new_event_loop()  # asyncio.get_event_loop()
         try:
             predictions = loop.run_until_complete(self.modelhostUtils._test_get_modelhost_predictions(observation_list))
@@ -237,19 +237,6 @@ class ModelhostQueryUtils:
         URL_METHOD = '/modelhost/models/delete_' + model
         url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
 
-        # debug --
-        # url = 'http://172.24.0.3:8000' + URL_METHOD
-        # -- debug
-        # n = self.NUMBER_OF_MODELHOSTS
-        # for i in range(n):
-        #     lru = self.URL_PREFIX + '172.24.0.' + str(i + 11) + ':8000' + URL_METHOD
-        #     print(lru)
-        #     data = None
-        #     # Execute all queries with gather (one query every request)
-        #     async with aiohttp.ClientSession() as session:
-        #         await asyncio.gather(
-        #             *[self.delete_query_async(session=session, url=lru)])
-        # return "done"
         # Execute all queries with gather (one query every request)
         async with aiohttp.ClientSession() as session:
             return await asyncio.gather(
@@ -265,17 +252,12 @@ class ModelhostQueryUtils:
         n = self.NUMBER_OF_MODELHOSTS
         for i in range(n):
             lru = self.URL_PREFIX + '172.24.0.' + str(i + 11) + ':8000' + URL_METHOD
-            print(lru)
             data = None
             # Execute all queries with gather (one query every request)
             async with aiohttp.ClientSession() as session:
                 await asyncio.gather(
                     *[self.post_query_async(session=session, url=lru, data=data)])
         return "done"
-        # Execute all queries with gather (one query every request)
-        # async with aiohttp.ClientSession() as session:
-        #     return await asyncio.gather(
-        #         *[self.delete_query_async(session=session, url=url)])
 
     # TODO async def get_modelhost_descriptions(self, model_list):
 
@@ -322,7 +304,7 @@ class ModelhostQueryUtils:
         resp = await session.request(method="DELETE", url=endpoint)
         resp.raise_for_status()
         # self.logger.info("Got response [%s] for URL: %s", resp.status, endpoint)  # TODO logger
-        response= await resp.text()
+        response = await resp.text()
         return response
 
     async def _test_get_query_async(self, observation, session, url):

@@ -23,11 +23,9 @@ RUN mkdir /home/logs
 
 COPY cache/inferrer-cache.json /.cache/inferrer-cache.json
 
-
-
-#RUN ["chmod", "+x", "./api_test.py"]
-#TODO adaptar a nueva api
-#RUN python ./api_test.py
+#Run the API test script to check if methods work
+RUN ["chmod", "+x", "./api_test.py"]
+RUN python ./api_test.py
 
 #http
 CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:8000", "wsgi:server"]
