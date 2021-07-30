@@ -223,6 +223,8 @@ def postInfo(model):
 
     try:
         modelhost.post_modelhost_info(model_name, description)
+        modelhost.update_modelhost_models()
+        return HttpJsonResponse(200, http_status_description=f'Models updated!').json()
     except Exception as error:
         return HttpJsonResponse(500, http_status_description=str(error)).json()
 
