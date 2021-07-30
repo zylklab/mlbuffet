@@ -242,8 +242,8 @@ class ModelhostQueryUtils:
                 *[self.delete_query_async(session=session, url=url)])
 
     async def update_modelhost_models(self):
-        # This is a 'force brute' method. It tries to communicate with all
-        # modelhosts taking the N variables 'MODELHOST_N_IP' from de .env file
+        # This is a 'brute force' method. It tries to communicate with all
+        # modelhosts taking the N variables 'MODELHOST_N_IP' from the .env file
         # Probably, is not the most beautiful way, but it works.
         URL_METHOD = '/modelhost/models/update'
         # debug --
