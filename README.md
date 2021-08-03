@@ -40,9 +40,7 @@ First make sure that you have Docker-Engine and Docker-Compose installed. Some T
 
 -TCP 9090
 
-Then, execute the file `start_FractalMLServer-Lite.sh` (if you cannot execute that file, change the permissions of the file). The installing file will ask how many modelhosts nodes you want to build, and then, it will build the server.
-
-If you do not want to execute the file `start_FractalMLServer-Lite`, go to the deploy directory and run the following command: `docker-compose up -d`
+Go to the deploy directory and run the following command: `docker-compose up -d`
 Docker-Compose will begin building the images of the containers to be created. Once it is done building (usually takes around 3-4 minutes), containers will be created and services will be deployed. Make sure that services are up and running by running `docker ps`. In case any of the services are not available, run `docker logs <container_name>` to see the possible reason.
 
 Once you are over, run `docker-compose down` to remove the containers. `docker-compose down --rm all --remove-orphans` will also remove the images in case you don't need them anymore (they can be rebuilt).
@@ -99,7 +97,7 @@ FRACTAL - ML SERVER is a model server developed by Zylk.net
 
 To test the inferrer API, there are some methods with the '_test_' prefix that are used to show the comunication between the inferrer, the load balancer and the modelhost nodes.
 
-The following query can be used to call inferrer node
+The following query can be used to call the inferrer node
 `curl -X GET -H "Content-Type: application/json" --data '{"data": ["ONE", "TWO", "THREE", "FOUR"]}'  http://172.24.0.2:8000/api/test/sendtomodelhost/`
 
 Then, do `docker logs inferrer` to confirm that the modelhost APIs responded correctly and the load was correctly balanced between nodes (each node has a unique identifier and it can be seen which node attended each request).
@@ -116,7 +114,7 @@ To manually add or remove modelhost nodes to the architecture, the following fil
      `MODELHOST_N_IP=<NODE_N_IP>` and
       `MODELHOST_N_API_BIND_TO_PORT=<NODE_N_PORT>`
 - then on the deploy module, add to the `docker-compose` the new service instance:
-         ```docker
+
            modelhost_N:
             container_name: modelhost_N
             restart: always
@@ -128,7 +126,9 @@ To manually add or remove modelhost nodes to the architecture, the following fil
                 ipv4_address: ${MODELHOST_N_IP}
             volumes:
               - ../modelhost/logs:/home/logs
-              - .env:/home/.env```
+              - .env:/home/.env
+              - ../modelhost/flask_app/models:/usr/src/flask_app/models
+
 - finally, on the deploy module, add update the nginx configuration on `service-configurations/nginx-config/project.conf`:
   add the line `server MODELHOST_N_IP:8000;` for example  `server 172.24.0.5:8000;`
 
