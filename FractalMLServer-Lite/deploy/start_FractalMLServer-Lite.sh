@@ -1,23 +1,38 @@
 #!/bin/bash
-echo 'Welcome to FractalMLServer-Lite'
-echo "This is the installing configuration helper"
-echo 'How many modelhosts do you want to build'
-read num
 
-echo "$num modelhosts will be built"
-echo 'Creating deploy environment:'
+default_value=2  # default number of Modelhosts
+echo "Welcome to FractalMLServer-Lite installing helper."
 
-python3 .starting_utils/environment_deploy.py $num
-python3 .starting_utils/compose_deploy.py $num
+# ask for user input
+while true; do
+  # read user input
+  echo "How many Modelhosts do you want to build? [$default_value]"
+  read -r num
 
-echo 'Done.'
+  # if empty means default value
+  if [ -z "$num" ] ; then
+    num=$default_value
+  fi
 
-echo 'Creating Nginx environment'
-python3 .starting_utils/nginx-project.py $num
+  # if the input is a number, then continue execution, otherwise ask for it again
+  re='^[0-9]+$'
+  if ! [[ $num =~ $re ]] ; then
+    echo "Error: input is not a number"
+  else
+    break
+  fi
+done
 
-echo 'Done.'
+# start deploying and exit on any error
+echo "Creating deploy environment with $num Modelhosts..."
+python3 .starting_utils/environment_deploy.py "$num" || { exit 1; }
+python3 .starting_utils/compose_deploy.py "$num" || { exit 1; }
+echo "Done."
+
+echo "Creating Nginx environment..."
+python3 .starting_utils/nginx-project.py "$num" || { exit 1; }
+echo "Done."
 
 
-echo 'Building FractalMLServer-Lite'
-
+echo "Building FractalMLServer-Lite..."
 exec docker-compose up --build
