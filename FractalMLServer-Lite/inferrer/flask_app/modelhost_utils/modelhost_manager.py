@@ -6,8 +6,16 @@ import time
 
 
 class ModelhostClientManager:
-    """This class is responsible for creating the coroutines which have been called by the Modelhost methods. Article
-    recommended about asyncio and examples: https://realpython.com/async-io-python/ """
+
+    """
+    This class is responsible for creating the coroutines which have been called by the Inferrer methods.
+    Whenever an http request is sent to inferrer, a ModelhostClientManager instance is created and the
+    corresponding method is called. In the method, another method with the same name is called where the
+    asynchronous session is performed. Finally, in the asynchronous session, a last function is executed
+    depending on the HTTP request to be done to the modelhost (GET, POST with json, POST with file, or DELETE)
+
+    Recommended artile about asyncio and examples: https://realpython.com/async-io-python/
+    """
 
     def __init__(self):
         self.modelhostUtils = ModelhostQueryUtils()
@@ -244,7 +252,6 @@ class ModelhostQueryUtils:
     async def update_modelhost_models(self):
         # This is a 'brute force' method. It tries to communicate with all
         # modelhosts taking the N variables 'MODELHOST_N_IP' from the .env file
-        # Probably, is not the most beautiful way, but it works.
         URL_METHOD = '/modelhost/models/update'
         # debug --
         # url = 'http://172.24.0.3:8000' + URL_METHOD
