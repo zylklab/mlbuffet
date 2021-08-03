@@ -41,34 +41,6 @@ services:
          - .env:/home/.env
          - ../modelhost/flask_app/models:/usr/src/flask_app/models
 
-  modelhost_3:
-     container_name: modelhost_3
-     restart: always
-     build: ../modelhost/flask_app
-     ports:
-     - ${MODELHOST_3_API_BIND_TO_PORT}:8000
-     networks:
-       fractalmlserver_network:
-         ipv4_address: ${MODELHOST_3_IP}
-     volumes:
-         - ../modelhost/logs:/home/logs
-         - .env:/home/.env
-         - ../modelhost/flask_app/models:/usr/src/flask_app/models
-
-  modelhost_4:
-     container_name: modelhost_4
-     restart: always
-     build: ../modelhost/flask_app
-     ports:
-     - ${MODELHOST_4_API_BIND_TO_PORT}:8000
-     networks:
-       fractalmlserver_network:
-         ipv4_address: ${MODELHOST_4_IP}
-     volumes:
-         - ../modelhost/logs:/home/logs
-         - .env:/home/.env
-         - ../modelhost/flask_app/models:/usr/src/flask_app/models
-
   prometheus:
      container_name: prometheus-fractal
      restart: always
