@@ -179,28 +179,28 @@ This method however, only displays a list of models, but a description of the mo
 
 **Get model information**
 
-The specific information of any model can also be requested by the /api/v1/models/<model_name> method, for example:
+The specific information of any model can also be requested with GET /api/v1/models/<model_name> method:
 
 `curl -X GET http://localhost:8002/api/v1/models/iris.onnx`
 
 
 **Update model information**
 
-A model may have incomplete information, wrong information or no information at all. You can update the description of a model using the POST method:
+A model may have incomplete information, wrong information or no information at all. You can update the description of a model using POST method:
 
 `curl -X POST -H "Content-Type: application/json" --data '{"model_description":"This model classifies a 4 element array input between different species of Iris flowers."}' http://localhost:8002/api/v1/models/iris.onnx`
 
 **Upload a new model**
 
-You can upload your own .onnx models to the server using the /upload<model_name> method.
+You can upload your own ONNX models to the server using PUT method:
 
-`curl -X POST -F "path=@/path/to/directory/<model_name>" http://localhost:8002/api/v1/models/<model_name>`
+`curl -X PUT -F "path=@/path/to/local/model" http://localhost:8002/api/v1/models/<model_name>`
 
 **Delete a model**
 
-Delete the models you do not need anymore with the /models/<model_name> method.
+Delete models you do not need anymore with DELETE method.
 
-`curl -X DELETE http://localhost:8002/api/v1/models/diabetes.onnx`
+`curl -X DELETE http://localhost:8002/api/v1/models/<model_name>`
 
 **Deploy a new model**
 
