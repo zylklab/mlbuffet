@@ -5,14 +5,19 @@ echo 'How many modelhosts do you want to build'
 read num
 
 echo "$num modelhosts will be built"
-cd starting_utils
 echo 'Creating deploy environment:'
-python3 environment_deploy.py $num
-python3 compose_deploy.py $num
+
+python3 .starting_utils/environment_deploy.py $num
+python3 .starting_utils/compose_deploy.py $num
+
+echo 'Done.'
 
 echo 'Creating Nginx environment'
-python3 nginx-project.py $num
+python3 .starting_utils/nginx-project.py $num
+
+echo 'Done.'
+
 
 echo 'Building FractalMLServer-Lite'
-cd ../FractalMLServer-Lite/deploy
+
 exec docker-compose up --build

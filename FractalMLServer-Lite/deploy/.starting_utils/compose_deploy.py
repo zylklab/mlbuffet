@@ -2,7 +2,7 @@ import sys
 
 n = int(sys.argv[1])
 
-f = open('../FractalMLServer-Lite/deploy/docker-compose.yml', 'w')
+f = open('./docker-compose.yml', 'w')
 
 services = 'version: \'3\' \n' \
            'services:\n'

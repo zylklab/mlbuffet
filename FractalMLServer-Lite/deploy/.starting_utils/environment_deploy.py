@@ -2,7 +2,7 @@ import sys
 
 n = int(sys.argv[1])
 
-f = open('../FractalMLServer-Lite/deploy/.env', 'w')
+f = open('./.env', 'w')
 
 cab = '### GLOBAL ###\n' \
       'FRACTALMLSERVER_SUBNET=172.24.0.0/16\n' \

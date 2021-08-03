@@ -252,7 +252,7 @@ class ModelhostQueryUtils:
         n = self.NUMBER_OF_MODELHOSTS
         for i in range(n):
             # url = self.URL_PREFIX + '172.24.0.' + str(i + 11) + ':8000' + URL_METHOD
-            ip = os.getenv('MODELHOST_' + str(i + 1) + '_IP:8000')
+            ip = os.getenv('MODELHOST_' + str(i + 1) + '_IP') + ':8000'
             url = self.URL_PREFIX + ip + URL_METHOD
             data = None
             # Execute all queries with gather (one query every request)

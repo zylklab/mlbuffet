@@ -2,7 +2,7 @@ import sys
 
 n = int(sys.argv[1])
 
-f = open('../FractalMLServer-Lite/deploy/service-configurations/nginx-config/project.conf', 'w')
+f = open('./service-configurations/nginx-config/project.conf', 'w')
 cab = '\nupstream fractalmlserver_modelhost_cluster {\n'
 f.write(cab)
 for i in range(n):
