@@ -64,8 +64,8 @@ def get_test():
     return HttpJsonResponse(200).json()
 
 
-# Test method to check if the load balancer is working properly.
-@server.route('/api/test/sendtomodelhost/', methods=['GET'])
+# Test endpoint to check if the load balancer is working properly
+@server.route('/api/test/sendtomodelhost', methods=['GET'])
 def _test_send_to_modelhost():
     modelhost = ModelhostClientManager()
     data_array = request.json['data']

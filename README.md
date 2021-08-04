@@ -95,7 +95,7 @@ FRACTAL - ML SERVER is a model server developed by Zylk.net
 To test the inferrer API, there are some methods with the '_test_' prefix that are used to show the comunication between the inferrer, the load balancer and the modelhost nodes.
 
 The following query can be used to call the inferrer node
-`curl -X GET -H "Content-Type: application/json" --data '{"data": ["ONE", "TWO", "THREE", "FOUR"]}'  http://172.24.0.2:8000/api/test/sendtomodelhost/`
+`curl -X GET -H "Content-Type: application/json" --data '{"data": ["ONE", "TWO", "THREE", "FOUR"]}'  http://172.24.0.2:8000/api/test/sendtomodelhost`
 
 Then, do `docker logs inferrer` to confirm that the modelhost APIs responded correctly and the load was correctly balanced between nodes (each node has a unique identifier and it can be seen which node attended each request).
 
