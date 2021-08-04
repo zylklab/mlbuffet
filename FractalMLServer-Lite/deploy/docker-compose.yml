@@ -12,7 +12,8 @@ services:
         ipv4_address: ${INFERRER_IP}
     volumes:
       - ../inferrer/logs:/home/logs
-      - ./.env:/home/.env
+    env_file:
+    - .env
 
   modelhost_1:
     container_name: modelhost_1
@@ -25,8 +26,9 @@ services:
         ipv4_address: ${MODELHOST_1_IP}
     volumes:
       - ../modelhost/logs:/home/logs
-      - .env:/home/.env
       - ../modelhost/flask_app/models:/usr/src/flask_app/models
+    env_file:
+    - .env
 
   modelhost_2:
     container_name: modelhost_2
@@ -39,8 +41,9 @@ services:
         ipv4_address: ${MODELHOST_2_IP}
     volumes:
       - ../modelhost/logs:/home/logs
-      - .env:/home/.env
       - ../modelhost/flask_app/models:/usr/src/flask_app/models
+    env_file:
+    - .env
 
   prometheus:
     container_name: prometheus-fractal

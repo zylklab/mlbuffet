@@ -17,7 +17,8 @@ services:
         ipv4_address: ${INFERRER_IP}
     volumes:
       - ../inferrer/logs:/home/logs
-      - ./.env:/home/.env
+    env_file:
+    - .env
 
 """
 
@@ -34,8 +35,9 @@ file_part2 = """\
         ipv4_address: ${{MODELHOST_{0}_IP}}
     volumes:
       - ../modelhost/logs:/home/logs
-      - .env:/home/.env
       - ../modelhost/flask_app/models:/usr/src/flask_app/models
+    env_file:
+    - .env
 
 """
 

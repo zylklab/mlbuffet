@@ -7,7 +7,6 @@ WORKDIR usr/src/flask_app
 COPY app.py .
 COPY wsgi.py .
 COPY requirements.txt .
-#COPY ../.env .
 COPY api_test.py .
 #COPY init.sh .
 

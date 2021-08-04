@@ -8,7 +8,6 @@ COPY app.py .
 COPY wsgi.py .
 COPY requirements.txt .
 COPY api_test.py .
-#COPY init.sh .
 
 COPY models models
 RUN pwd
