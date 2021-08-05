@@ -46,7 +46,7 @@ Once you are over, run `docker-compose down` to remove the containers. `docker-c
 
 ### Recommended build
 
-You can deploy the services like described above, however, you may want to add more modelhosts to the service cluster. In case you need to increase the number of modelhosts, a script that you can execute with `$ ./start_FractalMLServer-Lite.sh` has been included.
+You can deploy the services like described above, however, you may want to add more modelhosts to the service cluster. In case you need to increase the number of modelhosts, a script that you can execute with `$ ./deploy.sh` has been included in the deploy directory. You can execute this script with the `-d` flag, so `./deploy.sh -d` will execute the processes in detached mode (similarly to docker-compose up -d).
 
 Upon execution, the script will prompt the user how many modelhost nodes he needs, and then will format the docker-compose.yaml and nginx configuration accordingly. Then, it will execute all the commands to build the images and get the containers up and running, so no more interaction from the user is required.
 

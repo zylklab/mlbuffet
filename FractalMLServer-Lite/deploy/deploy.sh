@@ -35,4 +35,11 @@ echo "Done."
 
 
 echo "Building FractalMLServer-Lite..."
-exec docker-compose up --build
+
+# Run in detached mode if the user prompts -d as parameter
+if [ $1 == "-d" ]
+then
+  exec docker-compose up --build -d
+else
+  exec docker-compose up --build
+fi
