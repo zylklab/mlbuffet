@@ -39,6 +39,10 @@ session_list = []
 # Function that updates the model_list according to the MODEL_FOLDER
 model_list = manager.refresh_model_list(MODEL_FOLDER=MODEL_FOLDER, session_list=session_list)
 
+# All the methods supported by the API are described below
+# These methods are not supposed to be exposed to the user, who might communicate
+# with Inferrer instead. These methods should be called by Inferrer through the
+# modelhostmanager.py
 
 @auth.verify_token
 def verify_token(token):
@@ -50,8 +54,7 @@ def hello_world():
     return HttpJsonResponse(200,
                             http_status_description='Greetings from Fractal - ML Server - ModelHost, the Machine '
                                                     'Learning model server. Are you supposed to be reading this? '
-                                                    'Guess not. Go to Inferrer! '
-                                                    'For more information, visit /help').json()
+                                                    'Guess not. Go to Inferrer! ').json()
 
 
 @server.route('/api/test', methods=['GET'])

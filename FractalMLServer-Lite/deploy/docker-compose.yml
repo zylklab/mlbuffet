@@ -1,74 +1,78 @@
-version: '3' 
+version: '3'
 services:
+
   inferrer:
-     container_name: inferrer
-     restart: always
-     build: ../inferrer/flask_app
-     ports:
-     - ${INFERRER_API_BIND_TO_PORT}:8000
-     networks:
-       fractalmlserver_network:
-         ipv4_address: ${INFERRER_IP}
-     volumes:
-       - ../inferrer/logs:/home/logs
-       - ./.env:/home/.env
+    container_name: inferrer
+    restart: always
+    build: ../inferrer/flask_app
+    ports:
+    - ${INFERRER_API_BIND_TO_PORT}:8000
+    networks:
+      fractalmlserver_network:
+        ipv4_address: ${INFERRER_IP}
+    volumes:
+      - ../inferrer/logs:/home/logs
+    env_file:
+    - .env
 
   modelhost_1:
-     container_name: modelhost_1
-     restart: always
-     build: ../modelhost/flask_app
-     ports:
-     - ${MODELHOST_1_API_BIND_TO_PORT}:8000
-     networks:
-       fractalmlserver_network:
-         ipv4_address: ${MODELHOST_1_IP}
-     volumes:
-         - ../modelhost/logs:/home/logs
-         - .env:/home/.env
-         - ../modelhost/flask_app/models:/usr/src/flask_app/models
+    container_name: modelhost_1
+    restart: always
+    build: ../modelhost/flask_app
+    ports:
+    - ${MODELHOST_1_API_BIND_TO_PORT}:8000
+    networks:
+      fractalmlserver_network:
+        ipv4_address: ${MODELHOST_1_IP}
+    volumes:
+      - ../modelhost/logs:/home/logs
+      - ../modelhost/flask_app/models:/usr/src/flask_app/models
+    env_file:
+    - .env
 
   modelhost_2:
-     container_name: modelhost_2
-     restart: always
-     build: ../modelhost/flask_app
-     ports:
-     - ${MODELHOST_2_API_BIND_TO_PORT}:8000
-     networks:
-       fractalmlserver_network:
-         ipv4_address: ${MODELHOST_2_IP}
-     volumes:
-         - ../modelhost/logs:/home/logs
-         - .env:/home/.env
-         - ../modelhost/flask_app/models:/usr/src/flask_app/models
+    container_name: modelhost_2
+    restart: always
+    build: ../modelhost/flask_app
+    ports:
+    - ${MODELHOST_2_API_BIND_TO_PORT}:8000
+    networks:
+      fractalmlserver_network:
+        ipv4_address: ${MODELHOST_2_IP}
+    volumes:
+      - ../modelhost/logs:/home/logs
+      - ../modelhost/flask_app/models:/usr/src/flask_app/models
+    env_file:
+    - .env
 
   prometheus:
-     container_name: prometheus-fractal
-     restart: always
-     build: ../metrics/prometheus
-     ports:
-       - ${PROMETHEUS_PORT}:9090
-     networks:
-       fractalmlserver_network:
-         ipv4_address: ${PROMETHEUS_IP}
+    container_name: prometheus-fractal
+    restart: always
+    build: ../metrics/prometheus
+    ports:
+      - ${PROMETHEUS_PORT}:9090
+    networks:
+      fractalmlserver_network:
+        ipv4_address: ${PROMETHEUS_IP}
 
   nginx:
-       container_name: nginx-fractal
-       restart: always
-       build: ../inferrer/nginx
-       ports:
-         - "80:80"
-       depends_on:
-         - inferrer
-       networks:
-         fractalmlserver_network:
-           ipv4_address: ${LOAD_BALANCER_IP}
-       volumes:
-         - ./service-configurations/nginx-config/:/etc/nginx/conf.d/
+    container_name: nginx-fractal
+    restart: always
+    build: ../inferrer/nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - inferrer
+    networks:
+      fractalmlserver_network:
+        ipv4_address: ${LOAD_BALANCER_IP}
+    volumes:
+      - ./service-configurations/nginx-config/:/etc/nginx/conf.d/
 
 networks:
-   fractalmlserver_network:
-     driver: bridge
-     ipam:
+  fractalmlserver_network:
+    driver: bridge
+    ipam:
       config:
         - subnet: ${FRACTALMLSERVER_SUBNET}
           gateway: ${FRACTALMLSERVER_GATEWAY}

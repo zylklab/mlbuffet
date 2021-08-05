@@ -1,71 +1,89 @@
 import sys
 
-n = int(sys.argv[1])
+"""Script for generating docker-compose.yml file based on desired number of Modelhosts"""
 
-f = open('./docker-compose.yml', 'w')
+file_part1 = """\
+version: '3'
+services:
 
-services = 'version: \'3\' \n' \
-           'services:\n'
-inferrer = '  inferrer:\n ' \
-           '    container_name: inferrer\n ' \
-           '    restart: always\n ' \
-           '    build: ../inferrer/flask_app\n ' \
-           '    ports:\n ' \
-           '    - ${INFERRER_API_BIND_TO_PORT}:8000\n ' \
-           '    networks:\n ' \
-           '      fractalmlserver_network:\n ' \
-           '        ipv4_address: ${INFERRER_IP}\n ' \
-           '    volumes:\n ' \
-           '      - ../inferrer/logs:/home/logs\n ' \
-           '      - ./.env:/home/.env\n\n'
-prometheus = '  prometheus:\n ' \
-             '    container_name: prometheus-fractal\n ' \
-             '    restart: always\n ' \
-             '    build: ../metrics/prometheus\n ' \
-             '    ports:\n ' \
-             '      - ${PROMETHEUS_PORT}:9090\n ' \
-             '    networks:\n ' \
-             '      fractalmlserver_network:\n ' \
-             '        ipv4_address: ${PROMETHEUS_IP}\n\n'
-nginx = '  nginx:\n ' \
-        '      container_name: nginx-fractal\n ' \
-        '      restart: always\n ' \
-        '      build: ../inferrer/nginx\n ' \
-        '      ports:\n ' \
-        '        - "80:80"\n ' \
-        '      depends_on:\n ' \
-        '        - inferrer\n ' \
-        '      networks:\n ' \
-        '        fractalmlserver_network:\n ' \
-        '          ipv4_address: ${LOAD_BALANCER_IP}\n ' \
-        '      volumes:\n ' \
-        '        - ./service-configurations/nginx-config/:/etc/nginx/conf.d/\n\n'
-networks = 'networks:\n ' \
-           '  fractalmlserver_network:\n ' \
-           '    driver: bridge\n ' \
-           '    ipam:\n ' \
-           '     config:\n ' \
-           '       - subnet: ${FRACTALMLSERVER_SUBNET}\n ' \
-           '         gateway: ${FRACTALMLSERVER_GATEWAY}\n\n'
-f.write(services)
-f.write(inferrer)
-for i in range(n):
-    j = i+1
-    modelhost = '  modelhost_' + str(j) + ':\n ' \
-                '    container_name: modelhost_' + str(j) +'\n ' \
-                '    restart: always\n ' \
-                '    build: ../modelhost/flask_app\n ' \
-                '    ports:\n ' \
-                '    - ${MODELHOST_' + str(j) +'_API_BIND_TO_PORT}:8000\n ' \
-                '    networks:\n ' \
-                '      fractalmlserver_network:\n ' \
-                '        ipv4_address: ${MODELHOST_' + str(j) +'_IP}\n ' \
-                '    volumes:\n ' \
-                '        - ../modelhost/logs:/home/logs\n ' \
-                '        - .env:/home/.env\n ' \
-                '        - ../modelhost/flask_app/models:/usr/src/flask_app/models\n\n'
+  inferrer:
+    container_name: inferrer
+    restart: always
+    build: ../inferrer/flask_app
+    ports:
+    - ${INFERRER_API_BIND_TO_PORT}:8000
+    networks:
+      fractalmlserver_network:
+        ipv4_address: ${INFERRER_IP}
+    volumes:
+      - ../inferrer/logs:/home/logs
+    env_file:
+    - .env
 
-    f.write(modelhost)
-f.write(prometheus)
-f.write(nginx)
-f.write(networks)
+"""
+
+# dynamic part
+file_part2 = """\
+  modelhost_{0}:
+    container_name: modelhost_{0}
+    restart: always
+    build: ../modelhost/flask_app
+    ports:
+    - ${{MODELHOST_{0}_API_BIND_TO_PORT}}:8000
+    networks:
+      fractalmlserver_network:
+        ipv4_address: ${{MODELHOST_{0}_IP}}
+    volumes:
+      - ../modelhost/logs:/home/logs
+      - ../modelhost/flask_app/models:/usr/src/flask_app/models
+    env_file:
+    - .env
+
+"""
+
+file_part3 = """\
+  prometheus:
+    container_name: prometheus-fractal
+    restart: always
+    build: ../metrics/prometheus
+    ports:
+      - ${PROMETHEUS_PORT}:9090
+    networks:
+      fractalmlserver_network:
+        ipv4_address: ${PROMETHEUS_IP}
+
+  nginx:
+    container_name: nginx-fractal
+    restart: always
+    build: ../inferrer/nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - inferrer
+    networks:
+      fractalmlserver_network:
+        ipv4_address: ${LOAD_BALANCER_IP}
+    volumes:
+      - ./service-configurations/nginx-config/:/etc/nginx/conf.d/
+
+networks:
+  fractalmlserver_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${FRACTALMLSERVER_SUBNET}
+          gateway: ${FRACTALMLSERVER_GATEWAY}
+
+"""
+
+with open('./docker-compose.yml', 'w') as f:
+    # write file part 1
+    f.write(file_part1)
+
+    # write for each Modelhost
+    num_modelhosts = int(sys.argv[1])
+    for i in range(num_modelhosts):
+        f.write(file_part2.format(i + 1))
+
+    # write file part 3
+    f.write(file_part3)

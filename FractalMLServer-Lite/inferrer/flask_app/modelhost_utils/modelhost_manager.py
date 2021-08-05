@@ -6,9 +6,22 @@ import time
 
 
 class ModelhostClientManager:
-    """This class is responsible for creating the coroutines which have been called by the Modelhost methods. Article
-    recommended about asyncio and examples: https://realpython.com/async-io-python/ """
 
+    """
+    This class is responsible for creating the coroutines which have been called by the Inferrer methods.
+    Whenever an http request is sent to inferrer, a ModelhostClientManager instance is created and the
+    corresponding method is called. In the method, another method with the same name is called where the
+    asynchronous session is performed. Finally, in the asynchronous session, a last function is executed
+    depending on the HTTP request to be sent to the modelhost (GET, POST with json, POST with file, or DELETE)
+
+    Recommended artile about asyncio and examples: https://realpython.com/async-io-python/
+    """
+
+
+    '''
+    The methods below are called to open an asynchronous loop, and then call the method in the Utils section
+    with the same name to perform the session call (HTTP request). 
+    '''
     def __init__(self):
         self.modelhostUtils = ModelhostQueryUtils()
         # self.modelhostLogger = Logger
@@ -139,7 +152,7 @@ class ModelhostClientManager:
 
 
 class ModelhostQueryUtils:
-    """This class defines the asynchronous corountines that make the calls to the endpond which comunicates with
+    """This class defines the asynchronous corountines that make the calls to the endpoint which comunicates with
     modelhost """
 
     def __init__(self):
@@ -244,7 +257,6 @@ class ModelhostQueryUtils:
     async def update_modelhost_models(self):
         # This is a 'brute force' method. It tries to communicate with all
         # modelhosts taking the N variables 'MODELHOST_N_IP' from the .env file
-        # Probably, is not the most beautiful way, but it works.
         URL_METHOD = '/modelhost/models/update'
         # debug --
         # url = 'http://172.24.0.3:8000' + URL_METHOD
@@ -271,7 +283,12 @@ class ModelhostQueryUtils:
             return await asyncio.gather(
                 *[self._test_get_query_async(observation, session, url) for observation in observation_list])
 
-    """ASYNC HTTP QUERIES"""
+    """
+    ASYNC HTTP QUERIES
+    These functions define the parameters of the HTTP requests to be done to the modelhost.
+    Information like the final url, the files or jsons to be sent and the REST petition (GET, POST...) 
+    are defined here.
+    """
 
     # TODO async def post_query_async(self, observation, session, url, payload):
     async def post_query_async(self, data, session, url):
