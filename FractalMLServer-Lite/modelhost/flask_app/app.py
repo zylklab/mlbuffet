@@ -54,8 +54,7 @@ def hello_world():
     return HttpJsonResponse(200,
                             http_status_description='Greetings from Fractal - ML Server - ModelHost, the Machine '
                                                     'Learning model server. Are you supposed to be reading this? '
-                                                    'Guess not. Go to Inferrer! '
-                                                    'For more information, visit /help').json()
+                                                    'Guess not. Go to Inferrer! ').json()
 
 
 @server.route('/api/test', methods=['GET'])

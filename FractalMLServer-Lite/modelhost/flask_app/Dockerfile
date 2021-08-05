@@ -16,10 +16,10 @@ RUN mkdir /home/logs
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
-#run integration testing
-#RUN ["chmod", "+x", "./api_test.py"]
-#RUN python ./api_test.py
+# Run integration testing
+RUN ["chmod", "+x", "./api_test.py"]
+RUN python ./api_test.py
 
-#http
+# HTTP
 CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:8000", "wsgi:server"]
 
