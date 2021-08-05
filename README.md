@@ -20,7 +20,7 @@ modules, each of which is in charge of a task as described in the table below:
 # Service description
 
 The Inferrer and Modelhost modules expose REST APIs built on Flask for intercommunication. The Inferrer will handle user
-requests ~~from the available resources~~???, i.e. uploading a model, asking for a prediction... and will send them as
+requests made to the available models, i.e., uploading a model, asking for a prediction... and will send them as
 jobs to the Modelhost module, which will perform them in the background asynchronously.
 
 When a prediction is requested, the Modelhost will first check if the requested model is already deployed. If it is, then it will pass the http request as an input to the ONNX session running in the background, and the answer is sent back to the user through Inferrer.
