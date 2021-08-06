@@ -16,35 +16,6 @@ def test_inferrer_api():
     logger.info('FlaskAPI:: get_test() method')
     test_get_test()
 
-    ### TODO: These methods need modelhosts to be deployed,which are not up at container building stage ###
-    # logger.info('FlaskAPI:: get_test_sendtomodelhost() method')
-    # test_get_test_sendtomodelhost()
-    #
-    # logger.info('FlaskAPI:: get_model_list() method')
-    # get_model_list()
-    #
-    # logger.info('FlaskAPI:: get_model_list_info() method')
-    # get_model_list_info()
-    #
-    # logger.info('FlaskAPI:: get_update_model_list() method')
-    # get_update_model_list()
-    #
-    # logger.info('FlaskAPI:: upload_model() method')
-    # test_upload_model()
-    #
-    # logger.info('FlaskAPI:: download_model() method')
-    # test_download_model()
-    #
-    # logger.info('FlaskAPI:: delete_model() method')
-    # test_delete_model()
-    #
-    # logger.info('FlaskAPI:: get_prediction() method')
-    # test_get_prediction()
-
-    # TODO Review different versions of sklearn requirements
-    # logger.info('FlaskAPI:: sklearn2onnx_conversor() method')
-    # test_sklearn2onnx_conversor()
-
     logger.info('FlaskAPI:: requests_count() method')
     test_requests_count()
 
