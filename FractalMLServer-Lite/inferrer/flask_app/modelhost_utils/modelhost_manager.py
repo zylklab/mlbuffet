@@ -15,13 +15,11 @@ class ModelhostClientManager:
     depending on the HTTP request to be sent to the modelhost (GET, POST with json, POST with file, or DELETE)
 
     Recommended artile about asyncio and examples: https://realpython.com/async-io-python/
-    """
 
-
-    '''
     The methods below are called to open an asynchronous loop, and then call the method in the Utils section
     with the same name to perform the session call (HTTP request). 
-    '''
+    """
+
     def __init__(self):
         self.modelhostUtils = ModelhostQueryUtils()
         # self.modelhostLogger = Logger
@@ -148,8 +146,6 @@ class ModelhostClientManager:
         # print("modelhost get_modelhost_predictions() call elapsed time: " + str(t1 - t0) + " ms")  # TODO logger
         return predictions
 
-    # TODO def get_modelhost_descriptions(self, model_list):
-
 
 class ModelhostQueryUtils:
     """This class defines the asynchronous corountines that make the calls to the endpoint which comunicates with
@@ -163,17 +159,17 @@ class ModelhostQueryUtils:
 
     """ASYNC MODELHOST METHODS"""
 
+    # For debugging purposes, use the modelhost url instead of the Load Balancer's
+    # debug --
+    # url = 'http://172.24.0.3:8000' + URL_METHOD
+    # -- debug
+
     async def get_modelhost_predictions(self, model, observation_list):
         URL_METHOD = '/modelhost/models/' + model + '/prediction'
         url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
         print(self.LOAD_BALANCER_ENDPOINT)
 
-        # debug --
-        # url = 'http://172.24.0.3:8000' + URL_METHOD
-        # -- debug
-
         # Execute all queries with gather (one query every request)
-
         async with aiohttp.ClientSession() as session:
             return await asyncio.gather(
                 *[self.post_query_async(observation_list, session, url)])
@@ -182,9 +178,6 @@ class ModelhostQueryUtils:
         URL_METHOD = "/modelhost/information"
         url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
 
-        # debug --
-        # url = 'http://172.24.0.3:8000' + URL_METHOD
-        # -- debug
         data = {"model": model}
         # Execute all queries with gather (one query every request)
         async with aiohttp.ClientSession() as session:
@@ -195,9 +188,6 @@ class ModelhostQueryUtils:
         URL_METHOD = "/modelhost/information"
         url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
 
-        # debug --
-        # url = 'http://172.24.0.3:8000' + URL_METHOD
-        # -- debug
         data = {"model": model, "model_description": description}
         # Execute all queries with gather (one query every request)
         async with aiohttp.ClientSession() as session:
@@ -208,9 +198,6 @@ class ModelhostQueryUtils:
         URL_METHOD = "/modelhost/models"
         url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
 
-        # debug --
-        # url = 'http://172.24.0.3:8000' + URL_METHOD
-        # -- debug
         data = None
         # Execute all queries with gather (one query every request)
         async with aiohttp.ClientSession() as session:
@@ -221,9 +208,6 @@ class ModelhostQueryUtils:
         URL_METHOD = "/modelhost/models/information"
         url = self.URL_PREFIX + self.LOAD_BALANCER_ENDPOINT + URL_METHOD
 
-        # debug --
-        # url = 'http://172.24.0.3:8000' + URL_METHOD
-        # -- debug
         data = None
         # Execute all queries with gather (one query every request)
         async with aiohttp.ClientSession() as session:
@@ -236,10 +220,6 @@ class ModelhostQueryUtils:
 
         # Open the file
         files = {'file': open(modelpath, 'rb')}
-
-        # debug --
-        # url = 'http://172.24.0.3:8000' + URL_METHOD
-        # -- debug
 
         # Execute all queries with gather (one query every request)
         async with aiohttp.ClientSession() as session:
@@ -257,10 +237,9 @@ class ModelhostQueryUtils:
     async def update_modelhost_models(self):
         # This is a 'brute force' method. It tries to communicate with all
         # modelhosts taking the N variables 'MODELHOST_N_IP' from the .env file
+
         URL_METHOD = '/modelhost/models/update'
-        # debug --
-        # url = 'http://172.24.0.3:8000' + URL_METHOD
-        # -- debug
+
         n = self.NUMBER_OF_MODELHOSTS
         for i in range(n):
             # url = self.URL_PREFIX + '172.24.0.' + str(i + 11) + ':8000' + URL_METHOD
@@ -272,8 +251,6 @@ class ModelhostQueryUtils:
                 await asyncio.gather(
                     *[self.post_query_async(session=session, url=url, data=data)])
         return "done"
-
-    # TODO async def get_modelhost_descriptions(self, model_list):
 
     async def _test_get_modelhost_predictions(self, observation_list):
         URL_METHOD = '/api/test/frominferrer/get/'
@@ -290,7 +267,6 @@ class ModelhostQueryUtils:
     are defined here.
     """
 
-    # TODO async def post_query_async(self, observation, session, url, payload):
     async def post_query_async(self, data, session, url):
         endpoint = url
         resp = await session.post(url=endpoint, headers={"Content-Type": "application/json"},
