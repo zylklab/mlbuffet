@@ -73,16 +73,4 @@ class Description(HttpJsonResponse):
 
         self.data['description'] = description
 
-# TODO: Check if this POJO is necessary when show_list will be done
-# class ModelList(HttpJsonResponse):
-#     def __init__(self,
-#                  http_status_code: int,
-#                  http_status_name: str = None,
-#                  http_status_description: str = None,
-#                  model_list=None):
-#         if model_list is None:
-#             model_list = []
-#
-#         super().__init__(http_status_code, http_status_name, http_status_description)
-#
-#         self.data['model_list'] = model_list
+
