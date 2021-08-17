@@ -226,14 +226,6 @@ def model_handling(model_name):
 
     # For GET requests, display model information
     if request.method == 'GET':
-        # Check if model is in .onnx format
-        if get_file_extension(model_name) != 'onnx':
-            return HttpJsonResponse(
-                409,
-                http_status_description=f'{model_name} is not in onnx format. '
-                                        f'Please convert it and re-upload to provide information '
-            ).json()
-
         return mh_talker.get_information_of_a_model(model_name)
 
     # For PUT requests, upload the given model file to the modelhost server
@@ -254,7 +246,7 @@ def model_handling(model_name):
 
         return mh_talker.upload_new_model(model_name, new_model)
 
-    # For POST requests, update the information on a given model
+    # For POST requests, update the information of a given model
     if request.method == 'POST':
         # Check that any json data has been provided
         if not request.json:

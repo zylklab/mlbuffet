@@ -177,6 +177,10 @@ def predict(model_name):
 
 @server.route(path.join(MODELHOST_BASE_URL, '<model_name>/information'), methods=['GET', 'POST'])
 def model_information(model_name):
+    model_session = model_sessions.get(model_name)
+    if not model_session:
+        return ModelInformation(404).json()
+
     if request.method == 'GET':
         description = model_sessions[model_name]
         return ModelInformation(
