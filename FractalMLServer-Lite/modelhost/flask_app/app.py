@@ -227,7 +227,7 @@ def manage_model(model_name):
         # get model and save it
         model = request.files['model']
         model.save(model_path)
-        return HttpJsonResponse(200).json()
+        return HttpJsonResponse(201).json()
 
     elif request.method == 'DELETE':
         # if the model exists

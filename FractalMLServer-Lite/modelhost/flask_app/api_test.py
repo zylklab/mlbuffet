@@ -84,7 +84,7 @@ def upload_model():
         data={'model': model}
     )
     model.close()
-    assert response.status_code == 200
+    assert response.status_code == 201
 
 
 def delete_model():
