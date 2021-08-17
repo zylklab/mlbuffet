@@ -1,16 +1,13 @@
-import os
 from os import path
 from pathlib import Path
 
-import gevent
-import requests
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
 from werkzeug.utils import secure_filename
 
-from modelhost_utils import modelhost_cache
-from utils import metric_manager, stopwatch
+import modelhost_talker as mh_talker
+from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
 from utils.inferer_pojos import HttpJsonResponse
 
@@ -23,14 +20,6 @@ auth_token = 'password'  # TODO: https://github.com/miguelgrinberg/Flask-HTTPAut
 auth = HTTPTokenAuth('Bearer')
 auth.auth_error_callback = lambda *args, **kwargs: handle_exception(Unauthorized())
 
-# Request constants
-LOAD_BALANCER_ENDPOINT = os.getenv('LOAD_BALANCER_ENDPOINT')
-URI_SCHEME = 'http://'
-try:
-    NUMBER_OF_MODELHOSTS = int(os.getenv('NUMBER_MODELHOST_NODES'))
-except TypeError:
-    pass
-
 # Logger initialization
 logger = Logger('inferrer').get_logger('inferrer')
 logger.info('Starting FRACTAL - ML SERVER - INFERRER API...')
@@ -42,7 +31,6 @@ logger.info('... FRACTAL - ML SERVER - INFERRER API succesfully started')
 
 
 # TODO: comments
-# TODO: url method adhoc? no
 # TODO: utils script to separate calling
 # TODO: not os.getenv, constants
 # TODO: endpoint information models... :/
@@ -111,25 +99,7 @@ def _test_send_to_modelhost():
             422,
             http_status_description='Test data is not a list enclosed by squared brackets').json()
 
-    url_method = '/api/test/frominferrer/get'
-    url = URI_SCHEME + LOAD_BALANCER_ENDPOINT + url_method
-
-    jobs = [gevent.spawn(requests.get, path.join(url, data_point)) for data_point in data_array]
-    gevent.wait(jobs)
-
-    # Print modelhosts responses and check if all HTTP codes are 2XX
-    all_responses_200 = True
-    for job in jobs:
-        modelhost_response = job.value.json()
-
-        if 200 > modelhost_response['http_status']['code'] > 299:
-            all_responses_200 = False
-
-        print(modelhost_response)  # TODO: prettier?
-
-    if all_responses_200:
-        return HttpJsonResponse(200).json()
-    return HttpJsonResponse(500, http_status_description='One or more modelhosts returned non 2XX HTTP code')
+    return mh_talker.test_load_balancer(data_array)
 
 
 # This endpoint is used by Prometheus and metrics are exposed here
@@ -213,59 +183,39 @@ def get_prediction(model_name):
             http_status_description='New observation is not a list enclosed by squared brackets').json()
 
     # Check if the same prediction has already been made before
-    prediction_hash = modelhost_cache.get_hash(model_name=model_name, inputs=new_observation)
-    cached_prediction = modelhost_cache.get_prediction(hash_code=prediction_hash)
+    prediction_hash = prediction_cache.get_hash(model_name=model_name, inputs=new_observation)
+    cached_prediction = prediction_cache.get_prediction(hash_code=prediction_hash)
 
     # If the prediction exists in cache, return it
     if cached_prediction is not None:
         return cached_prediction
 
-    url_method = f'/modelhost/models/{model_name}/prediction'
-    url = URI_SCHEME + LOAD_BALANCER_ENDPOINT + url_method
-    prediction = requests.post(url, json={'values': new_observation}).json()
+    prediction = mh_talker.make_a_prediction(model_name, new_observation)
 
-    modelhost_cache.put_prediction_in_cache(hash_code=prediction_hash, model=model_name, inputs=new_observation,
-                                            prediction=prediction)
+    prediction_cache.put_prediction_in_cache(hash_code=prediction_hash, model=model_name, inputs=new_observation,
+                                             prediction=prediction)
 
     return prediction
 
 
-# Display a list of the available models
+# Display a list of available models
 @server.route(path.join(API_BASE_URL, 'models'), methods=['GET'])
 def show_models():
-    url_method = '/modelhost/models'
-
     metric_manager.increment_model_counter()
-
-    url = URI_SCHEME + LOAD_BALANCER_ENDPOINT + url_method
-
-    return requests.get(url).json()
+    return mh_talker.get_list_of_models()
 
 
 # Display all the information related to every available model
 @server.route(path.join(API_BASE_URL, 'models/information'), methods=['GET'])
 def show_model_descriptions():  # TODO new pojo for this? or delete
-    url_method = '/modelhost/models/information'
-
     metric_manager.increment_model_counter()
-
-    url = URI_SCHEME + LOAD_BALANCER_ENDPOINT + url_method
-
-    return requests.get(url).json()
+    return mh_talker.get_information_of_all_models()
 
 
 # Update the list of available models on every modelhost node.
 @server.route(path.join(API_BASE_URL, 'models/update'), methods=['POST'])
 def update_models():
-    url_method = '/modelhost/models/update'
-    # The update_modelhost_models() method must be called everytime a change has occured on the model list
-
-    for i in range(NUMBER_OF_MODELHOSTS):  # TODO load balancer instead of this loop?
-        ip = os.getenv(f'MODELHOST_{i + 1}_IP') + ':8000'
-        url = URI_SCHEME + ip + url_method
-        data = None
-        # TODO why post
-        return requests.post(url, data=data).json()
+    mh_talker.update_models()
 
 
 # This method is in charge of model handling. Performs operations on models and manages models in the server.
@@ -284,10 +234,7 @@ def model_handling(model_name):
                                         f'Please convert it and re-upload to provide information '
             ).json()
 
-        url_method = f'/modelhost/{model_name}/information'
-        url = URI_SCHEME + LOAD_BALANCER_ENDPOINT + url_method
-
-        return requests.get(url, json={'model': model_name}).json()
+        return mh_talker.get_information_of_a_model(model_name)
 
     # For PUT requests, upload the given model file to the modelhost server
     if request.method == 'PUT':
@@ -305,16 +252,7 @@ def model_handling(model_name):
                 http_status_description=f'File extension not allowed. '
                                         f'Please use one of these: {ALLOWED_EXTENSIONS}').json()
 
-        url_method = '/modelhost/models/' + model_name
-        url = URI_SCHEME + LOAD_BALANCER_ENDPOINT + url_method
-
-        # Send the model as HTTP post request to a modelhost node
-        response = requests.put(url, files={'model': new_model}).json()
-
-        # Update the model list for every modelhost node
-        update_models()
-
-        return response
+        return mh_talker.upload_new_model(model_name, new_model)
 
     # For POST requests, update the information on a given model
     if request.method == 'POST':
@@ -334,24 +272,12 @@ def model_handling(model_name):
         if not isinstance(description, str):
             return HttpJsonResponse(422, http_status_description='model_description must be a string').json()
 
-        url_method = f'/modelhost/{model_name}/information'
-        url = URI_SCHEME + LOAD_BALANCER_ENDPOINT + url_method
-
-        data = {'model_description': description}
-        response = requests.post(url, json=data).json()
-        update_models()
-
-        return response
+        return mh_talker.write_model_description(model_name, description)
 
     # For DELETE requests, delete a given model
     if request.method == 'DELETE':
         # Send the model as HTTP delete request
-        url_method = '/modelhost/models/' + model_name
-        url = URI_SCHEME + LOAD_BALANCER_ENDPOINT + url_method
-
-        response = requests.delete(url).json()
-        update_models()
-        return response
+        return mh_talker.delete_model(model_name)
 
 
 if __name__ == '__main__':

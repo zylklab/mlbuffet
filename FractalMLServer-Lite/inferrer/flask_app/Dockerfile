@@ -6,12 +6,12 @@ WORKDIR usr/src/flask_app
 
 COPY app.py .
 COPY wsgi.py .
+COPY modelhost_talker.py .
 COPY requirements.txt .
 COPY api_test.py .
 COPY cache/inferrer-cache.json /.cache/inferrer-cache.json
 
 COPY utils utils
-COPY modelhost_utils modelhost_utils
 RUN mkdir /home/logs
 
 RUN pip install --upgrade pip
