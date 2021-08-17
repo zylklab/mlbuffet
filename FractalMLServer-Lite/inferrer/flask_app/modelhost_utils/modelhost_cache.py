@@ -1,50 +1,40 @@
+import hashlib
 import json
 
-import hashlib
+# TODO: This can be REDIS or SQLite
+
+default_cache_filename = '/.cache/inferrer-cache.json'
 
 
-class modelhost_cache:
+def get_hash(model_name, inputs):
+    input_string = ' '.join(str(e) for e in inputs)
+    hash_func_input = (model_name + input_string).encode('utf-8')
+    return hashlib.blake2b(hash_func_input).hexdigest()
 
-    def __init__(self):
-        pass
 
-    def get_hash(self=None, model=None, input=None):
-        inputstr = " ".join(str(e) for e in input)
-        prehash = model + inputstr
-        prehashb = prehash.encode("utf-8")
-        hash = hashlib.blake2b(prehashb).hexdigest()
-        return hash
+# Read prediction from json
+def get_prediction(hash_code, filename=default_cache_filename):
+    with open(filename, 'r') as file:
+        cache_dict = json.load(file)
+        return cache_dict.get(hash_code)  # return None if not present
 
-    def data_structure(self=None, hash=None, model=None, input=None, prediction=None):
-        dict = {"hash": hash, "data": {"model": model, "input": input, "prediction": prediction}}
-        return dict
 
-    # Rewrite prediction as json format
-    def put_prediction(self=None, new_data=None, filename='/.cache/inferrer-cache.json'):
-        with open(filename, 'r+') as file:
-            # First we load existing data into a dict.
-            file_data = json.load(file)
-            # Join new_data with file_data inside emp_details
-            file_data.append(new_data)
-            # Sets file's current position at offset.
-            file.seek(0)
-            # convert back to json.
-            json.dump(file_data, file, indent=2)
+# Write prediction as json format
+def put_prediction_in_cache(hash_code=None, model=None, inputs=None, prediction=None, filename=default_cache_filename):
+    with open(filename, 'r+') as file:
+        # Load existing data
+        cache_dict = json.load(file)
 
-    # Read prediction from json
-    def get_prediction(self=None, hash=None, filename='/.cache/inferrer-cache.json'):
-        with open(filename, "r") as f:
-            file_data = json.load(f)
-            for i in file_data:
-                if i["hash"] == hash:
-                    a = i["data"]["prediction"]
-                    return a
+        # Add new cache entry
+        new_data = {
+            hash_code:
+                {'model': model,
+                 'inputs': inputs,
+                 'prediction': prediction
+                 }
+        }
+        cache_dict.update(new_data)
 
-    # Check the existence of a hash in the json
-    def check_hash(self=None, hash=None, filename="/.cache/inferrer-cache.json"):
-        with open(filename, "r") as f:
-            file_data = json.load(f)
-            for i in file_data:
-                if i["hash"] == hash:
-                    return "Key exists"
-
+        # Save back to json
+        file.seek(0)
+        json.dump(cache_dict, file, indent=2)

@@ -9,7 +9,7 @@ class HttpJsonResponse:
                  http_status_code: int,
                  http_status_name: str = None,
                  http_status_description: str = None):
-
+        # TODO: not jic; check if not (X or Y)
         # compute just in case values if not specified
         if http_status_code in default_exceptions:  # if provided code belongs to a http exception
             exception = default_exceptions[http_status_code]()
@@ -55,22 +55,28 @@ class ModelList(HttpJsonResponse):
                  http_status_name: str = None,
                  http_status_description: str = None,
                  model_list=None):
-        if model_list is None:
-            model_list = {}
-
         super().__init__(http_status_code, http_status_name, http_status_description)
+
+        if model_list is None:
+            model_list = []
 
         self.data['model_list'] = model_list
 
 
-class Description(HttpJsonResponse):
+class ModelInformation(HttpJsonResponse):
     def __init__(self,
                  http_status_code: int,
                  http_status_name: str = None,
                  http_status_description: str = None,
-                 description: {} = None):
+                 description: str = '',
+                 input_name: str = None,
+                 num_inputs: ndarray = None,
+                 output_name: int = None,
+                 model_type: str = ''):
         super().__init__(http_status_code, http_status_name, http_status_description)
 
+        self.data['input_name'] = input_name
+        self.data['num_inputs'] = num_inputs
+        self.data['output_name'] = output_name
         self.data['description'] = description
-
-
+        self.data['model_type'] = model_type
