@@ -19,19 +19,25 @@ def _url(resource):
     return URI_SCHEME + LOAD_BALANCER_ENDPOINT + resource
 
 
+def _is_ok(code):
+    return str(code).startswith('2')
+
+
 def _get(resource):
     return requests.get(_url(resource)).json()
 
 
 def _post(resource, json_data):
     response = requests.post(_url(resource), json=json_data).json()
-    update_models()
+    if _is_ok(response['http_status']['code']):
+        update_models()
     return response
 
 
 def _put(resource, files):
     response = requests.put(_url(resource), files=files).json()
-    update_models()
+    if _is_ok(response['http_status']['code']):
+        update_models()
     return response
 
 
@@ -39,10 +45,12 @@ def _delete(resource):
     raw_response = requests.delete(_url(resource))
     try:
         response = raw_response.json()
+        if _is_ok(response['http_status']['code']):
+            update_models()
     except JSONDecodeError:
         response = raw_response.text
+        update_models()
 
-    update_models()
     return response
 
 
@@ -61,7 +69,7 @@ def get_information_of_a_model(model_name):
     return _get(resource)
 
 
-def make_a_prediction(model_name, new_observation):
+def make_a_prediction(model_name, new_observation):  # TODO: for example here update wouldn't be necessary WHERE TO CALL
     resource = f'/modelhost/models/{model_name}/prediction'
     return _post(resource, {'values': new_observation})
 
@@ -88,27 +96,26 @@ def test_load_balancer(data_array):
     gevent.wait(jobs)
 
     # Print modelhosts responses and check if all HTTP codes are 2XX
-    all_responses_200 = True
+    all_responses_2xx = True
     for job in jobs:
-        modelhost_response = job.value.json()
+        if not _is_ok(job.value['http_status']['code']):
+            all_responses_2xx = False
 
-        if 200 > modelhost_response['http_status']['code'] > 299:
-            all_responses_200 = False
+        print(f'Received response: {job.value}')
 
-        print(modelhost_response)  # TODO: prettier?
-
-    if all_responses_200:
+    if all_responses_2xx:
         return HttpJsonResponse(200).json()
-    return HttpJsonResponse(500, http_status_description='One or more modelhosts returned non 2XX HTTP code')
+    return HttpJsonResponse(500, http_status_description='One or more modelhosts returned non 2XX HTTP code').json()
 
 
 def update_models():
     resource = '/modelhost/models/update'
-    # The update_modelhost_models() method must be called everytime a change has occured on the model list
 
     for i in range(NUMBER_OF_MODELHOSTS):  # TODO load balancer instead of this loop
         ip = getenv(f'MODELHOST_{i + 1}_IP') + ':8000'
         url = URI_SCHEME + ip + resource
         data = None
         # TODO why post
-        return requests.post(url, data=data).json()
+        gevent.spawn(requests.post, url=url, json=data)  # do not wait for them to finish
+
+    return HttpJsonResponse(200).json()
