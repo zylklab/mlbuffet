@@ -230,7 +230,7 @@ def model_handling(model_name):
     if request.method == 'PUT':
         # Check a file path has been provided
         if not request.files or 'path' not in request.files:
-            return HttpJsonResponse(422, http_status_description='No path specified').json()
+            return HttpJsonResponse(422, http_status_description='Model\'s path name must be \'path\'').json()
 
         # Get model file from the given path
         new_model = request.files['path']
@@ -239,7 +239,7 @@ def model_handling(model_name):
         if get_file_extension(model_name) not in ALLOWED_EXTENSIONS:
             return HttpJsonResponse(
                 415,
-                http_status_description=f'File extension not allowed. '
+                http_status_description=f'Filename extension not allowed. '
                                         f'Please use one of these: {ALLOWED_EXTENSIONS}').json()
 
         return mh_talker.upload_new_model(model_name, new_model)

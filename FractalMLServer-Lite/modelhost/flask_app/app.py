@@ -156,7 +156,7 @@ def predict(model_name):
         return Prediction(
             404,
             http_status_description=f'{model_name} does not exist. '
-                                    f'Visit GET {path.join(API_BASE_URL, "models")} for a list of avaliable model_index'
+                                    f'Visit GET {path.join(API_BASE_URL, "models")} for a list of avaliable models'
         ).json()
 
     inference_session = model_sessions[model_name]['inference_session']
@@ -177,11 +177,15 @@ def predict(model_name):
 
 @server.route(path.join(MODELHOST_BASE_URL, '<model_name>/information'), methods=['GET', 'POST'])
 def model_information(model_name):
-    model_session = model_sessions.get(model_name)
-    if not model_session:
-        return ModelInformation(404).json()
-
     if request.method == 'GET':
+        # Check that the model exists
+        if model_name not in model_sessions.keys():
+            return ModelInformation(
+                404,
+                http_status_description=f'{model_name} does not exist. '
+                                        f'Visit GET {path.join(API_BASE_URL, "models")} for a list of avaliable models'
+            ).json()
+
         description = model_sessions[model_name]
         return ModelInformation(
             200,
@@ -192,6 +196,14 @@ def model_information(model_name):
             model_type=description['model_type']).json()
 
     elif request.method == 'POST':
+        # Check that the model exists
+        if model_name not in model_sessions.keys():
+            return HttpJsonResponse(
+                404,
+                http_status_description=f'{model_name} does not exist. '
+                                        f'Visit GET {path.join(API_BASE_URL, "models")} for a list of avaliable models'
+            ).json()
+
         model_path = path.join(MODEL_FOLDER, model_name)
         new_model_description = request.json['model_description']
 
