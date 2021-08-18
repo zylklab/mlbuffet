@@ -31,7 +31,6 @@ logger.info('... FRACTAL - ML SERVER - INFERRER API succesfully started')
 
 
 # TODO: comments
-# TODO: utils script to separate calling
 # TODO: not os.getenv, constants
 # TODO: endpoint information models... :/
 # TODO: loadbalancer endpoint no --> ip y url method no --> endpoint
@@ -75,7 +74,6 @@ For more information on the FRACTAL Project and the Fractal ML Server, go to htt
 @server.route('/api/test', methods=['GET'])
 def get_test():
     metric_manager.increment_test_counter()
-
     return HttpJsonResponse(200).json()
 
 
@@ -215,7 +213,7 @@ def show_model_descriptions():  # TODO new pojo for this? or delete
 # Update the list of available models on every modelhost node.
 @server.route(path.join(API_BASE_URL, 'models/update'), methods=['POST'])
 def update_models():
-    mh_talker.update_models()
+    return mh_talker.update_models()
 
 
 # This method is in charge of model handling. Performs operations on models and manages models in the server.
