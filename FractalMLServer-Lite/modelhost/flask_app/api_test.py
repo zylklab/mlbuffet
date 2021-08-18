@@ -1,8 +1,11 @@
 import json
 from os.path import join
 
-from app import API_BASE_URL, server, MODEL_FOLDER, MODELHOST_BASE_URL
+from app import server, MODEL_FOLDER, MODELHOST_BASE_URL
 from utils.container_logger import Logger
+
+
+# TODO test uploaded and deleted models
 
 def test_modelhost():
     # logger initialization
@@ -30,12 +33,9 @@ def test_modelhost():
     logger.info('FlaskAPI:: get_prediction() method')
     test_get_prediction()
 
-
-
-
-
     logger.info('FlaskAPI:: requests_count() method')
     test_requests_count()
+
 
 def test_hello_world():
     response = server.test_client().get(
@@ -43,11 +43,13 @@ def test_hello_world():
     )
     assert response.status_code == 200
 
+
 def test_get_test():
     response = server.test_client().get(
         '/api/test'
     )
     assert response.status_code == 200
+
 
 def get_model_list():
     url = join(MODELHOST_BASE_URL, 'models')
@@ -56,7 +58,8 @@ def get_model_list():
     )
     assert response.status_code == 200
     content = json.loads(next(response.response))
-    return content['description']
+    return content['model_list']
+
 
 def get_model_list_information():
     url = join(MODELHOST_BASE_URL, 'models/information')
@@ -67,31 +70,33 @@ def get_model_list_information():
     content = json.loads(next(response.response))
     return content['description']
 
+
 def upload_model():
     initial_models = get_model_list()
     new_model_name = 'testmodel.onnx'
-    url = join(MODELHOST_BASE_URL, 'models/upload_' + new_model_name)
+    url = join(MODELHOST_BASE_URL, 'models/' + new_model_name)
 
-    filepath = join(MODEL_FOLDER, new_model_name)
-    f = open(filepath, "wb")
-    f.close()
+    model = open(join(MODEL_FOLDER, 'clf.onnx'), 'rb')
 
-    response = server.test_client().post(
+    response = server.test_client().put(
         url,
         buffered=True,
-        data={'file': open(filepath, 'rb')}
+        data={'model': model}
     )
-    assert response.status_code == 200
+    model.close()
+    assert response.status_code == 201
+
 
 def delete_model():
     initial_models = get_model_list()
     model_to_delete = 'testmodel.onnx'
 
-    url = join(MODELHOST_BASE_URL, 'models/delete_' + model_to_delete)
+    url = join(MODELHOST_BASE_URL, 'models/' + model_to_delete)
     response = server.test_client().delete(
         url
     )
-    assert response.status_code == 200
+    assert response.status_code == 204
+
 
 def test_get_prediction():
     url = join(MODELHOST_BASE_URL, 'models/iris.onnx/prediction')
@@ -105,6 +110,7 @@ def test_get_prediction():
     content = json.loads(next(response.response))
     assert content['values'] is not None
 
+
 def test_requests_count():
     response = server.test_client().get(
         '/metrics',
@@ -114,8 +120,6 @@ def test_requests_count():
 
     content = next(response.response)
     assert content is not None
-
-
 
 
 if __name__ == '__main__':
