@@ -97,10 +97,10 @@ def get_test():
 
 @server.route('/api/test/frominferrer/get/<data>', methods=['GET'])
 def _test_frominferrer_send_modelhost(data):  # TODO: method name (underscore)
-    print(data)  # TODO: prettier?
+    print(f'Received data: "{data}"')
     return HttpJsonResponse(
         200,
-        http_status_description=f'Received: {data}, modelhost prediction (node: {MODELHOST_NODE_UNIQ_ID})').json()
+        http_status_description=f'Received "{data}" from modelhost {MODELHOST_NODE_UNIQ_ID}').json()
 
 
 @server.route('/metrics', methods=['GET', 'POST'])
