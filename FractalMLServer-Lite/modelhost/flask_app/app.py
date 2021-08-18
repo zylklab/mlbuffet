@@ -35,7 +35,7 @@ auth.auth_error_callback = lambda *args, **kwargs: handle_exception(Unauthorized
 MODELHOST_NODE_UNIQ_ID = '{:06d}'.format(random.randint(1, 99999))  # TODO: can collide
 
 # Logger initialization
-logger = Logger('modelhost-logger').get_logger('modelhost-logger')
+logger = Logger('modelhost').get_logger('modelhost')
 logger.info('Starting Flask API...')
 
 # Server initialization
