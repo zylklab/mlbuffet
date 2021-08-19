@@ -50,6 +50,8 @@ logger.info('... Flask API succesfully started')
 
 # Call this function every time the MODEL_FOLDER is modified (Upload/Delete models)
 def update_model_sessions():
+    model_sessions.clear()
+
     for model_name in listdir(MODEL_FOLDER):
         model_path = path.join(MODEL_FOLDER, model_name)
         model = onnx.load(model_path)
