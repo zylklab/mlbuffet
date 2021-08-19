@@ -1,3 +1,8 @@
+import sys
+
+"""Script for generating docker-compose.yml file based on desired number of Modelhosts"""
+
+file_part1 = """\
 version: '3'
 services:
 
@@ -15,36 +20,28 @@ services:
     env_file:
     - .env
 
-  modelhost_1:
-    container_name: modelhost_1
+"""
+
+# dynamic part
+file_part2 = """\
+  modelhost_{0}:
+    container_name: modelhost_{0}
     restart: always
     build: ../modelhost/flask_app
     ports:
-    - ${MODELHOST_1_API_BIND_TO_PORT}:8000
+    - ${{MODELHOST_{0}_API_BIND_TO_PORT}}:8000
     networks:
       fractalmlserver_network:
-        ipv4_address: ${MODELHOST_1_IP}
+        ipv4_address: ${{MODELHOST_{0}_IP}}
     volumes:
       - ../modelhost/logs:/home/logs
       - ../modelhost/flask_app/models:/usr/src/flask_app/models
     env_file:
     - .env
 
-  modelhost_2:
-    container_name: modelhost_2
-    restart: always
-    build: ../modelhost/flask_app
-    ports:
-    - ${MODELHOST_2_API_BIND_TO_PORT}:8000
-    networks:
-      fractalmlserver_network:
-        ipv4_address: ${MODELHOST_2_IP}
-    volumes:
-      - ../modelhost/logs:/home/logs
-      - ../modelhost/flask_app/models:/usr/src/flask_app/models
-    env_file:
-    - .env
+"""
 
+file_part3 = """\
   prometheus:
     container_name: prometheus-fractal
     restart: always
@@ -77,3 +74,16 @@ networks:
         - subnet: ${FRACTALMLSERVER_SUBNET}
           gateway: ${FRACTALMLSERVER_GATEWAY}
 
+"""
+
+with open('./docker-compose.yml', 'w') as f:
+    # write file part 1
+    f.write(file_part1)
+
+    # write for each Modelhost
+    num_modelhosts = int(sys.argv[1])
+    for i in range(num_modelhosts):
+        f.write(file_part2.format(i + 1))
+
+    # write file part 3
+    f.write(file_part3)
