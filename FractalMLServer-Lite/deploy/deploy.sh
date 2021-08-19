@@ -33,11 +33,10 @@ echo "Creating Nginx environment..."
 python3 .starting_utils/nginx-project.py "$num" || { exit 1; }
 echo "Done."
 
-
 echo "Building FractalMLServer-Lite..."
 
 # Run in detached mode if the user prompts -d as parameter
-if [ $1 == "-d" ]
+if [[ $1 == "-d" ]]
 then
   exec docker-compose up --build -d
 else

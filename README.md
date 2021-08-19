@@ -29,7 +29,19 @@ When a prediction is requested, the Modelhost will first check if the requested 
 
 ## Build & Deploy the services
 
-First make sure that you have Docker-Engine and Docker-Compose installed. Some TCP and UDP ports must be available before deploying:
+First make sure that you have Docker-Engine and Docker-Compose installed. Take into account that some older versions of docker-compose may not be supported. Up to now, the server has been tested and proven to work properly on versions 1.28.5 and 1.29.2, for older or other versions, upgrade to a newer version (or test your luck). To install docker-compose:
+
+`sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose`
+
+`sudo chmod +x /usr/local/bin/docker-compose`
+
+`sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose`
+
+Check you docker-compose version:
+
+`docker-compose --version`
+
+ Some TCP and UDP ports must be available before deploying:
 
 -TCP 80
 
