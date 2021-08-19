@@ -38,15 +38,17 @@ def test_modelhost():
 
 
 def test_hello_world():
+    url = MODELHOST_BASE_URL
     response = server.test_client().get(
-        '/'
+        url
     )
     assert response.status_code == 200
 
 
 def test_get_test():
+    url = join(MODELHOST_BASE_URL, 'api/test')
     response = server.test_client().get(
-        '/api/test'
+        url
     )
     assert response.status_code == 200
 

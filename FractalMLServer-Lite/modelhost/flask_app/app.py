@@ -16,7 +16,6 @@ from utils.modelhost_pojos import HttpJsonResponse, Prediction, ModelList, Model
 # TODO: more prometheus metrics
 # TODO: (endpoint for each modelhost prometheus metrics)
 # TODO: comments
-# TODO: possible duplicated files between inferrer and modelhost
 # TODO: reorder methods
 # TODO: where to update model list
 # TODO: rethink routes
@@ -32,7 +31,7 @@ auth = HTTPTokenAuth('Bearer')
 auth.auth_error_callback = lambda *args, **kwargs: handle_exception(Unauthorized())
 
 # Unique ID for modelhost instances
-MODELHOST_NODE_UNIQ_ID = '{:06d}'.format(random.randint(1, 99999))  # TODO: can collide
+MODELHOST_NODE_UNIQ_ID = '{:06d}'.format(random.randint(1, 99999))
 
 # Logger initialization
 logger = Logger('modelhost').get_logger('modelhost')
@@ -48,7 +47,7 @@ logger.info('... Flask API succesfully started')
 # with Inferrer instead. These methods shall be called by Inferrer
 
 
-# Call this function every time the MODEL_FOLDER is modified (Upload/Delete models)
+# Call this function every time a model is added, modified or deleted
 def update_model_sessions():
     model_sessions.clear()
 
@@ -82,7 +81,7 @@ def verify_token(token):
     return token == auth_token
 
 
-@server.route('/', methods=['GET'])
+@server.route(MODELHOST_BASE_URL, methods=['GET'])
 def hello_world():
     return HttpJsonResponse(
         200,
@@ -90,15 +89,14 @@ def hello_world():
                                 'Are you supposed to be reading this? Guess not. Go to Inferrer!').json()
 
 
-@server.route('/api/test', methods=['GET'])
+@server.route(path.join(MODELHOST_BASE_URL, 'api/test'), methods=['GET'])
 def get_test():
     metric_manager.increment_test_counter()
-
     return HttpJsonResponse(200).json()
 
 
-@server.route('/api/test/frominferrer/get/<data>', methods=['GET'])
-def _test_frominferrer_send_modelhost(data):  # TODO: method name (underscore)
+@server.route(path.join(MODELHOST_BASE_URL, 'api/test/<data>'), methods=['GET'])
+def get_test_data(data):
     print(f'Received data: "{data}"')
     return HttpJsonResponse(
         200,
