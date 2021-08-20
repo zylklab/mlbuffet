@@ -90,7 +90,7 @@ def delete_model(model_name):
 
 
 def test_load_balancer(data_array):
-    resource = '/api/test/frominferrer/get'
+    resource = '/modelhost/api/test'
 
     jobs = [gevent.spawn(_get, path.join(resource, str(elem))) for elem in data_array]
     gevent.wait(jobs)
