@@ -1,4 +1,4 @@
-from os import path
+from os import getcwd, path
 from pathlib import Path
 
 from flask import Flask, request, Response
@@ -160,40 +160,65 @@ def get_prediction(model_name):
     metric_manager.increment_model_counter()
     model_name = secure_filename(model_name)
 
-    # Check that json data was provided
-    if not request.json:
-        return HttpJsonResponse(422, http_status_description='No json data provided {values:list}').json()
+    # Check if file is provided
+    if not request.files:
+        # If file is not provided, check that json data was provided
+        if not request.json:
+            return HttpJsonResponse(422, http_status_description='No file json data provided {values:list}').json()
 
-    # Check that file extension is .onnx
-    if get_file_extension(model_name) != 'onnx':
-        return HttpJsonResponse(409, http_status_description=f'{model_name} is not in onnx format.').json()
+        # Check that file extension is .onnx
+        if get_file_extension(model_name) != 'onnx':
+            return HttpJsonResponse(409, http_status_description=f'{model_name} is not in onnx format.').json()
 
-    # Check that input values for prediction have been provided
-    if 'values' not in request.json:
-        return HttpJsonResponse(422, http_status_description='No test observation provided (values:[...])').json()
+        # Check that input values for prediction have been provided
+        if 'values' not in request.json:
+            return HttpJsonResponse(422, http_status_description='No test observation provided (values:[...])').json()
 
-    new_observation = request.json['values']
+        new_observation = request.json['values']
 
-    # Check that the input is a list
-    if not isinstance(new_observation, list):
-        return HttpJsonResponse(
-            422,
-            http_status_description='New observation is not a list enclosed by squared brackets').json()
+        # Check that the input is a list
+        if not isinstance(new_observation, list):
+            return HttpJsonResponse(
+                422,
+                http_status_description='New observation is not a list enclosed by squared brackets').json()
 
-    # Check if the same prediction has already been made before
-    prediction_hash = prediction_cache.get_hash(model_name=model_name, inputs=new_observation)
-    cached_prediction = prediction_cache.get_prediction(hash_code=prediction_hash)
+        # Check if the same prediction has already been made before
+        prediction_hash = prediction_cache.get_hash(model_name=model_name, inputs=new_observation)
+        cached_prediction = prediction_cache.get_prediction(hash_code=prediction_hash)
 
-    # If the prediction exists in cache, return it
-    if cached_prediction is not None:
-        return cached_prediction
+        # If the prediction exists in cache, return it
+        if cached_prediction is not None:
+            return cached_prediction
 
-    prediction = mh_talker.make_a_prediction(model_name, new_observation)
+        prediction = mh_talker.make_a_prediction(model_name, new_observation)
 
-    prediction_cache.put_prediction_in_cache(hash_code=prediction_hash, model=model_name, inputs=new_observation,
-                                             prediction=prediction)
+        prediction_cache.put_prediction_in_cache(hash_code=prediction_hash, model=model_name, inputs=new_observation,
+                                                 prediction=prediction)
 
-    return prediction
+        return prediction
+
+    else:
+        # Check that file extension is .onnx
+        if get_file_extension(model_name) != 'onnx':
+            return HttpJsonResponse(409, http_status_description=f'{model_name} is not in onnx format.').json()
+        # TODO hash for image predictions.
+        # Check if the same prediction has already been made before
+
+        if 'path' not in request.files:
+            return HttpJsonResponse(422, http_status_description='No path specified').json()
+
+        new_observation = request.files['path']
+        prediction_hash = prediction_cache.get_hash(model_name=model_name, inputs=new_observation.filename)
+        cached_prediction = prediction_cache.get_prediction(hash_code=prediction_hash)
+        if cached_prediction is not None:
+            return cached_prediction
+        # Take the file name
+        filename = str(new_observation.filename)
+        prediction = mh_talker.make_a_prediction_image(model_name, new_observation, filename)
+        prediction_cache.put_prediction_in_cache(hash_code=prediction_hash, model=model_name,
+                                                 inputs=new_observation.filename,
+                                                 prediction=prediction)
+        return prediction
 
 
 # Display a list of available models

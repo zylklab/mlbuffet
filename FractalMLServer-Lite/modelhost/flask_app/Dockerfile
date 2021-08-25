@@ -6,6 +6,8 @@ WORKDIR usr/src/flask_app
 
 COPY app.py .
 COPY wsgi.py .
+RUN apt-get update ##[edited]
+RUN apt-get install ffmpeg libsm6 libxext6  -y
 COPY requirements.txt .
 COPY api_test.py .
 
@@ -15,7 +17,6 @@ RUN mkdir /home/logs
 
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
-
 # Run integration testing
 RUN ["chmod", "+x", "./api_test.py"]
 RUN python ./api_test.py

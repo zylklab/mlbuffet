@@ -3,11 +3,13 @@ import random
 from os import getcwd, path
 from os import listdir
 
+import numpy
 import onnx
 import onnxruntime as rt
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
+import cv2
 
 from utils import metric_manager
 from utils.container_logger import Logger
@@ -23,6 +25,7 @@ from utils.modelhost_pojos import HttpJsonResponse, Prediction, ModelList, Model
 # Path constants
 API_BASE_URL = '/api/v1/'
 MODELHOST_BASE_URL = '/modelhost'
+CACHE_FOLDER = '/root/.cache'
 MODEL_FOLDER = path.join(getcwd(), 'models')
 
 # Authorization constants
@@ -147,7 +150,7 @@ def log_response(response):
     return response
 
 
-@server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>/prediction'), methods=['POST'])
+@server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>/prediction'), methods=['POST', 'PUT'])
 def predict(model_name):
     metric_manager.increment_model_counter()
 
@@ -162,17 +165,34 @@ def predict(model_name):
     inference_session = model_sessions[model_name]['inference_session']
     input_name = model_sessions[model_name]['input_name']
     output_name = model_sessions[model_name]['output_name']
-    new_observation = request.json['values']
+    if request.method == 'POST':
+        new_observation = request.json['values']
 
-    try:
-        prediction = inference_session.run(
-            [output_name],
-            {input_name: [new_observation]}
-        )[0]
-    except Exception as error:
-        return Prediction(500, http_status_description=str(error)).json()
+        try:
+            prediction = inference_session.run(
+                [output_name],
+                {input_name: [new_observation]}
+            )[0]
+        except Exception as error:
+            return Prediction(500, http_status_description=str(error)).json()
 
-    return Prediction(200, http_status_description='Prediction successful', values=prediction).json()
+        return Prediction(200, http_status_description='Prediction successful', values=prediction).json()
+    elif request.method == 'PUT':
+        new_observation = request.files['image']
+        filename = request.form['filename']
+        image_path = path.join(CACHE_FOLDER, filename)
+        new_observation.save(image_path)
+        img = cv2.imread(image_path)
+        os.remove(image_path)
+        print(image_path)
+        try:
+            prediction = inference_session.run(
+                [output_name],
+                {input_name: [img]}
+            )[0]
+        except Exception as error:
+            return Prediction(500, http_status_description=str(error)).json()
+        return Prediction(200, http_status_description='Prediction successful', values=prediction).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, '<model_name>/information'), methods=['GET', 'POST'])
