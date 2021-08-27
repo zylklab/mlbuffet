@@ -21,3 +21,4 @@ FractalMLServer-Lite/inferrer/logs/
 FractalMLServer-Lite/testing
 ./FractalMLServer-Lite/modelhost/flask_app/models/
 
+/FractalMLServer-Lite/testing/

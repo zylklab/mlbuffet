@@ -1,14 +1,16 @@
 import os
-import random
 from os import getcwd, path
 from os import listdir
 
-import numpy
+import random
+
 import onnx
 import onnxruntime as rt
+
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
+
 import cv2
 
 from utils import metric_manager
@@ -61,7 +63,7 @@ def update_model_sessions():
         # Get model metadata
         inference_session = rt.InferenceSession(model_path)
         model_type = model.graph.node[0].name
-        num_inputs = inference_session.get_inputs()[0].shape[1]  # TODO dimensions
+        num_inputs = inference_session.get_inputs()[0].shape  # TODO dimensions
         input_name = inference_session.get_inputs()[0].name
         output_name = inference_session.get_outputs()[0].name
         label_name = inference_session.get_outputs()[0].name
@@ -89,7 +91,8 @@ def hello_world():
     return HttpJsonResponse(
         200,
         http_status_description='Greetings from Fractal - ML Server - ModelHost, the Machine Learning model server. '
-                                'Are you supposed to be reading this? Guess not. Go to Inferrer!').json()
+                                'Are you supposed to be reading this? Guess not. Go to Inferrer!'
+    ).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'api/test'), methods=['GET'])
@@ -103,7 +106,8 @@ def get_test_data(data):
     print(f'Received data: "{data}"')
     return HttpJsonResponse(
         200,
-        http_status_description=f'Received "{data}" from modelhost {MODELHOST_NODE_UNIQ_ID}').json()
+        http_status_description=f'Received "{data}" from modelhost {MODELHOST_NODE_UNIQ_ID}'
+    ).json()
 
 
 @server.route('/metrics', methods=['GET', 'POST'])
@@ -111,7 +115,9 @@ def get_metrics():  # TODO: where is the result of this method used
     # force refresh system metrics
     metric_manager.compute_system_metrics()
     metrics = metric_manager.get_metrics()
-    return Response(metrics, mimetype='text/plain')
+    return Response(
+        metrics, mimetype='text/plain'
+    )
 
 
 @server.errorhandler(HTTPException)
@@ -173,10 +179,18 @@ def predict(model_name):
                 [output_name],
                 {input_name: [new_observation]}
             )[0]
-        except Exception as error:
-            return Prediction(500, http_status_description=str(error)).json()
 
-        return Prediction(200, http_status_description='Prediction successful', values=prediction).json()
+        # Error provided by the model
+        except Exception as error:
+            return Prediction(
+                500, http_status_description=str(error)
+            ).json()
+
+        # Correct prediction
+        return Prediction(
+            200, http_status_description='Prediction successful', values=prediction
+        ).json()
+
     elif request.method == 'PUT':
         new_observation = request.files['image']
         filename = request.form['filename']
@@ -184,15 +198,22 @@ def predict(model_name):
         new_observation.save(image_path)
         img = cv2.imread(image_path)
         os.remove(image_path)
-        print(image_path)
         try:
             prediction = inference_session.run(
                 [output_name],
                 {input_name: [img]}
             )[0]
+
+        # Error provided by the model
         except Exception as error:
-            return Prediction(500, http_status_description=str(error)).json()
-        return Prediction(200, http_status_description='Prediction successful', values=prediction).json()
+            return Prediction(
+                500, http_status_description=str(error)
+            ).json()
+
+        # Correct prediction
+        return Prediction(
+            200, http_status_description='Prediction successful', values=prediction
+        ).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, '<model_name>/information'), methods=['GET', 'POST'])
@@ -236,12 +257,14 @@ def model_information(model_name):
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models'), methods=['GET'])
 def get_model_list():
-    return ModelList(200, model_list=list(model_sessions.keys())).json()
+    return ModelList(
+        200, model_list=list(model_sessions.keys())
+    ).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/information'), methods=['GET'])
 def get_model_list_information():
-    update_model_sessions()  # TODO where
+    # update_model_sessions()  # TODO where
     # TODO: WORKAROUND, THIS MAKES NO SENSE
     model_name = list(model_sessions.keys())[0]
     description = model_sessions[model_name]
@@ -252,7 +275,8 @@ def get_model_list_information():
         num_inputs=description['num_inputs'],
         output_name=description['output_name'],
         description=description['description'],
-        model_type=description['model_type']).json()
+        model_type=description['model_type']
+    ).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>'), methods=['PUT', 'DELETE'])
@@ -274,7 +298,8 @@ def manage_model(model_name):
             return HttpJsonResponse(
                 404,
                 http_status_description=f'{model_name} does not exist. Visit GET {path.join(API_BASE_URL, "models")} '
-                                        f'for a list of avaliable models').json()
+                                        f'for a list of avaliable models'
+            ).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/update'), methods=['POST'])

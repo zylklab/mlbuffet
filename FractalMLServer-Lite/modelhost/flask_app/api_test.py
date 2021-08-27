@@ -4,7 +4,7 @@ from os.path import join
 from app import server, MODEL_FOLDER, MODELHOST_BASE_URL
 from utils.container_logger import Logger
 
-
+TEST_FOLDER = join(MODEL_FOLDER, '../utils/test_files/')
 # TODO test uploaded and deleted models
 
 def test_modelhost():
@@ -32,6 +32,9 @@ def test_modelhost():
 
     logger.info('FlaskAPI:: get_prediction() method')
     test_get_prediction()
+
+    logger.info('FlaskAPI:: get_image_prediction() method')
+    test_get_image_prediction()
 
     logger.info('FlaskAPI:: requests_count() method')
     test_requests_count()
@@ -78,7 +81,7 @@ def upload_model():
     new_model_name = 'testmodel.onnx'
     url = join(MODELHOST_BASE_URL, 'models/' + new_model_name)
 
-    model = open(join(MODEL_FOLDER, 'clf.onnx'), 'rb')
+    model = open(join(TEST_FOLDER, 'clf.onnx'), 'rb')
 
     response = server.test_client().put(
         url,
@@ -111,6 +114,18 @@ def test_get_prediction():
 
     content = json.loads(next(response.response))
     assert content['values'] is not None
+
+
+def test_get_image_prediction():
+    url = join(MODELHOST_BASE_URL, 'models/dog_model.onnx/prediction')
+    file = open(join(TEST_FOLDER, 'dog_resized.jpg'), 'rb')
+    response = server.test_client().put(
+        url,
+        buffered=True,
+        data={'filename': 'dog.jpg', 'image': file}
+    )
+    file.close()
+    assert response.status_code == 200
 
 
 def test_requests_count():
