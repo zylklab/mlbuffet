@@ -225,3 +225,25 @@ Once models have been correctly uploaded and described, the server is ready for 
 ```
 
 The field "values":[1] is the prediction for the input flower. You are now ready to upload your own models and make predictions!
+
+You can predict objects with more complex models. For now, the server only is enabled to predict with images, but other types could be allowed in the future.
+For that predictions, the command to send the HTTP request is the following:
+
+`curl -X GET -F "file=@dog_resized.jpeg" http://localhost:8002/api/v1/models/dog_model.onnx/prediction | jq`
+
+```json
+{
+  "http_status": {
+    "code":200,
+    "description":"Prediction successful",
+    "name":"OK"},
+  "values":[
+    [8.3947160334219e-09,
+       ... 
+       ...
+       ...
+     2.68894262411834e-09
+    ]
+  ]
+}
+```

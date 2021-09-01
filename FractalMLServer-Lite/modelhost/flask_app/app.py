@@ -150,6 +150,8 @@ def log_response(response):
         logger.info('Models list provided')
     elif request.path == '/modelhost/models/information':
         logger.info('Models & description list provided')
+    elif 'image' in request.files:
+        logger.info('Prediction done')
     elif response:
         logger.info(response.get_json())
 

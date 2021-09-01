@@ -29,8 +29,8 @@ def _get(resource):
 
 def _post(resource, json_data):
     response = requests.post(_url(resource), json=json_data).json()
-    if _is_ok(response['http_status']['code']):
-        update_models()
+    # if _is_ok(response['http_status']['code']): TODO: why update the list of the models after post something?
+    #     update_models()
     return response
 
 

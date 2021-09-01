@@ -5,7 +5,7 @@ from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
 from werkzeug.utils import secure_filename
-
+from werkzeug.datastructures import FileStorage
 import modelhost_talker as mh_talker
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
@@ -127,7 +127,6 @@ def log_call():
     else:
         client_ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
         logger.info(f'[{client_ip}] HTTP {request.method} call to {request.path}')
-
     my_stopwatch.start()
 
 
@@ -141,6 +140,8 @@ def log_response(response):
         logger.info('Models listed')
     elif request.path == '/api/v1/models/information':
         logger.info('Models and descriptions listed')
+    elif 'file' in request.files:
+        logger.info('Prediction done')
     elif response and response.get_json():
         logger.info(response.get_json())
 
@@ -196,20 +197,24 @@ def get_prediction(model_name):
                                                  prediction=prediction)
 
         return prediction
-
     else:
         # Check that file extension is .onnx
         if get_file_extension(model_name) != 'onnx':
             return HttpJsonResponse(409, http_status_description=f'{model_name} is not in onnx format.').json()
         # We have not found a way to make predictions with the input image after its hash code has been generated.
         # As a workaround, this functionality is disabled and the images will continue normal flow.
-        if 'path' not in request.files:
+        if 'file' not in request.files:
             return HttpJsonResponse(422, http_status_description='No path specified').json()
-        to_prediction = request.files['path']
+
+        to_prediction = request.files['file']
+        filetype = str(to_prediction.content_type)
         filename = str(to_prediction.filename)
 
-        prediction = mh_talker.make_a_prediction_image(model_name, to_prediction, filename)
-        return prediction
+        if filetype == 'image/jpeg':
+            prediction = mh_talker.make_a_prediction_image(model_name, to_prediction, filename)
+            return prediction
+        else:
+            return HttpJsonResponse(422, http_status_description='No filetype allowed for predictions yet').json()
 
 
 # Display a list of available models
