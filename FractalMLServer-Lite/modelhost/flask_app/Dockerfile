@@ -6,8 +6,7 @@ WORKDIR usr/src/flask_app
 
 COPY app.py .
 COPY wsgi.py .
-RUN apt-get update ##[edited]
-RUN apt-get install ffmpeg libsm6 libxext6  -y
+
 COPY requirements.txt .
 COPY api_test.py .
 

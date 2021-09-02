@@ -12,8 +12,10 @@ COPY api_test.py .
 COPY cache/inferrer-cache.json /.cache/inferrer-cache.json
 
 COPY utils utils
-RUN mkdir /home/logs
 
+RUN apt-get update ##[edited]
+RUN mkdir /home/logs
+RUN apt-get install ffmpeg libsm6 libxext6  -y
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 

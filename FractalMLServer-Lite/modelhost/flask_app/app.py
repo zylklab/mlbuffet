@@ -11,7 +11,6 @@ from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
 
-import cv2
 
 from utils import metric_manager
 from utils.container_logger import Logger
@@ -63,7 +62,7 @@ def update_model_sessions():
         # Get model metadata
         inference_session = rt.InferenceSession(model_path)
         model_type = model.graph.node[0].name
-        num_inputs = inference_session.get_inputs()[0].shape  # TODO dimensions
+        dimensions = inference_session.get_inputs()[0].shape  # TODO dimensions
         input_name = inference_session.get_inputs()[0].name
         output_name = inference_session.get_outputs()[0].name
         label_name = inference_session.get_outputs()[0].name
@@ -72,7 +71,7 @@ def update_model_sessions():
         full_description = {'model': model,
                             'inference_session': inference_session,
                             'model_type': model_type,
-                            'num_inputs': num_inputs,
+                            'dimensions': dimensions,
                             'input_name': input_name,  # TODO: or input name?
                             'output_name': output_name,
                             'label_name': label_name,
@@ -150,7 +149,7 @@ def log_response(response):
         logger.info('Models list provided')
     elif request.path == '/modelhost/models/information':
         logger.info('Models & description list provided')
-    elif 'image' in request.files:
+    elif 'prediction' in request.path and request.json['type_observation'] == 'image/jpeg':
         logger.info('Prediction done')
     elif response:
         logger.info(response.get_json())
@@ -175,35 +174,10 @@ def predict(model_name):
     output_name = model_sessions[model_name]['output_name']
     if request.method == 'POST':
         new_observation = request.json['values']
-
         try:
             prediction = inference_session.run(
                 [output_name],
                 {input_name: [new_observation]}
-            )[0]
-
-        # Error provided by the model
-        except Exception as error:
-            return Prediction(
-                500, http_status_description=str(error)
-            ).json()
-
-        # Correct prediction
-        return Prediction(
-            200, http_status_description='Prediction successful', values=prediction
-        ).json()
-
-    elif request.method == 'PUT':
-        new_observation = request.files['image']
-        filename = request.form['filename']
-        image_path = path.join(CACHE_FOLDER, filename)
-        new_observation.save(image_path)
-        img = cv2.imread(image_path)
-        os.remove(image_path)
-        try:
-            prediction = inference_session.run(
-                [output_name],
-                {input_name: [img]}
             )[0]
 
         # Error provided by the model
@@ -274,7 +248,7 @@ def get_model_list_information():
     return ModelInformation(
         200,
         input_name=description['input_name'],
-        num_inputs=description['num_inputs'],
+        num_inputs=description['dimensions'],
         output_name=description['output_name'],
         description=description['description'],
         model_type=description['model_type']

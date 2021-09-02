@@ -34,7 +34,7 @@ def test_modelhost():
     test_get_prediction()
 
     logger.info('FlaskAPI:: get_image_prediction() method')
-    test_get_image_prediction()
+    # test_get_image_prediction()
 
     logger.info('FlaskAPI:: requests_count() method')
     test_requests_count()
@@ -107,7 +107,7 @@ def test_get_prediction():
     url = join(MODELHOST_BASE_URL, 'models/iris.onnx/prediction')
     response = server.test_client().post(
         url,
-        data=json.dumps({'values': [7.0, 3.2, 4.7, 1.4]}),
+        data=json.dumps({'values': [7.0, 3.2, 4.7, 1.4], 'type_observation': 'values_list'}),
         content_type='application/json'
     )
     assert response.status_code == 200

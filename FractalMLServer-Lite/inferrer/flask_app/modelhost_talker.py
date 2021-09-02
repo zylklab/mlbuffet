@@ -41,11 +41,6 @@ def _put(resource, files):
     return response
 
 
-def _put_image(resource, files, filename):
-    response = requests.put(_url(resource), files=files, data=filename).json()
-    return response
-
-
 def _delete(resource):
     raw_response = requests.delete(_url(resource))
     try:
@@ -74,14 +69,9 @@ def get_information_of_a_model(model_name):
     return _get(resource)
 
 
-def make_a_prediction(model_name, new_observation):  # TODO: for example here update wouldn't be necessary WHERE TO CALL
+def make_a_prediction(model_name, new_observation, type_observation):  # TODO: for example here update wouldn't be necessary WHERE TO CALL
     resource = f'/modelhost/models/{model_name}/prediction'
-    return _post(resource, {'values': new_observation})
-
-
-def make_a_prediction_image(model_name, new_observation, filename):
-    resource = f'/modelhost/models/{model_name}/prediction'
-    return _put_image(resource, {'image': new_observation}, {'filename': filename})
+    return _post(resource, {'values': new_observation, 'type_observation': type_observation})
 
 
 def write_model_description(model_name, description):
