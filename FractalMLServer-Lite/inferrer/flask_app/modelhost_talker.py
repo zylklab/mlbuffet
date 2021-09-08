@@ -7,7 +7,8 @@ import requests
 from utils.inferer_pojos import HttpJsonResponse
 
 # Request constants
-LOAD_BALANCER_ENDPOINT = getenv('LOAD_BALANCER_ENDPOINT')
+#LOAD_BALANCER_ENDPOINT = getenv('LOAD_BALANCER_ENDPOINT')
+MODELHOST_ENDPOINT = getenv('MODELHOST_ENDPOINT')
 URI_SCHEME = 'http://'
 try:
     NUMBER_OF_MODELHOSTS = int(getenv('NUMBER_MODELHOST_NODES'))
@@ -16,7 +17,8 @@ except TypeError:
 
 
 def _url(resource):
-    return URI_SCHEME + LOAD_BALANCER_ENDPOINT + resource
+#    return URI_SCHEME + LOAD_BALANCER_ENDPOINT + resource
+    return URI_SCHEME + MODELHOST_ENDPOINT + ":8000" + resource
 
 
 def _is_ok(code):
@@ -110,9 +112,10 @@ def test_load_balancer(data_array):
 
 def update_models():
     resource = '/modelhost/models/update'
+#TODO AQUÍ HAY QUE VER QUÉ DECISIÓN TOMAMOS PARA QUE TODAS LAS RÉPLICAS DE MODELHOST SE ACTUALICEN A LA VEZ.
 
     for i in range(NUMBER_OF_MODELHOSTS):  # TODO load balancer instead of this loop
-        ip = getenv(f'MODELHOST_{i + 1}_IP') + ':8000'
+        ip = getenv(f'MODELHOST_{i + 1}_IP') + ':8000' #TODO WE DONT KNOW MODELHOST IPS ONCE SWARM GETS IN CONTROL
         url = URI_SCHEME + ip + resource
         data = None
         # TODO why post

@@ -33,7 +33,7 @@ services:
   modelhost_2:
     container_name: modelhost_2
     restart: always
-    build: ../modelhost/flask_app
+    image: deploy_modelhost_1
     ports:
     - ${MODELHOST_2_API_BIND_TO_PORT}:8000
     networks:
@@ -76,4 +76,3 @@ networks:
       config:
         - subnet: ${FRACTALMLSERVER_SUBNET}
           gateway: ${FRACTALMLSERVER_GATEWAY}
-

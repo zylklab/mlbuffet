@@ -17,20 +17,12 @@ scrape_configs:
     - job_name: 'prometheus'
       scrape_interval: 5s
       static_configs:
-      - targets: ['127.0.0.1:9090']
+      - targets: ['fractalml_prometheus:9090']
 
     - job_name: 'fractalmlserver'
       metrics_path: '/metrics'
       scrape_interval: 5s
       static_configs:
       - targets:
-          - 172.24.0.2:8000
-          - 172.24.0.11:8000
-          - 172.24.0.12:8000
-          - 172.24.0.13:8000
-          - 172.24.0.14:8000
-          - 172.24.0.15:8000
-          - 172.24.0.16:8000
-          - 172.24.0.17:8000
-          - 172.24.0.18:8000
-          - 172.24.0.19:8000
+          - fractalml_inferrer:8000
+          - fractalml_modelhost:8000
