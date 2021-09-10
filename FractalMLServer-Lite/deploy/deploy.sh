@@ -1,12 +1,12 @@
 #!/bin/bash
 
 default_value=2  # default number of Modelhosts
-echo "Welcome to FractalMLServer-Lite installing helper."
+echo "Welcome to FractalMLServer-Lite Swarm deployment helper."
 
 # ask for user input
 while true; do
   # read user input
-  echo "How many Modelhosts do you want to build? [$default_value]"
+  echo "How many Modelhost replicas do you want to build? [$default_value]"
   read -r num
 
   # if empty means default value
@@ -24,21 +24,11 @@ while true; do
 done
 
 # start deploying and exit on any error
-echo "Creating deploy environment with $num Modelhosts..."
-python3 .starting_utils/environment_deploy.py "$num" || { exit 1; }
-python3 .starting_utils/compose_deploy.py "$num" || { exit 1; }
-echo "Done."
+echo "Creating deploy environment with $num Modelhost replicas..."
 
-echo "Creating Nginx environment..."
-python3 .starting_utils/nginx-project.py "$num" || { exit 1; }
-echo "Done."
+# Run
+exec docker stack deploy -c swarmdeploy.yaml fractalml
 
-echo "Building FractalMLServer-Lite..."
+sleep 5
 
-# Run in detached mode if the user prompts -d as parameter
-if [[ $1 == "-d" ]]
-then
-  exec docker-compose up --build -d
-else
-  exec docker-compose up --build
-fi
+exec docker service update modelhost --replicas=$num

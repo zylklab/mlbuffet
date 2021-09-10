@@ -10,11 +10,6 @@ from utils.inferer_pojos import HttpJsonResponse
 #LOAD_BALANCER_ENDPOINT = getenv('LOAD_BALANCER_ENDPOINT')
 MODELHOST_ENDPOINT = getenv('MODELHOST_ENDPOINT')
 URI_SCHEME = 'http://'
-try:
-    NUMBER_OF_MODELHOSTS = int(getenv('NUMBER_MODELHOST_NODES'))
-except TypeError:
-    pass
-
 
 def _url(resource):
 #    return URI_SCHEME + LOAD_BALANCER_ENDPOINT + resource
