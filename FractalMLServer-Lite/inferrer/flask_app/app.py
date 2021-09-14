@@ -241,7 +241,7 @@ def show_model_descriptions():  # TODO new pojo for this? or delete
 
 
 # Update the list of available models on every modelhost node.
-@server.route(path.join(API_BASE_URL, 'models/updatemodelhosts'), methods=['POST'])
+@server.route(path.join(API_BASE_URL, 'updatemodels'), methods=['GET'])
 def update_models():
     return mh_talker.update_models()
 

@@ -5,6 +5,7 @@ import gevent
 import requests
 
 from utils.inferer_pojos import HttpJsonResponse
+from utils.ipscan import IPScan
 
 # Request constants
 #LOAD_BALANCER_ENDPOINT = getenv('LOAD_BALANCER_ENDPOINT')
@@ -106,14 +107,18 @@ def test_load_balancer(data_array):
 
 
 def update_models():
-    resource = '/modelhost/models/update'
-#TODO AQUÍ HAY QUE VER QUÉ DECISIÓN TOMAMOS PARA QUE TODAS LAS RÉPLICAS DE MODELHOST SE ACTUALICEN A LA VEZ.
+    resource = '/modelhost/updatemodels'
 
-    for i in range(NUMBER_OF_MODELHOSTS):  # TODO load balancer instead of this loop
-        ip = getenv(f'MODELHOST_{i + 1}_IP') + ':8000' #TODO WE DONT KNOW MODELHOST IPS ONCE SWARM GETS IN CONTROL
-        url = URI_SCHEME + ip + resource
-        data = None
-        # TODO why post
-        gevent.spawn(requests.post, url=url, json=data)  # do not wait for them to finish
+    MODELHOST_IP_LIST = IPScan()
+
+    for IP in MODELHOST_IP_LIST:
+        print(IP)
+        url = URI_SCHEME + IP + ":8000" + resource
+        print(url)
+        gevent.spawn(requests.get, url=url)
 
     return HttpJsonResponse(200).json()
+
+
+
+

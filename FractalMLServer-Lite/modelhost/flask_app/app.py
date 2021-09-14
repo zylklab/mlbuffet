@@ -11,7 +11,6 @@ from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
 
-
 from utils import metric_manager
 from utils.container_logger import Logger
 from utils.modelhost_pojos import HttpJsonResponse, Prediction, ModelList, ModelInformation
@@ -278,7 +277,7 @@ def manage_model(model_name):
             ).json()
 
 
-@server.route(path.join(MODELHOST_BASE_URL, 'models/update'), methods=['POST'])
+@server.route(path.join(MODELHOST_BASE_URL, 'updatemodels'), methods=['GET'])
 def update_models():
     update_model_sessions()
     return HttpJsonResponse(200).json()

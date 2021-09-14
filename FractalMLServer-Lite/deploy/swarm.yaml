@@ -50,8 +50,6 @@ services:
 networks:
   fractaloverlay:
     driver: overlay
-    ipam:
-      config:
-        - subnet: 172.24.0.0/24
+    external: true
 
 version: '3'
