@@ -27,8 +27,6 @@ def _get(resource):
 
 def _post(resource, json_data):
     response = requests.post(_url(resource), json=json_data).json()
-    # if _is_ok(response['http_status']['code']): TODO: why update the list of the models after post something?
-    #     update_models()
     return response
 
 
@@ -74,16 +72,19 @@ def make_a_prediction(model_name, new_observation, type_observation):  # TODO: f
 
 def write_model_description(model_name, description):
     resource = f'/modelhost/{model_name}/information'
+    update_models()
     return _post(resource, {'model_description': description})
 
 
 def upload_new_model(model_name, new_model):
     resource = '/modelhost/models/' + model_name
+    update_models()
     return _put(resource, {'model': new_model})
 
 
 def delete_model(model_name):
     resource = '/modelhost/models/' + model_name
+    update_models()
     return _delete(resource)
 
 
