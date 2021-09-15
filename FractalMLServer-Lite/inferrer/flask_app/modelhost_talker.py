@@ -8,7 +8,7 @@ from utils.inferer_pojos import HttpJsonResponse
 from utils.ipscan import IPScan
 
 # Request constants
-#LOAD_BALANCER_ENDPOINT = getenv('LOAD_BALANCER_ENDPOINT')
+OVERLAY_NETWORK = getenv('OVERLAY_NETWORK')
 MODELHOST_ENDPOINT = getenv('MODELHOST_ENDPOINT')
 URI_SCHEME = 'http://'
 
@@ -110,7 +110,7 @@ def test_load_balancer(data_array):
 def update_models():
     resource = '/modelhost/updatemodels'
 
-    MODELHOST_IP_LIST = IPScan()
+    MODELHOST_IP_LIST = IPScan(OVERLAY_NETWORK)
 
     for IP in MODELHOST_IP_LIST:
         print(IP)

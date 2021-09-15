@@ -11,6 +11,9 @@ services:
       PROMETHEUS_PORT: '9090'
       INFERRER_ENDPOINT: 'fractalml_inferrer'
       MODELHOST_ENDPOINT: 'fractalml_modelhost'
+      OVERLAY_NETWORK: '10.0.13.0/24'
+    networks:
+            - fractaloverlay
     ports:
     - "8002:8000"
     volumes:
@@ -27,6 +30,8 @@ services:
       PROMETHEUS_PORT: '9090'
     deploy:
       replicas: 4
+    networks:
+            - fractaloverlay
     ports:
     - "8004:8000"
     volumes:
@@ -45,7 +50,7 @@ services:
   prometheus:
     image: deploy_prometheus
     ports:
-    - "9090:9090"
+    - "9091:9090"
 
 networks:
   fractaloverlay:

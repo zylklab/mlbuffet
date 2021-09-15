@@ -1,8 +1,8 @@
 import nmap
 
-def IPScan():
+def IPScan(network):
     nm = nmap.PortScanner()
-    nm.scan(hosts="10.0.13.0/24", arguments="-sn")
+    nm.scan(hosts=network, arguments="-sn")
 
     listaddr = nm.all_hosts()
     modelhostlist = []
