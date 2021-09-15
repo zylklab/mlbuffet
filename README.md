@@ -42,26 +42,44 @@ Check you docker-compose version:
 
 `docker-compose --version`
 
-TCP ports 80, 8001, 8002 and 9090 must be available before deploying.
+TCP ports 80, 8001, 8002 and 9091 must be available before deploying.
 
 
 ### Recommended build
 
-It is highly recommended at the first time to run `$ ./deploy.sh`, which is included in the deploy directory. You can execute this script with the `-d` flag, so `./deploy.sh -d` will execute the processes in detached mode (similarly to docker-compose up -d).
+Images must be built from source with docker-compose build. If you already have your images built, then you can already proceed with the Swarm Deployment (or other orchestrator).
 
-Upon execution, the script will prompt the user how many modelhost nodes they need, and then will format the docker-compose.yml and nginx configuration accordingly. Then, it will execute all the commands to build the images and get the containers up and running, so no more interaction from the user is required.
+The images in this branch are designed to be orchestrated by Swarm. Other orchestrators have not been tested yet, but the ports exposed are the same as with docker-compose.
 
+Some environment variables must be passed to each container for the processes to correctly perform. Most of these environment variables are then used by the Python programs to communicate between containers and establish port binding with the docker daemon. The required environment variables for each container are:
 
 ```
-prometheus-fractal | level=info ts=2021-07-27T12:29:56.880Z caller=main.go:775 msg="Server is ready to receive web requests."
-inferrer       | 2021-07-27 12:29:57,489 — inferrer — INFO — Starting FRACTAL - ML SERVER - INFERRER API...
-inferrer       | 2021-07-27 12:29:57,491 — inferrer — INFO — ... FRACTAL - ML SERVER - INFERRER API succesfully started
-modelhost_1    | 2021-07-27 12:29:57,499 — modelhost — INFO — Starting Flask API...
-modelhost_1    | 2021-07-27 12:29:57,501 — modelhost — INFO — ... Flask API succesfully started
-```
-Once you are over on the folder with the `docker-compose.yml`, run `docker-compose down` to remove the containers. `docker-compose down --rm all --remove-orphans` will also remove the images in case you don't need them anymore (they can be rebuilt).
+inferrer:
+FLASK_PORT: '8443'
+INFERRER_API_BIND_TO_PORT: '8002'
+LOAD_BALANCER_PORT: '80'
+MODELHOST_API_BIND_TO_PORT: '8004'
+NUMBER_MODELHOST_NODES: '2'
+PROMETHEUS_PORT: '9090'
+INFERRER_ENDPOINT: 'fractalml_inferrer'
+MODELHOST_ENDPOINT: 'fractalml_modelhost'
+  ports: 8002:8000
 
-If you want to use the same modelhosts as the last time, you can go to the deploy directory and run the following command: `docker-compose up -d`
+modelhost:
+FLASK_PORT: '8443'
+INFERRER_API_BIND_TO_PORT: '8002'
+LOAD_BALANCER_PORT: '80'
+MODELHOST_API_BIND_TO_PORT: '8004'
+NUMBER_MODELHOST_NODES: '2'
+PROMETHEUS_PORT: '9090'
+  ports: 8004:8000"
+
+nginx:
+  ports: 80:80
+
+prometheus:
+  ports: 9091:9090
+```
 
 ## Test the API and welcome
 
@@ -101,31 +119,6 @@ The communication flow includes:
 This is done by calling the LOAD BALANCER, which is in charge of redirecting the queries to the modelhost nodes.
 - In the modelhost, the corresponding method responds with a message, including an unique ID for each of the modelhost nodes, which allows to distinguish which modelhost node has executed the query.
 - Results are gatherer by the `modelhost_talker` and presented on the inferrer API.
-
-
-**If you skipped the Recommended build section or you want to add manually additional nodes once the services have already been deployed, follow this steps:**
-
-- On the deploy module, add the new endpoint properties to the `.env` file, on the modelhost sectioon
-     `MODELHOST_N_IP=<NODE_N_IP>` and
-      `MODELHOST_N_API_BIND_TO_PORT=<NODE_N_PORT>`
-- Then on the deploy module, add to the `docker-compose` the new service instance:
-
-           modelhost_N:
-            container_name: modelhost_N
-            restart: always
-            build: ../modelhost/flask_app
-            ports:
-            - ${MODELHOST_N_API_BIND_TO_PORT}:8000
-            networks:
-              fractalmlserver_network:
-                ipv4_address: ${MODELHOST_N_IP}
-            volumes:
-              - ../modelhost/logs:/home/logs
-              - .env:/home/.env
-              - ../modelhost/flask_app/models:/usr/src/flask_app/models
-
-- Finally, on the deploy module, add update the nginx configuration on `service-configurations/nginx-config/project.conf`:
-  add the line `server MODELHOST_N_IP:8000;` for example  `server 172.24.0.5:8000;`
 
 
 ## Model Handling
@@ -239,7 +232,7 @@ For that predictions, the command to send the HTTP request is the following:
     "name":"OK"},
   "values":[
     [8.3947160334219e-09,
-       ... 
+       ...
        ...
        ...
      2.68894262411834e-09

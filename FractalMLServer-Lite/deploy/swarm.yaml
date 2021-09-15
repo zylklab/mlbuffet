@@ -16,8 +16,6 @@ services:
             - fractaloverlay
     ports:
     - "8002:8000"
-    volumes:
-    - /home/alfonsozylk/Escritorio/FRACTAL/GitHubFractal/fractal/FractalMLServer-Lite/inferrer/logs:/home/logs:rw
 
   modelhost:
     image: deploy_modelhost_1
@@ -34,9 +32,6 @@ services:
             - fractaloverlay
     ports:
     - "8004:8000"
-    volumes:
-    - /home/alfonsozylk/Escritorio/FRACTAL/GitHubFractal/fractal/FractalMLServer-Lite/modelhost/logs:/home/logs:rw
-    - /home/alfonsozylk/Escritorio/FRACTAL/GitHubFractal/fractal/FractalMLServer-Lite/modelhost/flask_app/models:/usr/src/flask_app/models:rw
 
   nginx:
     image: deploy_nginx
@@ -44,8 +39,6 @@ services:
     - inferrer
     ports:
     - "80:80"
-    volumes:
-    - /home/alfonsozylk/Escritorio/FRACTAL/GitHubFractal/fractal/FractalMLServer-Lite/deploy/service-configurations/nginx-config:/etc/nginx/conf.d:rw
 
   prometheus:
     image: deploy_prometheus
