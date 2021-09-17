@@ -30,17 +30,6 @@ When a prediction is requested, the Modelhost will first check if the requested 
 
 ## Build & Deploy the services
 
-First make sure that you have Docker-Engine and Docker-Compose installed. Take into account that some older versions of docker-compose may not be supported. Up to now, the server has been tested and proven to work properly on versions 1.28.5 and 1.29.2, for older or other versions, upgrade to a newer version (or test your luck). To install docker-compose:
-
-`sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose`
-
-`sudo chmod +x /usr/local/bin/docker-compose`
-
-`sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose`
-
-Check you docker-compose version:
-
-`docker-compose --version`
 
 TCP ports 80, 8001, 8002 and 9091 must be available before deploying.
 
@@ -49,37 +38,76 @@ TCP ports 80, 8001, 8002 and 9091 must be available before deploying.
 
 Images must be built from source with docker-compose build. If you already have your images built, then you can already proceed with the Swarm Deployment (or other orchestrator).
 
-The images in this branch are designed to be orchestrated by Swarm. Other orchestrators have not been tested yet, but the ports exposed are the same as with docker-compose.
+The images in this branch are designed to be orchestrated by Swarm. Other orchestrators have not been tested yet, but the ports exposed are the same as with docker-compose. Lastly, in Swarm mode, all the iamges must be available for every node on the Swarm, otherwise the nodes will not be able to deploy containers from the images they lack.
 
-Some environment variables must be passed to each container for the processes to correctly perform. Most of these environment variables are then used by the Python programs to communicate between containers and establish port binding with the docker daemon. The required environment variables for each container are:
+The commands to deploy the stack of services in Swarm mode are:
 
 ```
-inferrer:
-FLASK_PORT: '8443'
-INFERRER_API_BIND_TO_PORT: '8002'
-LOAD_BALANCER_PORT: '80'
-MODELHOST_API_BIND_TO_PORT: '8004'
-NUMBER_MODELHOST_NODES: '2'
-PROMETHEUS_PORT: '9090'
-INFERRER_ENDPOINT: 'fractalml_inferrer'
-MODELHOST_ENDPOINT: 'fractalml_modelhost'
-  ports: 8002:8000
-
-modelhost:
-FLASK_PORT: '8443'
-INFERRER_API_BIND_TO_PORT: '8002'
-LOAD_BALANCER_PORT: '80'
-MODELHOST_API_BIND_TO_PORT: '8004'
-NUMBER_MODELHOST_NODES: '2'
-PROMETHEUS_PORT: '9090'
-  ports: 8004:8000"
-
-nginx:
-  ports: 80:80
-
-prometheus:
-  ports: 9091:9090
+docker stack deploy -c swarm.yaml fractalml
 ```
+Where swarm.yaml is the configuration file and fractalml is the name of the stack. The stack name must be fixed as fractalml as this name has been reserved for container intracommunication. The swarm.yaml configuration file can be found below:
+
+```
+services:
+
+  inferrer:
+    image: swarm.zylk.net/fractalml/deploy_inferrer
+    environment:
+      FLASK_PORT: '8443'
+      INFERRER_API_BIND_TO_PORT: '8002'
+      LOAD_BALANCER_PORT: '80'
+      MODELHOST_API_BIND_TO_PORT: '8004'
+      PROMETHEUS_PORT: '9090'
+      INFERRER_ENDPOINT: 'fractalml_inferrer'
+      MODELHOST_ENDPOINT: 'fractalml_modelhost'
+      OVERLAY_NETWORK: '10.0.13.0/24'
+    networks:
+            - fractal_overlay
+    ports:
+    - "8002:8000"
+
+  modelhost:
+    image: swarm.zylk.net/fractalml/deploy_modelhost
+    environment:
+      FLASK_PORT: '8443'
+      INFERRER_API_BIND_TO_PORT: '8002'
+      LOAD_BALANCER_PORT: '80'
+      MODELHOST_API_BIND_TO_PORT: '8004'
+      PROMETHEUS_PORT: '9090'
+    deploy:
+      replicas: 4
+    networks:
+            - fractal_overlay
+    ports:
+    - "8004:8000"
+
+  nginx:
+    image: swarm.zylk.net/fractalml/deploy_nginx
+    depends_on:
+    - inferrer
+    networks:
+            - fractal_overlay
+    ports:
+    - "80:80"
+
+  prometheus:
+    image: swarm.zylk.net/fractalml/deploy_prometheus
+    networks:
+            - fractal_overlay
+    ports:
+    - "9091:9090"
+
+networks:
+  fractal_overlay:
+    driver: overlay
+    external: true
+
+version: '3'
+```
+
+The fractal_overlay network must be created beforehand for containers in different nodes to be able to communicate. The preferred subnet is 10.0.13.0/24, for internal service discovery on this network.
+
+Reported issue: Sometimes after installing docker-compose, the docker-compose tool is unable to access the docker socket due to permission issues. The docker-compose commands will fail and raise the error "docker.errors.DockerException: Error while fetching server API version: ('Connection aborted.', PermissionError(13, 'Permission denied'))" To solve this problem, include docker your user in the docker group with `sudo usermod -aG docker $USER`. Then, give docker-compose permission to access the docker.socket file, by running `sudo chmod 666 /var/run/docker.sock`.
 
 ## Test the API and welcome
 

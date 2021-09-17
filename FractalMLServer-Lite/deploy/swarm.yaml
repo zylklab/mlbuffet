@@ -7,7 +7,6 @@ services:
       INFERRER_API_BIND_TO_PORT: '8002'
       LOAD_BALANCER_PORT: '80'
       MODELHOST_API_BIND_TO_PORT: '8004'
-      NUMBER_MODELHOST_NODES: '2'
       PROMETHEUS_PORT: '9090'
       INFERRER_ENDPOINT: 'fractalml_inferrer'
       MODELHOST_ENDPOINT: 'fractalml_modelhost'
@@ -24,7 +23,6 @@ services:
       INFERRER_API_BIND_TO_PORT: '8002'
       LOAD_BALANCER_PORT: '80'
       MODELHOST_API_BIND_TO_PORT: '8004'
-      NUMBER_MODELHOST_NODES: '2'
       PROMETHEUS_PORT: '9090'
     deploy:
       replicas: 4

@@ -158,7 +158,7 @@ def get_file_extension(file_name):
 
 
 # Prediction method. Given a json with input data, sends it to modelhost for predictions.
-@server.route(path.join(API_BASE_URL, 'models/<model_name>/prediction'), methods=['GET'])
+@server.route(path.join(API_BASE_URL, 'models/<model_name>/prediction'), methods=['POST'])
 def get_prediction(model_name):
     metric_manager.increment_model_counter()
     model_name = secure_filename(model_name)
