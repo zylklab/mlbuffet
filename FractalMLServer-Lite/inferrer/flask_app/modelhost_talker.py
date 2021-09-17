@@ -12,8 +12,9 @@ OVERLAY_NETWORK = getenv('OVERLAY_NETWORK')
 MODELHOST_ENDPOINT = getenv('MODELHOST_ENDPOINT')
 URI_SCHEME = 'http://'
 
+
 def _url(resource):
-#    return URI_SCHEME + LOAD_BALANCER_ENDPOINT + resource
+    #    return URI_SCHEME + LOAD_BALANCER_ENDPOINT + resource
     return URI_SCHEME + MODELHOST_ENDPOINT + ":8000" + resource
 
 
@@ -65,9 +66,9 @@ def get_information_of_a_model(model_name):
     return _get(resource)
 
 
-def make_a_prediction(model_name, new_observation, type_observation):  # TODO: for example here update wouldn't be necessary WHERE TO CALL
+def make_a_prediction(model_name, new_observation):  # TODO: for example here update wouldn't be necessary WHERE TO CALL
     resource = f'/modelhost/models/{model_name}/prediction'
-    return _post(resource, {'values': new_observation, 'type_observation': type_observation})
+    return _post(resource, {'values': new_observation})
 
 
 def write_model_description(model_name, description):
@@ -119,7 +120,3 @@ def update_models():
         gevent.spawn(requests.get, url=url)
 
     return HttpJsonResponse(200).json()
-
-
-
-

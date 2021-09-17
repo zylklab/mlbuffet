@@ -1,12 +1,10 @@
 import os
+import random
 from os import getcwd, path
 from os import listdir
 
-import random
-
 import onnx
 import onnxruntime as rt
-
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
@@ -148,7 +146,7 @@ def log_response(response):
         logger.info('Models list provided')
     elif request.path == '/modelhost/models/information':
         logger.info('Models & description list provided')
-    elif 'prediction' in request.path and request.json['type_observation'] == 'image/jpeg':
+    elif 'prediction' in request.path:
         logger.info('Prediction done')
     elif response:
         logger.info(response.get_json())
@@ -156,7 +154,7 @@ def log_response(response):
     return response
 
 
-@server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>/prediction'), methods=['POST', 'PUT'])
+@server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>/prediction'), methods=['POST'])
 def predict(model_name):
     metric_manager.increment_model_counter()
 
@@ -171,24 +169,22 @@ def predict(model_name):
     inference_session = model_sessions[model_name]['inference_session']
     input_name = model_sessions[model_name]['input_name']
     output_name = model_sessions[model_name]['output_name']
-    if request.method == 'POST':
-        new_observation = request.json['values']
-        try:
-            prediction = inference_session.run(
-                [output_name],
-                {input_name: [new_observation]}
-            )[0]
 
-        # Error provided by the model
-        except Exception as error:
-            return Prediction(
-                500, http_status_description=str(error)
-            ).json()
-
-        # Correct prediction
+    new_observation = request.json['values']
+    try:
+        prediction = inference_session.run(
+            [output_name],
+            {input_name: [new_observation]}
+        )[0]
+    except Exception as error:  # Error provided by the model
         return Prediction(
-            200, http_status_description='Prediction successful', values=prediction
+            500, http_status_description=str(error)
         ).json()
+
+    # Correct prediction
+    return Prediction(
+        200, http_status_description='Prediction successful', values=prediction
+    ).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, '<model_name>/information'), methods=['GET', 'POST'])

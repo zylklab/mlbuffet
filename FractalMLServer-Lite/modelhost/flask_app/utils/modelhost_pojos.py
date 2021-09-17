@@ -43,10 +43,17 @@ class Prediction(HttpJsonResponse):
                  http_status_code: int,
                  http_status_name: str = None,
                  http_status_description: str = None,
-                 values: ndarray = None):
+                 values=None):
         super().__init__(http_status_code, http_status_name, http_status_description)
 
-        self.data['values'] = [] if values is None else values.tolist()
+        if values is None:
+            values = []
+        try:
+            values = values.tolist()
+        except AttributeError:
+            values = list(values)
+
+        self.data['values'] = values
 
 
 class ModelList(HttpJsonResponse):
