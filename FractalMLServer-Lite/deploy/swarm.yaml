@@ -1,7 +1,7 @@
 services:
 
   inferrer:
-    image: deploy_inferrer
+    image: swarm.zylk.net/fractalml/deploy_inferrer
     environment:
       FLASK_PORT: '8443'
       INFERRER_API_BIND_TO_PORT: '8002'
@@ -12,12 +12,12 @@ services:
       MODELHOST_ENDPOINT: 'fractalml_modelhost'
       OVERLAY_NETWORK: '10.0.13.0/24'
     networks:
-            - fractaloverlay
+      - fractal_overlay
     ports:
-    - "8002:8000"
+      - "8002:8000"
 
   modelhost:
-    image: deploy_modelhost_1
+    image: swarm.zylk.net/fractalml/deploy_modelhost
     environment:
       FLASK_PORT: '8443'
       INFERRER_API_BIND_TO_PORT: '8002'
@@ -27,24 +27,19 @@ services:
     deploy:
       replicas: 4
     networks:
-            - fractaloverlay
+      - fractal_overlay
     ports:
-    - "8004:8000"
-
-  nginx:
-    image: deploy_nginx
-    depends_on:
-    - inferrer
-    ports:
-    - "80:80"
+      - "8004:8000"
 
   prometheus:
-    image: deploy_prometheus
+    image: swarm.zylk.net/fractalml/deploy_prometheus
+    networks:
+      - fractal_overlay
     ports:
-    - "9091:9090"
+      - "9091:9090"
 
 networks:
-  fractaloverlay:
+  fractal_overlay:
     driver: overlay
     external: true
 
