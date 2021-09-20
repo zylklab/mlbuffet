@@ -19,8 +19,9 @@ def test_inferrer_api():
     logger.info('FlaskAPI:: requests_count() method')
     test_requests_count()
 
-#Functions calling the API for method testing.
-#Whenever a new method is added to the API, it should be added to the test script
+
+# Functions calling the API for method testing.
+# Whenever a new method is added to the API, it should be added to the test script
 
 def test_hello_world():
     response = server.test_client().get(
@@ -28,17 +29,20 @@ def test_hello_world():
     )
     assert response.status_code == 200
 
+
 def test_show_help():
     response = server.test_client().get(
         '/help'
     )
     assert response.status_code == 200
 
+
 def test_get_test():
     response = server.test_client().get(
         '/api/test'
     )
     assert response.status_code == 200
+
 
 def test_requests_count():
     response = server.test_client().get(
@@ -48,6 +52,7 @@ def test_requests_count():
 
     content = next(response.response)
     assert content is not None
+
 
 if __name__ == '__main__':
     test_inferrer_api()

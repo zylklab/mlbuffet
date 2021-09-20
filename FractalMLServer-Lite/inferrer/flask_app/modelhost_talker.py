@@ -29,8 +29,8 @@ def _get(resource):
 
 def _post(resource, json_data):
     response = requests.post(_url(resource), json=json_data).json()
-    if _is_ok(response['http_status']['code']):
-        update_models()
+    # if _is_ok(response['http_status']['code']): TODO: why update the list of the models after post something?
+    #     update_models()
     return response
 
 
@@ -69,9 +69,9 @@ def get_information_of_a_model(model_name):
     return _get(resource)
 
 
-def make_a_prediction(model_name, new_observation):  # TODO: for example here update wouldn't be necessary WHERE TO CALL
+def make_a_prediction(model_name, new_observation, type_observation):  # TODO: for example here update wouldn't be necessary WHERE TO CALL
     resource = f'/modelhost/models/{model_name}/prediction'
-    return _post(resource, {'values': new_observation})
+    return _post(resource, {'values': new_observation, 'type_observation': type_observation})
 
 
 def write_model_description(model_name, description):

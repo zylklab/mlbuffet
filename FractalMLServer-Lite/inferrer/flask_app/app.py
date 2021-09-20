@@ -1,15 +1,17 @@
-from os import path
+from os import getcwd, path
 from pathlib import Path
-
+import numpy
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
 from werkzeug.utils import secure_filename
-
+from werkzeug.datastructures import FileStorage
 import modelhost_talker as mh_talker
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
 from utils.inferer_pojos import HttpJsonResponse
+import cv2
+import json
 
 # Path constants
 API_BASE_URL = '/api/v1/'
@@ -127,7 +129,6 @@ def log_call():
     else:
         client_ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
         logger.info(f'[{client_ip}] HTTP {request.method} call to {request.path}')
-
     my_stopwatch.start()
 
 
@@ -141,6 +142,8 @@ def log_response(response):
         logger.info('Models listed')
     elif request.path == '/api/v1/models/information':
         logger.info('Models and descriptions listed')
+    elif 'file' in request.files:
+        logger.info('Prediction done')
     elif response and response.get_json():
         logger.info(response.get_json())
 
@@ -160,40 +163,67 @@ def get_prediction(model_name):
     metric_manager.increment_model_counter()
     model_name = secure_filename(model_name)
 
-    # Check that json data was provided
-    if not request.json:
-        return HttpJsonResponse(422, http_status_description='No json data provided {values:list}').json()
-
     # Check that file extension is .onnx
     if get_file_extension(model_name) != 'onnx':
         return HttpJsonResponse(409, http_status_description=f'{model_name} is not in onnx format.').json()
+    # Check if file is provided
+    if not request.files:
+        # If file is not provided, check that json data was provided
+        if not request.json:
+            return HttpJsonResponse(422, http_status_description='No file json data provided {values:list}').json()
 
-    # Check that input values for prediction have been provided
-    if 'values' not in request.json:
-        return HttpJsonResponse(422, http_status_description='No test observation provided (values:[...])').json()
+        # Check that input values for prediction have been provided
+        if 'values' not in request.json:
+            return HttpJsonResponse(422, http_status_description='No test observation provided (values:[...])').json()
 
-    new_observation = request.json['values']
+        new_observation = request.json['values']
 
-    # Check that the input is a list
-    if not isinstance(new_observation, list):
-        return HttpJsonResponse(
-            422,
-            http_status_description='New observation is not a list enclosed by squared brackets').json()
+        # Check that the input is a list
+        if not isinstance(new_observation, list):
+            return HttpJsonResponse(
+                422,
+                http_status_description='New observation is not a list enclosed by squared brackets').json()
 
-    # Check if the same prediction has already been made before
-    prediction_hash = prediction_cache.get_hash(model_name=model_name, inputs=new_observation)
-    cached_prediction = prediction_cache.get_prediction(hash_code=prediction_hash)
+        # Check if the same prediction has already been made before
+        prediction_hash = prediction_cache.get_hash(model_name=model_name, inputs=new_observation)
+        cached_prediction = prediction_cache.get_prediction(hash_code=prediction_hash)
 
-    # If the prediction exists in cache, return it
-    if cached_prediction is not None:
-        return cached_prediction
+        # If the prediction exists in cache, return it
+        if cached_prediction is not None:
+            return cached_prediction
+        type = 'values_list'
+        prediction = mh_talker.make_a_prediction(model_name, new_observation, type)
 
-    prediction = mh_talker.make_a_prediction(model_name, new_observation)
+        prediction_cache.put_prediction_in_cache(hash_code=prediction_hash, model=model_name, inputs=new_observation,
+                                                 prediction=prediction)
 
-    prediction_cache.put_prediction_in_cache(hash_code=prediction_hash, model=model_name, inputs=new_observation,
-                                             prediction=prediction)
+        return prediction
+    else:
+        if 'file' not in request.files:
+            return HttpJsonResponse(422, http_status_description='No path specified').json()
 
-    return prediction
+        to_prediction = request.files['file']
+        filetype = str(to_prediction.content_type)
+
+        if filetype == 'image/jpeg':
+            filename = str(to_prediction.filename)
+            to_hash = request.files['file'].read()
+            prediction_hash = prediction_cache.get_hash(model_name=model_name, inputs=to_hash)
+            cached_prediction = prediction_cache.get_prediction(hash_code=prediction_hash)
+            if cached_prediction is not None:
+                return cached_prediction
+            npimg = numpy.frombuffer(to_hash, numpy.uint8)
+            img_as_list = cv2.imdecode(npimg, cv2.IMREAD_COLOR).tolist()
+            prediction = mh_talker.make_a_prediction(model_name, img_as_list, filetype)
+            prediction_cache.put_prediction_in_cache(hash_code=prediction_hash,
+                                                     model=model_name,
+                                                     inputs=filename,
+                                                     prediction=prediction)
+            return prediction
+        else:
+            return HttpJsonResponse(422, http_status_description='No filetype allowed for predictions yet. Up until '
+                                                                 'now, the server only supports images as '
+                                                                 'files').json()
 
 
 # Display a list of available models
@@ -211,7 +241,7 @@ def show_model_descriptions():  # TODO new pojo for this? or delete
 
 
 # Update the list of available models on every modelhost node.
-@server.route(path.join(API_BASE_URL, 'models/update'), methods=['POST'])
+@server.route(path.join(API_BASE_URL, 'models/updatemodelhosts'), methods=['POST'])
 def update_models():
     return mh_talker.update_models()
 

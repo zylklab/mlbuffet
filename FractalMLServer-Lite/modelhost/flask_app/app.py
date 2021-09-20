@@ -1,13 +1,16 @@
 import os
-import random
 from os import getcwd, path
 from os import listdir
 
+import random
+
 import onnx
 import onnxruntime as rt
+
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
+
 
 from utils import metric_manager
 from utils.container_logger import Logger
@@ -23,6 +26,7 @@ from utils.modelhost_pojos import HttpJsonResponse, Prediction, ModelList, Model
 # Path constants
 API_BASE_URL = '/api/v1/'
 MODELHOST_BASE_URL = '/modelhost'
+CACHE_FOLDER = '/root/.cache'
 MODEL_FOLDER = path.join(getcwd(), 'models')
 
 # Authorization constants
@@ -58,7 +62,7 @@ def update_model_sessions():
         # Get model metadata
         inference_session = rt.InferenceSession(model_path)
         model_type = model.graph.node[0].name
-        num_inputs = inference_session.get_inputs()[0].shape[1]  # TODO dimensions
+        dimensions = inference_session.get_inputs()[0].shape  # TODO dimensions
         input_name = inference_session.get_inputs()[0].name
         output_name = inference_session.get_outputs()[0].name
         label_name = inference_session.get_outputs()[0].name
@@ -67,7 +71,7 @@ def update_model_sessions():
         full_description = {'model': model,
                             'inference_session': inference_session,
                             'model_type': model_type,
-                            'num_inputs': num_inputs,
+                            'dimensions': dimensions,
                             'input_name': input_name,  # TODO: or input name?
                             'output_name': output_name,
                             'label_name': label_name,
@@ -86,7 +90,8 @@ def hello_world():
     return HttpJsonResponse(
         200,
         http_status_description='Greetings from Fractal - ML Server - ModelHost, the Machine Learning model server. '
-                                'Are you supposed to be reading this? Guess not. Go to Inferrer!').json()
+                                'Are you supposed to be reading this? Guess not. Go to Inferrer!'
+    ).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'api/test'), methods=['GET'])
@@ -100,7 +105,8 @@ def get_test_data(data):
     print(f'Received data: "{data}"')
     return HttpJsonResponse(
         200,
-        http_status_description=f'Received "{data}" from modelhost {MODELHOST_NODE_UNIQ_ID}').json()
+        http_status_description=f'Received "{data}" from modelhost {MODELHOST_NODE_UNIQ_ID}'
+    ).json()
 
 
 @server.route('/metrics', methods=['GET', 'POST'])
@@ -108,7 +114,9 @@ def get_metrics():  # TODO: where is the result of this method used
     # force refresh system metrics
     metric_manager.compute_system_metrics()
     metrics = metric_manager.get_metrics()
-    return Response(metrics, mimetype='text/plain')
+    return Response(
+        metrics, mimetype='text/plain'
+    )
 
 
 @server.errorhandler(HTTPException)
@@ -141,13 +149,15 @@ def log_response(response):
         logger.info('Models list provided')
     elif request.path == '/modelhost/models/information':
         logger.info('Models & description list provided')
+    elif 'prediction' in request.path and request.json['type_observation'] == 'image/jpeg':
+        logger.info('Prediction done')
     elif response:
         logger.info(response.get_json())
 
     return response
 
 
-@server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>/prediction'), methods=['POST'])
+@server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>/prediction'), methods=['POST', 'PUT'])
 def predict(model_name):
     metric_manager.increment_model_counter()
 
@@ -162,17 +172,24 @@ def predict(model_name):
     inference_session = model_sessions[model_name]['inference_session']
     input_name = model_sessions[model_name]['input_name']
     output_name = model_sessions[model_name]['output_name']
-    new_observation = request.json['values']
+    if request.method == 'POST':
+        new_observation = request.json['values']
+        try:
+            prediction = inference_session.run(
+                [output_name],
+                {input_name: [new_observation]}
+            )[0]
 
-    try:
-        prediction = inference_session.run(
-            [output_name],
-            {input_name: [new_observation]}
-        )[0]
-    except Exception as error:
-        return Prediction(500, http_status_description=str(error)).json()
+        # Error provided by the model
+        except Exception as error:
+            return Prediction(
+                500, http_status_description=str(error)
+            ).json()
 
-    return Prediction(200, http_status_description='Prediction successful', values=prediction).json()
+        # Correct prediction
+        return Prediction(
+            200, http_status_description='Prediction successful', values=prediction
+        ).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, '<model_name>/information'), methods=['GET', 'POST'])
@@ -216,12 +233,14 @@ def model_information(model_name):
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models'), methods=['GET'])
 def get_model_list():
-    return ModelList(200, model_list=list(model_sessions.keys())).json()
+    return ModelList(
+        200, model_list=list(model_sessions.keys())
+    ).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/information'), methods=['GET'])
 def get_model_list_information():
-    update_model_sessions()  # TODO where
+    # update_model_sessions()  # TODO where
     # TODO: WORKAROUND, THIS MAKES NO SENSE
     model_name = list(model_sessions.keys())[0]
     description = model_sessions[model_name]
@@ -229,10 +248,11 @@ def get_model_list_information():
     return ModelInformation(
         200,
         input_name=description['input_name'],
-        num_inputs=description['num_inputs'],
+        num_inputs=description['dimensions'],
         output_name=description['output_name'],
         description=description['description'],
-        model_type=description['model_type']).json()
+        model_type=description['model_type']
+    ).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>'), methods=['PUT', 'DELETE'])
@@ -254,7 +274,8 @@ def manage_model(model_name):
             return HttpJsonResponse(
                 404,
                 http_status_description=f'{model_name} does not exist. Visit GET {path.join(API_BASE_URL, "models")} '
-                                        f'for a list of avaliable models').json()
+                                        f'for a list of avaliable models'
+            ).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/update'), methods=['POST'])
