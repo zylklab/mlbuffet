@@ -216,9 +216,12 @@ def get_prediction(model_name):
                 return Prediction(200, values=cached_prediction).json()
 
             # Otherwise compute it and save it in cache
-            npimg = numpy.frombuffer(to_hash, numpy.uint8)
-            img_as_list = cv2.imdecode(npimg, cv2.IMREAD_COLOR).tolist()
-            result = mh_talker.make_a_prediction(model_name, img_as_list)
+            flat_image = numpy.frombuffer(to_hash, numpy.uint8)
+            img_bgr = cv2.imdecode(flat_image, cv2.IMREAD_COLOR)
+            img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+            if img.shape[0:2] != (224, 224):  # reshape if necessary
+                img = cv2.resize(img, (224, 224))
+            result = mh_talker.make_a_prediction(model_name, img.tolist())
             prediction_cache.put_prediction_in_cache(hash_code=test_values_hash, prediction=result['values'])
 
             return result
