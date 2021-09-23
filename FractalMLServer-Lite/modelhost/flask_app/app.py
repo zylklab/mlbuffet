@@ -4,6 +4,7 @@ from os import listdir
 
 import random
 
+import numpy
 import onnx
 import onnxruntime as rt
 
@@ -174,22 +175,39 @@ def predict(model_name):
     output_name = model_sessions[model_name]['output_name']
     if request.method == 'POST':
         new_observation = request.json['values']
-        try:
-            prediction = inference_session.run(
-                [output_name],
-                {input_name: [new_observation]}
-            )[0]
-
-        # Error provided by the model
-        except Exception as error:
+        model_dimensions = model_sessions[model_name]['dimensions'][1:]
+        image_dimensions = list(numpy.shape(new_observation))
+        if model_dimensions == image_dimensions:
+            try:
+                prediction = inference_session.run(
+                    [output_name],
+                    {input_name: [new_observation]}
+                )[0]
+                return Prediction(
+                    200, http_status_description='Prediction successful', values=prediction
+                ).json()
+            # Error provided by the model
+            except Exception as error:
+                return Prediction(
+                    500, http_status_description=str(error)
+                ).json()
+        elif model_dimensions != image_dimensions:
+            npimage = numpy.asarray(new_observation)
+            new_observation = numpy.rollaxis(npimage, 2, 0).tolist()
+            try:
+                prediction = inference_session.run(
+                    [output_name],
+                    {input_name: [new_observation]}
+                )[0]
+            # Error provided by the model
+            except Exception as error:
+                return Prediction(
+                    500, http_status_description=str(error)
+                ).json()
+            # Correct prediction
             return Prediction(
-                500, http_status_description=str(error)
+                200, http_status_description='Prediction successful', values=prediction
             ).json()
-
-        # Correct prediction
-        return Prediction(
-            200, http_status_description='Prediction successful', values=prediction
-        ).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, '<model_name>/information'), methods=['GET', 'POST'])
@@ -207,7 +225,7 @@ def model_information(model_name):
         return ModelInformation(
             200,
             input_name=description['input_name'],
-            num_inputs=description['num_inputs'],
+            num_inputs=description['dimensions'],
             output_name=description['output_name'],
             description=description['description'],
             model_type=description['model_type']).json()

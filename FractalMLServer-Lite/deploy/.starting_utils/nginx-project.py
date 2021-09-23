@@ -16,7 +16,7 @@ file_part3 = """\
 
 server {
     listen 80;
-
+    client_max_body_size 20M;
     location / {
         proxy_pass http://fractalmlserver_modelhost_cluster;
     }

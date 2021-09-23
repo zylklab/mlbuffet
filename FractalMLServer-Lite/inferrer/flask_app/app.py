@@ -158,7 +158,7 @@ def get_file_extension(file_name):
 
 
 # Prediction method. Given a json with input data, sends it to modelhost for predictions.
-@server.route(path.join(API_BASE_URL, 'models/<model_name>/prediction'), methods=['GET'])
+@server.route(path.join(API_BASE_URL, 'models/<model_name>/prediction'), methods=['POST'])
 def get_prediction(model_name):
     metric_manager.increment_model_counter()
     model_name = secure_filename(model_name)
@@ -177,7 +177,7 @@ def get_prediction(model_name):
             return HttpJsonResponse(422, http_status_description='No test observation provided (values:[...])').json()
 
         new_observation = request.json['values']
-
+        print("values cogidos")
         # Check that the input is a list
         if not isinstance(new_observation, list):
             return HttpJsonResponse(
@@ -204,7 +204,6 @@ def get_prediction(model_name):
 
         to_prediction = request.files['file']
         filetype = str(to_prediction.content_type)
-
         if filetype == 'image/jpeg':
             filename = str(to_prediction.filename)
             to_hash = request.files['file'].read()
