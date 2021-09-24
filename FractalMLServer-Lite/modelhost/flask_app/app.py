@@ -12,7 +12,6 @@ from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
 
-
 from utils import metric_manager
 from utils.container_logger import Logger
 from utils.modelhost_pojos import HttpJsonResponse, Prediction, ModelList, ModelInformation
@@ -158,7 +157,7 @@ def log_response(response):
     return response
 
 
-@server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>/prediction'), methods=['POST', 'PUT'])
+@server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>/prediction'), methods=['POST'])
 def predict(model_name):
     metric_manager.increment_model_counter()
 
@@ -193,21 +192,33 @@ def predict(model_name):
                 ).json()
         elif model_dimensions != image_dimensions:
             npimage = numpy.asarray(new_observation)
-            new_observation = numpy.rollaxis(npimage, 2, 0).tolist()
-            try:
-                prediction = inference_session.run(
-                    [output_name],
-                    {input_name: [new_observation]}
-                )[0]
-            # Error provided by the model
-            except Exception as error:
+            new_observation2 = numpy.rollaxis(npimage, 2, 0).tolist()
+            image2_dimensions = list(numpy.shape(new_observation2))
+            print(image2_dimensions)
+            print(model_dimensions)
+            if image2_dimensions == model_dimensions:
+
+                try:
+                    prediction = inference_session.run(
+                        [output_name],
+                        {input_name: [new_observation2]}
+                    )[0]
+                # Error provided by the model
+                except Exception as error:
+                    return Prediction(
+                        500, http_status_description=str(error)
+                    ).json()
+                # Correct prediction
                 return Prediction(
-                    500, http_status_description=str(error)
+                    200, http_status_description='Prediction successful', values=prediction
                 ).json()
-            # Correct prediction
-            return Prediction(
-                200, http_status_description='Prediction successful', values=prediction
-            ).json()
+            else:
+                return Prediction(
+                    404,
+                    http_status_description=f'{model_name} does not support this input. {image_dimensions} is '
+                                            f'received, but {model_dimensions} is allowed. Please, check it and try '
+                                            f'again. '
+                ).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, '<model_name>/information'), methods=['GET', 'POST'])
