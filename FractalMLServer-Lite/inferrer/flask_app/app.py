@@ -1,17 +1,17 @@
-from os import getcwd, path
+from os import path
 from pathlib import Path
+
+import cv2
 import numpy
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
 from werkzeug.utils import secure_filename
-from werkzeug.datastructures import FileStorage
+
 import modelhost_talker as mh_talker
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
-from utils.inferer_pojos import HttpJsonResponse
-import cv2
-import json
+from utils.inferer_pojos import HttpJsonResponse, Prediction
 
 # Path constants
 API_BASE_URL = '/api/v1/'
@@ -142,7 +142,7 @@ def log_response(response):
         logger.info('Models listed')
     elif request.path == '/api/v1/models/information':
         logger.info('Models and descriptions listed')
-    elif 'file' in request.files:
+    elif 'path' in request.files:
         logger.info('Prediction done')
     elif response and response.get_json():
         logger.info(response.get_json())
@@ -158,72 +158,75 @@ def get_file_extension(file_name):
 
 
 # Prediction method. Given a json with input data, sends it to modelhost for predictions.
-@server.route(path.join(API_BASE_URL, 'models/<model_name>/prediction'), methods=['GET'])
+@server.route(path.join(API_BASE_URL, 'models/<model_name>/prediction'), methods=['POST'])
 def get_prediction(model_name):
     metric_manager.increment_model_counter()
     model_name = secure_filename(model_name)
 
-    # Check that file extension is .onnx
-    if get_file_extension(model_name) != 'onnx':
-        return HttpJsonResponse(409, http_status_description=f'{model_name} is not in onnx format.').json()
-    # Check if file is provided
+    # Test values can be a json (array) or a file (image)
+    # If a file was not provided, suppose that it is a json
     if not request.files:
-        # If file is not provided, check that json data was provided
+        # check that json data was provided
         if not request.json:
-            return HttpJsonResponse(422, http_status_description='No file json data provided {values:list}').json()
+            return Prediction(422, http_status_description='No json data {values:[...]} or file provided').json()
 
         # Check that input values for prediction have been provided
         if 'values' not in request.json:
-            return HttpJsonResponse(422, http_status_description='No test observation provided (values:[...])').json()
+            return Prediction(422, http_status_description='No test observation provided (values:[...])').json()
 
-        new_observation = request.json['values']
+        test_values = request.json['values']
 
         # Check that the input is a list
-        if not isinstance(new_observation, list):
-            return HttpJsonResponse(
+        if not isinstance(test_values, list):
+            return Prediction(
                 422,
                 http_status_description='New observation is not a list enclosed by squared brackets').json()
 
         # Check if the same prediction has already been made before
-        prediction_hash = prediction_cache.get_hash(model_name=model_name, inputs=new_observation)
-        cached_prediction = prediction_cache.get_prediction(hash_code=prediction_hash)
+        test_values_hash = prediction_cache.get_hash(model_name=model_name, inputs=test_values)
+        cached_prediction = prediction_cache.get_prediction(hash_code=test_values_hash)
 
         # If the prediction exists in cache, return it
         if cached_prediction is not None:
-            return cached_prediction
-        type = 'values_list'
-        prediction = mh_talker.make_a_prediction(model_name, new_observation, type)
+            return Prediction(200, values=cached_prediction).json()
 
-        prediction_cache.put_prediction_in_cache(hash_code=prediction_hash, model=model_name, inputs=new_observation,
-                                                 prediction=prediction)
+        # Otherwise compute it and save it in cache
+        result = mh_talker.make_a_prediction(model_name, test_values)
+        prediction_cache.put_prediction_in_cache(hash_code=test_values_hash, prediction=result['values'])
 
-        return prediction
-    else:
-        if 'file' not in request.files:
-            return HttpJsonResponse(422, http_status_description='No path specified').json()
+        return result
 
-        to_prediction = request.files['file']
-        filetype = str(to_prediction.content_type)
+    else:  # If a file was provided
+        if 'path' not in request.files:
+            return HttpJsonResponse(422, http_status_description='The name of the file path must be \'path\'').json()
 
-        if filetype == 'image/jpeg':
-            filename = str(to_prediction.filename)
-            to_hash = request.files['file'].read()
-            prediction_hash = prediction_cache.get_hash(model_name=model_name, inputs=to_hash)
-            cached_prediction = prediction_cache.get_prediction(hash_code=prediction_hash)
+        test_file = request.files['path']
+        file_type = test_file.mimetype
+
+        # Currently only accepting images
+        if file_type.split('/')[0] == 'image':
+            to_hash = request.files['path'].read()
+
+            # Check if the same prediction has already been made before
+            test_values_hash = prediction_cache.get_hash(model_name=model_name, inputs=to_hash)
+            cached_prediction = prediction_cache.get_prediction(hash_code=test_values_hash)
+
+            # If the prediction exists in cache, return it
             if cached_prediction is not None:
-                return cached_prediction
-            npimg = numpy.frombuffer(to_hash, numpy.uint8)
-            img_as_list = cv2.imdecode(npimg, cv2.IMREAD_COLOR).tolist()
-            prediction = mh_talker.make_a_prediction(model_name, img_as_list, filetype)
-            prediction_cache.put_prediction_in_cache(hash_code=prediction_hash,
-                                                     model=model_name,
-                                                     inputs=filename,
-                                                     prediction=prediction)
-            return prediction
+                return Prediction(200, values=cached_prediction).json()
+
+            # Otherwise compute it and save it in cache
+            flat_image = numpy.frombuffer(to_hash, numpy.uint8)
+            img_bgr = cv2.imdecode(flat_image, cv2.IMREAD_COLOR)
+            img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+            result = mh_talker.make_a_prediction(model_name, img.tolist())
+            prediction_cache.put_prediction_in_cache(hash_code=test_values_hash, prediction=result['values'])
+
+            return result
         else:
-            return HttpJsonResponse(422, http_status_description='No filetype allowed for predictions yet. Up until '
-                                                                 'now, the server only supports images as '
-                                                                 'files').json()
+            return HttpJsonResponse(
+                422, http_status_description=f'Filetype {file_type} is not currently allowed for predictions. '
+                                             'The model server only supports images so far').json()
 
 
 # Display a list of available models
@@ -241,7 +244,7 @@ def show_model_descriptions():  # TODO new pojo for this? or delete
 
 
 # Update the list of available models on every modelhost node.
-@server.route(path.join(API_BASE_URL, 'models/updatemodelhosts'), methods=['POST'])
+@server.route(path.join(API_BASE_URL, 'updatemodels'), methods=['GET'])
 def update_models():
     return mh_talker.update_models()
 
@@ -260,7 +263,7 @@ def model_handling(model_name):
     if request.method == 'PUT':
         # Check a file path has been provided
         if not request.files or 'path' not in request.files:
-            return HttpJsonResponse(422, http_status_description='Model\'s path name must be \'path\'').json()
+            return HttpJsonResponse(422, http_status_description='No file path (named \'path\') specified').json()
 
         # Get model file from the given path
         new_model = request.files['path']

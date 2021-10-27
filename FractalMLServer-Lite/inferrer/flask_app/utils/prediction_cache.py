@@ -20,20 +20,13 @@ def get_prediction(hash_code, filename=default_cache_filename):
 
 
 # Write prediction as json format
-def put_prediction_in_cache(hash_code=None, model=None, inputs=None, prediction=None, filename=default_cache_filename):
+def put_prediction_in_cache(hash_code, prediction, filename=default_cache_filename):
     with open(filename, 'r+') as file:
         # Load existing data
         cache_dict = json.load(file)
 
         # Add new cache entry
-        new_data = {
-            hash_code:
-                {'model': model,
-                 'inputs': inputs,
-                 'prediction': prediction
-                 }
-        }
-        cache_dict.update(new_data)
+        cache_dict.update({hash_code: prediction})
 
         # Save back to json
         file.seek(0)
