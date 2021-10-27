@@ -5,18 +5,17 @@ import gevent
 import requests
 
 from utils.inferer_pojos import HttpJsonResponse
+from utils.ipscan import IPScan
 
 # Request constants
-LOAD_BALANCER_ENDPOINT = getenv('LOAD_BALANCER_ENDPOINT')
+OVERLAY_NETWORK = getenv('OVERLAY_NETWORK')
+MODELHOST_ENDPOINT = getenv('MODELHOST_ENDPOINT')
 URI_SCHEME = 'http://'
-try:
-    NUMBER_OF_MODELHOSTS = int(getenv('NUMBER_MODELHOST_NODES'))
-except TypeError:
-    pass
 
 
 def _url(resource):
-    return URI_SCHEME + LOAD_BALANCER_ENDPOINT + resource
+    #    return URI_SCHEME + LOAD_BALANCER_ENDPOINT + resource
+    return URI_SCHEME + MODELHOST_ENDPOINT + ":8000" + resource
 
 
 def _is_ok(code):
@@ -29,8 +28,6 @@ def _get(resource):
 
 def _post(resource, json_data):
     response = requests.post(_url(resource), json=json_data).json()
-    # if _is_ok(response['http_status']['code']): TODO: why update the list of the models after post something?
-    #     update_models()
     return response
 
 
@@ -69,23 +66,26 @@ def get_information_of_a_model(model_name):
     return _get(resource)
 
 
-def make_a_prediction(model_name, new_observation, type_observation):  # TODO: for example here update wouldn't be necessary WHERE TO CALL
+def make_a_prediction(model_name, new_observation):  # TODO: for example here update wouldn't be necessary WHERE TO CALL
     resource = f'/modelhost/models/{model_name}/prediction'
-    return _post(resource, {'values': new_observation, 'type_observation': type_observation})
+    return _post(resource, {'values': new_observation})
 
 
 def write_model_description(model_name, description):
     resource = f'/modelhost/{model_name}/information'
+    update_models()
     return _post(resource, {'model_description': description})
 
 
 def upload_new_model(model_name, new_model):
     resource = '/modelhost/models/' + model_name
+    update_models()
     return _put(resource, {'model': new_model})
 
 
 def delete_model(model_name):
     resource = '/modelhost/models/' + model_name
+    update_models()
     return _delete(resource)
 
 
@@ -109,13 +109,14 @@ def test_load_balancer(data_array):
 
 
 def update_models():
-    resource = '/modelhost/models/update'
+    resource = '/modelhost/updatemodels'
 
-    for i in range(NUMBER_OF_MODELHOSTS):  # TODO load balancer instead of this loop
-        ip = getenv(f'MODELHOST_{i + 1}_IP') + ':8000'
-        url = URI_SCHEME + ip + resource
-        data = None
-        # TODO why post
-        gevent.spawn(requests.post, url=url, json=data)  # do not wait for them to finish
+    MODELHOST_IP_LIST = IPScan(OVERLAY_NETWORK)
+
+    for IP in MODELHOST_IP_LIST:
+        print(IP)
+        url = URI_SCHEME + IP + ":8000" + resource
+        print(url)
+        gevent.spawn(requests.get, url=url)
 
     return HttpJsonResponse(200).json()

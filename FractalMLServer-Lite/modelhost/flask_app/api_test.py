@@ -5,6 +5,8 @@ from app import server, MODEL_FOLDER, MODELHOST_BASE_URL
 from utils.container_logger import Logger
 
 TEST_FOLDER = join(MODEL_FOLDER, '../utils/test_files/')
+
+
 # TODO test uploaded and deleted models
 
 def test_modelhost():
@@ -107,7 +109,7 @@ def test_get_prediction():
     url = join(MODELHOST_BASE_URL, 'models/iris.onnx/prediction')
     response = server.test_client().post(
         url,
-        data=json.dumps({'values': [7.0, 3.2, 4.7, 1.4], 'type_observation': 'values_list'}),
+        data=json.dumps({'values': [7.0, 3.2, 4.7, 1.4]}),
         content_type='application/json'
     )
     assert response.status_code == 200

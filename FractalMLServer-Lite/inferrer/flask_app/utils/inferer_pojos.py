@@ -35,3 +35,21 @@ class HttpJsonResponse:
 
     def json(self):
         return jsonify(**self.data), self.data['http_status']['code']
+
+
+class Prediction(HttpJsonResponse):
+    def __init__(self,
+                 http_status_code: int,
+                 http_status_name: str = None,
+                 http_status_description: str = None,
+                 values=None):
+        super().__init__(http_status_code, http_status_name, http_status_description)
+
+        if values is None:
+            values = []
+        try:
+            values = values.tolist()
+        except AttributeError:
+            values = list(values)
+
+        self.data['values'] = values

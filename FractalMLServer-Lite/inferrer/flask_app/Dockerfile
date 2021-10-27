@@ -13,9 +13,9 @@ COPY cache/inferrer-cache.json /.cache/inferrer-cache.json
 
 COPY utils utils
 
-RUN apt-get update ##[edited]
+RUN apt-get update
 RUN mkdir /home/logs
-RUN apt-get install ffmpeg libsm6 libxext6  -y
+RUN apt-get install ffmpeg libsm6 libxext6 iputils-ping nmap -y
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 

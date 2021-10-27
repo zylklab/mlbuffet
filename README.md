@@ -4,7 +4,8 @@ This repo contains the work for the DEMO of the FRACTAL project, which will take
 
 This project is based on the Model Server developed by Zylk, as part of research for FRACTAL.
 
-Please, always use 'develop' branch to make commits. Changes will then be merged to 'master' branch by the repo admin and reviewers.
+Please, always use 'develop' branch to make commits. Changes will then be merged to 'master' branch by the repo admin
+and reviewers.
 
 # Overview
 
@@ -20,52 +21,55 @@ modules, each of which is in charge of a task as described in the table below:
 
 # Service description
 
-The Inferrer and Modelhost modules expose REST APIs built on Flask for intercommunication. The Inferrer will handle user requests made to the available models, i.e., uploading a model, asking for a prediction... And will send them as
-jobs to the Modelhost module, which will perform them in the background asynchronously.
+The Inferrer and Modelhost modules expose REST APIs built on Flask for intercommunication. The Inferrer will handle user
+requests made to the available models, i.e., uploading a model, asking for a prediction... And will send them as jobs to
+the Modelhost module, which will perform them in the background asynchronously.
 
-When a prediction is requested, the Modelhost will first check if the requested model is already deployed. If it is, then it will pass the HTTP request as an input to the ONNX session running in the background, and the answer is sent back to the user through Inferrer.
+When a prediction is requested, the Modelhost will first check if the requested model is already deployed. If it is,
+then it will pass the HTTP request as an input to the ONNX session running in the background, and the answer is sent
+back to the user through Inferrer.
 
 ----
+
 # Quickstart
 
 ## Build & Deploy the services
 
-First make sure that you have Docker-Engine and Docker-Compose installed. Take into account that some older versions of docker-compose may not be supported. Up to now, the server has been tested and proven to work properly on versions 1.28.5 and 1.29.2, for older or other versions, upgrade to a newer version (or test your luck). To install docker-compose:
-
-`sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose`
-
-`sudo chmod +x /usr/local/bin/docker-compose`
-
-`sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose`
-
-Check you docker-compose version:
-
-`docker-compose --version`
-
-TCP ports 80, 8001, 8002 and 9090 must be available before deploying.
-
+TCP ports 80, 8001, 8002 and 9091 must be available before deploying.
 
 ### Recommended build
 
-It is highly recommended at the first time to run `$ ./deploy.sh`, which is included in the deploy directory. You can execute this script with the `-d` flag, so `./deploy.sh -d` will execute the processes in detached mode (similarly to docker-compose up -d).
+Images must be built from source with docker-compose build. If you already have your images built, then you can already
+proceed with the Swarm Deployment (or other orchestrator).
 
-Upon execution, the script will prompt the user how many modelhost nodes they need, and then will format the docker-compose.yml and nginx configuration accordingly. Then, it will execute all the commands to build the images and get the containers up and running, so no more interaction from the user is required.
+The images in this branch are designed to be orchestrated by Swarm. Other orchestrators have not been tested yet, but
+the ports exposed are the same as with docker-compose. Lastly, in Swarm mode, all the iamges must be available for every
+node on the Swarm, otherwise the nodes will not be able to deploy containers from the images they lack.
 
+The commands to deploy the stack of services in Swarm mode are:
 
+```sh
+docker network create -d overlay --subnet 10.0.13.0/24 fractal_overlay
+docker stack deploy -c swarm.yaml fractalml
 ```
-prometheus-fractal | level=info ts=2021-07-27T12:29:56.880Z caller=main.go:775 msg="Server is ready to receive web requests."
-inferrer       | 2021-07-27 12:29:57,489 — inferrer — INFO — Starting FRACTAL - ML SERVER - INFERRER API...
-inferrer       | 2021-07-27 12:29:57,491 — inferrer — INFO — ... FRACTAL - ML SERVER - INFERRER API succesfully started
-modelhost_1    | 2021-07-27 12:29:57,499 — modelhost — INFO — Starting Flask API...
-modelhost_1    | 2021-07-27 12:29:57,501 — modelhost — INFO — ... Flask API succesfully started
-```
-Once you are over on the folder with the `docker-compose.yml`, run `docker-compose down` to remove the containers. `docker-compose down --rm all --remove-orphans` will also remove the images in case you don't need them anymore (they can be rebuilt).
 
-If you want to use the same modelhosts as the last time, you can go to the deploy directory and run the following command: `docker-compose up -d`
+Where swarm.yaml is the configuration file and fractalml is the name of the stack. The stack name must be fixed as
+fractalml as this name has been reserved for container intracommunication.
+
+The fractal_overlay network must be created beforehand for containers in different nodes to be able to communicate. The
+preferred subnet is 10.0.13.0/24, for internal service discovery on this network.
+
+Reported issue: Sometimes after installing docker-compose, the docker-compose tool is unable to access the docker socket
+due to permission issues. The docker-compose commands will fail and raise the error "docker.errors.DockerException:
+Error while fetching server API version: ('Connection aborted.', PermissionError(13, 'Permission denied'))" To solve
+this problem, include docker your user in the docker group with `sudo usermod -aG docker $USER`. Then, give
+docker-compose permission to access the docker.socket file, by running `sudo chmod 666 /var/run/docker.sock`.
 
 ## Test the API and welcome
 
-The module for the user to communicate with via HTTP requests is the Inferrer. Its associated container is called inferrer and it has the port 8000 binded to localhost:8002. The IP for HTTP requests can be localhost or the internal Docker network, but the former is preferred.
+The module for the user to communicate with via HTTP requests is the Inferrer. Its associated container is called
+inferrer, and it has the port 8000 binded to localhost:8002. The IP for HTTP requests can be localhost or the internal
+Docker network, but the former is preferred.
 
 To get welcomed by the API, use `curl http://localhost:8002/`
 
@@ -85,52 +89,31 @@ Or you can try asking for some help:
 
 `curl http://localhost:8002/help`
 
-
 ## Test the inferrer API and rebalance queries to modelhost nodes
 
-To test the inferrer API, there are some methods with the '_test_' prefix that are used to show the comunication between the inferrer, the load balancer and the modelhost nodes.
+To test the inferrer API, there are some methods with the '_test_' prefix that are used to show the comunication between
+the inferrer, the load balancer and the modelhost nodes.
 
 The following query can be used to call the inferrer node
 `curl -X POST -H "Content-Type: application/json" --data '{"data": ["ONE", "TWO", "THREE", "FOUR"]}'  http://localhost:8002/api/test/sendtomodelhost`
 
-Then, run `docker logs inferrer` to confirm that the modelhost APIs responded correctly and the load was correctly balanced between nodes (each node has a unique identifier and it can be seen which node attended each request).
+Then, run `docker logs inferrer` to confirm that the modelhost APIs responded correctly and the load was correctly
+balanced between nodes (each node has a unique identifier, and it can be seen which node attended each request).
 
 The communication flow includes:
+
 - The HTTP request is sent to the inferrer API REST <INFERRER_IP:8002>
-- The API method uses `modelhost_talker` class to make the queries to the modelhost nodes.
-This is done by calling the LOAD BALANCER, which is in charge of redirecting the queries to the modelhost nodes.
-- In the modelhost, the corresponding method responds with a message, including an unique ID for each of the modelhost nodes, which allows to distinguish which modelhost node has executed the query.
+- The API method uses `modelhost_talker` class to make the queries to the modelhost nodes. This is done by calling the
+  LOAD BALANCER, which is in charge of redirecting the queries to the modelhost nodes.
+- In the modelhost, the corresponding method responds with a message, including a unique ID for each of the modelhost
+  nodes, which allows distinguishing which modelhost node has executed the query.
 - Results are gatherer by the `modelhost_talker` and presented on the inferrer API.
-
-
-**If you skipped the Recommended build section or you want to add manually additional nodes once the services have already been deployed, follow this steps:**
-
-- On the deploy module, add the new endpoint properties to the `.env` file, on the modelhost sectioon
-     `MODELHOST_N_IP=<NODE_N_IP>` and
-      `MODELHOST_N_API_BIND_TO_PORT=<NODE_N_PORT>`
-- Then on the deploy module, add to the `docker-compose` the new service instance:
-
-           modelhost_N:
-            container_name: modelhost_N
-            restart: always
-            build: ../modelhost/flask_app
-            ports:
-            - ${MODELHOST_N_API_BIND_TO_PORT}:8000
-            networks:
-              fractalmlserver_network:
-                ipv4_address: ${MODELHOST_N_IP}
-            volumes:
-              - ../modelhost/logs:/home/logs
-              - .env:/home/.env
-              - ../modelhost/flask_app/models:/usr/src/flask_app/models
-
-- Finally, on the deploy module, add update the nginx configuration on `service-configurations/nginx-config/project.conf`:
-  add the line `server MODELHOST_N_IP:8000;` for example  `server 172.24.0.5:8000;`
-
 
 ## Model Handling
 
-Some pre-trained models are already uploaded and can be updated manually through the `modelhost/models/` directory. However, new model uploading is supported by Fractal - ML Server. All Modelhost servers can access the directory of models, so they share a pool of common models.
+Some pre-trained models are already uploaded and can be updated manually through the `modelhost/models/` directory.
+However, new model uploading is supported by Fractal - ML Server. All Modelhost servers can access the directory of
+models, so they share a pool of common models.
 
 Several methods for model handling can be used from the API:
 
@@ -152,7 +135,9 @@ Several methods for model handling can be used from the API:
 }
 ```
 
-This method however, only displays a list of models, but a description of the models can be added in case the number of models get larger. The complete available information about the models can be accessed through `curl -X GET http://172.24.0.1:8002/api/v1/models/information`
+This method however, only displays a list of models, but a description of the models can be added in case the number of
+models get larger. The complete available information about the models can be accessed
+through `curl -X GET http://172.24.0.1:8002/api/v1/models/information`
 
 ```json
 {
@@ -180,10 +165,10 @@ The specific information of any model can also be requested with GET /api/v1/mod
 
 `curl -X GET http://localhost:8002/api/v1/models/iris.onnx`
 
-
 **Update model information**
 
-A model may have incomplete information, wrong information or no information at all. You can update the description of a model using POST method:
+A model may have incomplete information, wrong information or no information at all. You can update the description of a
+model using POST method:
 
 `curl -X POST -H "Content-Type: application/json" --data '{"model_description":"This model classifies a 4 element array input between different species of Iris flowers."}' http://localhost:8002/api/v1/models/iris.onnx`
 
@@ -199,16 +184,14 @@ Delete models you do not need anymore with DELETE method.
 
 `curl -X DELETE http://localhost:8002/api/v1/models/<model_name>`
 
-
 ## Model Predictions
 
 **Get a prediction!**
 
-Once models have been correctly uploaded and described, the server is ready for inference. Requests must be done with an input in json format. This command will send an HTTP request to the server asking for a prediction on a given flower:
+Once models have been correctly uploaded and described, the server is ready for inference. Requests must be done with an
+input in json format. This command will send an HTTP request to the server asking for a prediction on a given flower:
 
 `curl -X GET -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 4]}' http://localhost:8002/api/v1/models/iris.onnx/prediction`
-
-
 
 ```json
 {
@@ -224,25 +207,26 @@ Once models have been correctly uploaded and described, the server is ready for 
 
 ```
 
-The field "values":[1] is the prediction for the input flower. You are now ready to upload your own models and make predictions!
+The field "values":[1] is the prediction for the input flower. You are now ready to upload your own models and make
+predictions!
 
-You can predict objects with more complex models. For now, the server only is enabled to predict with images, but other types could be allowed in the future.
-For that predictions, the command to send the HTTP request is the following:
+You can predict objects with more complex models. For now, the server only is enabled to predict with images, but other
+types could be allowed in the future. For that predictions, the command to send the HTTP request is the following:
 
 `curl -X GET -F "file=@dog_resized.jpeg" http://localhost:8002/api/v1/models/dog_model.onnx/prediction | jq`
 
 ```json
 {
   "http_status": {
-    "code":200,
-    "description":"Prediction successful",
-    "name":"OK"},
-  "values":[
-    [8.3947160334219e-09,
-       ... 
-       ...
-       ...
-     2.68894262411834e-09
+    "code": 200,
+    "description": "Prediction successful",
+    "name": "OK"
+  },
+  "values": [
+    [
+      8.3947160334219e-09,
+      ...,
+      2.68894262411834e-09
     ]
   ]
 }
