@@ -12,6 +12,7 @@ from werkzeug.exceptions import HTTPException, Unauthorized
 from utils import metric_manager
 from utils.container_logger import Logger
 from utils.modelhost_pojos import HttpJsonResponse, Prediction, ModelList, ModelInformation
+import numpy
 
 # TODO: more prometheus metrics
 # TODO: (endpoint for each modelhost prometheus metrics)
@@ -86,7 +87,7 @@ def verify_token(token):
 def hello_world():
     return HttpJsonResponse(
         200,
-        http_status_description='Greetings from Fractal - ML Server - ModelHost, the Machine Learning model server. '
+        http_status_description='Greetings from MLBuffet - ModelHost, the Machine Learning model server. '
                                 'Are you supposed to be reading this? Guess not. Go to Inferrer!'
     ).json()
 

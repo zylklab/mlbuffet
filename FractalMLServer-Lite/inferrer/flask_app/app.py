@@ -24,12 +24,12 @@ auth.auth_error_callback = lambda *args, **kwargs: handle_exception(Unauthorized
 
 # Logger initialization
 logger = Logger('inferrer').get_logger('inferrer')
-logger.info('Starting FRACTAL - ML SERVER - INFERRER API...')
+logger.info('Starting MLBuffet - INFERRER API...')
 my_stopwatch = stopwatch.Stopwatch(logger.info)
 
 # Server initialization
 server = Flask(__name__)
-logger.info('... FRACTAL - ML SERVER - INFERRER API succesfully started')
+logger.info('... MLBuffet - INFERRER API succesfully started')
 
 
 # TODO: comments
@@ -53,7 +53,7 @@ def verify_token(token):
 def hello_world():
     return HttpJsonResponse(
         200,
-        http_status_description='Greetings from Fractal - ML Server - Inferrer, the Machine Learning model server. '
+        http_status_description='Greetings from MLBuffet - Inferrer, the Machine Learning model server. '
                                 'For more information, visit /help'
     ).json()
 
@@ -62,12 +62,12 @@ def hello_world():
 @server.route('/help', methods=['GET'])
 def show_help():
     return '''
-        #############################
-        #### FRACTAL - ML SERVER ####
-        #############################
+        ###############################
+        #### MLBuffet MODEL SERVER ####
+        ###############################
 
-FRACTAL - ML SERVER is a model server developed by Zylk.net.
-For more information on the FRACTAL Project and the Fractal ML Server, go to https://github.com/zylklab/fractal/.
+MLBuffet is a model server developed by Zylk.net.
+For more information on the project go to https://github.com/zylklab/mlbuffet/.
 
 '''
 

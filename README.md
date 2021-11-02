@@ -1,16 +1,9 @@
-# FRACTAL - MLSERVER
+# MLBuffet
+
 ----
-This repo contains the work for the DEMO of the FRACTAL project, which will take place at the beginning of October 2021.
 
-This project is based on the Model Server developed by Zylk, as part of research for FRACTAL.
-
-Please, always use 'develop' branch to make commits. Changes will then be merged to 'master' branch by the repo admin
-and reviewers.
-
-# Overview
-
-This project is a Machine Learning Model Server based on Docker containers. Fractal - ML Server consists of 4 main
-modules, each of which is in charge of a task as described in the table below:
+This project is a Machine Learning Model Server based on Docker containers. MLBuffet consists of 4 main modules, each of
+which is in charge of a task as described in the table below:
 
 |Module|Description|
 |-----------|-------------|
@@ -49,14 +42,14 @@ node on the Swarm, otherwise the nodes will not be able to deploy containers fro
 The commands to deploy the stack of services in Swarm mode are:
 
 ```sh
-docker network create -d overlay --subnet 10.0.13.0/24 fractal_overlay
-docker stack deploy -c swarm.yaml fractalml
+docker network create -d overlay --subnet 10.0.13.0/24 mlbuffet_overlay
+docker stack deploy -c swarm.yaml mlbuffet
 ```
 
-Where swarm.yaml is the configuration file and fractalml is the name of the stack. The stack name must be fixed as
-fractalml as this name has been reserved for container intracommunication.
+Where swarm.yaml is the configuration file and mlbuffet is the name of the stack. The stack name must be fixed as
+mlbuffet as this name has been reserved for container intracommunication.
 
-The fractal_overlay network must be created beforehand for containers in different nodes to be able to communicate. The
+The mlbuffet_overlay network must be created beforehand for containers in different nodes to be able to communicate. The
 preferred subnet is 10.0.13.0/24, for internal service discovery on this network.
 
 Reported issue: Sometimes after installing docker-compose, the docker-compose tool is unable to access the docker socket
@@ -79,7 +72,7 @@ The welcome message should be displayed.
 {
   "http_status": {
     "code": 200,
-    "description": "Greetings from Fractal - ML Server - Inferrer, the Machine Learning model server. For more information, visit /help",
+    "description": "Greetings from MLBuffet - Inferrer, the Machine Learning model server. For more information, visit /help",
     "name": "OK"
   }
 }
@@ -112,8 +105,8 @@ The communication flow includes:
 ## Model Handling
 
 Some pre-trained models are already uploaded and can be updated manually through the `modelhost/models/` directory.
-However, new model uploading is supported by Fractal - ML Server. All Modelhost servers can access the directory of
-models, so they share a pool of common models.
+However, new model uploading is supported by MLBuffet. All Modelhost servers can access the directory of models, so they
+share a pool of common models.
 
 Several methods for model handling can be used from the API:
 

@@ -17,12 +17,12 @@ scrape_configs:
     - job_name: 'prometheus'
       scrape_interval: 5s
       static_configs:
-      - targets: ['fractalml_prometheus:9090']
+      - targets: ['mlbuffet_prometheus:9090']
 
-    - job_name: 'fractalmlserver'
+    - job_name: 'mlbuffet'
       metrics_path: '/metrics'
       scrape_interval: 5s
       static_configs:
       - targets:
-          - fractalml_inferrer:8000
-          - fractalml_modelhost:8000
+          - mlbuffet_inferrer:8000
+          - mlbuffet_modelhost:8000

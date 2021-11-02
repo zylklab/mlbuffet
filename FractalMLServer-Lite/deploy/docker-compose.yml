@@ -6,34 +6,34 @@ services:
     restart: always
     build: ../inferrer/flask_app
     ports:
-    - ${INFERRER_API_BIND_TO_PORT}:8000
+      - ${INFERRER_API_BIND_TO_PORT}:8000
     volumes:
       - ../inferrer/logs:/home/logs
     env_file:
-    - .env
+      - .env
 
   modelhost_1:
     container_name: modelhost_1
     restart: always
     build: ../modelhost/flask_app
     ports:
-    - ${MODELHOST_API_BIND_TO_PORT}:8000
+      - ${MODELHOST_API_BIND_TO_PORT}:8000
 
     volumes:
       - ../modelhost/logs:/home/logs
       - ../modelhost/flask_app/models:/usr/src/flask_app/models
     env_file:
-    - .env
+      - .env
 
   prometheus:
-    container_name: prometheus-fractal
+    container_name: prometheus
     restart: always
     build: ../metrics/prometheus
     ports:
       - ${PROMETHEUS_PORT}:9090
 
   nginx:
-    container_name: nginx-fractal
+    container_name: nginx
     restart: always
     build: ../inferrer/nginx
     ports:

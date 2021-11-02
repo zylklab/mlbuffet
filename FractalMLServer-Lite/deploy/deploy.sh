@@ -1,7 +1,7 @@
 #!/bin/bash
 
 default_value=2  # default number of Modelhosts
-echo "Welcome to FractalMLServer-Lite Swarm deployment helper."
+echo "Welcome to MLBuffet Swarm deployment helper."
 
 # ask for user input
 while true; do
@@ -27,7 +27,7 @@ done
 echo "Creating deploy environment with $num Modelhost replicas..."
 
 # Run
-exec docker stack deploy -c swarmdeploy.yaml fractalml
+exec docker stack deploy -c swarmdeploy.yaml mlbuffet
 
 sleep 5
 
