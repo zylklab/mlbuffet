@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inferrer
+  namespace: mlbuffet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inferrer
+  template:
+    metadata:
+      labels:
+        app: inferrer
+    spec:
+      containers:
+      - name: inferrer
+        image: inferrer
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        env:
+        - name: FLASK_PORT
+          value: "8443"
+        - name: INFERRER_API_BIND_TO_PORT
+          value: "8002"
+        - name: LOAD_BALANCER_PORT
+          value: "80"
+        - name: MODELHOST_API_BIND_TO_PORT
+          value: "8004"
+        - name: PROMETHEUS_PORT
+          value: "9090"
+        - name: INFERRER_ENDPOINT
+          value: "inferrer"
+        - name: MODELHOST_ENDPOINT
+          value: "modelhost"
+        - name: OVERLAY_NETWORK
+          value: "172.17.0.0/24"

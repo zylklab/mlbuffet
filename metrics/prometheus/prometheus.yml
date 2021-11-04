@@ -17,12 +17,19 @@ scrape_configs:
     - job_name: 'prometheus'
       scrape_interval: 5s
       static_configs:
-      - targets: ['mlbuffet_prometheus:9090']
+      # SWARM DEPLOYMENT
+      #- targets: ['mlbuffet_prometheus:9090']
+      # KUBERNETES DEPLOYMENT
+      - targets: ['127.0.0.1:9090']
 
     - job_name: 'mlbuffet'
       metrics_path: '/metrics'
       scrape_interval: 5s
       static_configs:
       - targets:
-          - mlbuffet_inferrer:8000
-          - mlbuffet_modelhost:8000
+          # SWARM DEPLOYMENT
+          # - mlbuffet_inferrer:8000
+          # - mlbuffet_modelhost:8000
+          # KUBERNETES DEPLOYMENT
+          - inferrer:8000
+          - modelhost:8000

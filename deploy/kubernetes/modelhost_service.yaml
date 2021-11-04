@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: modelhost
+  namespace: mlbuffet
+spec:
+  selector:
+    app: modelhost
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: NodePort

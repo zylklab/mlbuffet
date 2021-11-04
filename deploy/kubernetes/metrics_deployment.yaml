@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics
+  namespace: mlbuffet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metrics
+  template:
+    metadata:
+      labels:
+        app: metrics
+    spec:
+      containers:
+      - name: metrics
+        image: prometheus
+        imagePullPolicy: IfNotPresent
+        ports: 
+        - containerPort: 9090

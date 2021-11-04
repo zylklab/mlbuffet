@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: modelhost
+  namespace: mlbuffet
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: modelhost
+  template:
+    metadata:
+      labels:
+        app: modelhost
+    spec:
+      containers:
+      - name: modelhost
+        image: modelhost
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8000
+        env:
+        - name: FLASK_PORT
+          value: "8443"
+        - name: INFERRER_API_BIND_TO_PORT
+          value: "8002"
+        - name: LOAD_BALANCER_PORT
+          value: "80"
+        - name: MODELHOST_API_BIND_TO_PORT
+          value: "8004"
+        - name: PROMETHEUS_PORT
+          value: "9090"
+        - name: INFERRER_ENDPOINT
+          value: "mlbuffet_inferrer"
+        - name: MODELHOST_ENDPOINT
+          value: "mlbuffet_modelhost"
+        - name: OVERLAY_NETWORK
+          value: "10.0.13.0/24"
