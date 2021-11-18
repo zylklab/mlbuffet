@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: modelhost
   namespace: mlbuffet
+  labels:
+    app: modelhost
 spec:
   replicas: 4
   selector:
@@ -36,3 +38,11 @@ spec:
           value: "mlbuffet_modelhost"
         - name: OVERLAY_NETWORK
           value: "10.0.13.0/24"
+        volumeMounts:
+          -
+            mountPath: /usr/src/flask_app/models
+            name: models
+      volumes:
+      - name: models
+        persistentVolumeClaim:
+          claimName: modelhostpvc
