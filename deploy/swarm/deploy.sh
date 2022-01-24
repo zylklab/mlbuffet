@@ -27,8 +27,8 @@ done
 echo "Creating deploy environment with $num Modelhost replicas..."
 
 # Run
-exec docker stack deploy -c swarmdeploy.yaml mlbuffet
+docker stack deploy -c swarm.yaml mlbuffet &&
 
 sleep 5
 
-exec docker service update modelhost --replicas=$num
+docker service update modelhost --replicas=$num
