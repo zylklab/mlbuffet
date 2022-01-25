@@ -4,20 +4,21 @@ FROM python:${PYTHON_VERSION}
 
 WORKDIR usr/src/flask_app
 
+COPY requirements.txt .
+
+RUN apt-get update
+RUN apt-get install ffmpeg libsm6 libxext6 iputils-ping nmap -y
+RUN pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements.txt
+
 COPY app.py .
 COPY wsgi.py .
 COPY modelhost_talker.py .
-COPY requirements.txt .
 COPY api_test.py .
 COPY cache/inferrer-cache.json /.cache/inferrer-cache.json
 
 COPY utils utils
-
-RUN apt-get update
 RUN mkdir /home/logs
-RUN apt-get install ffmpeg libsm6 libxext6 iputils-ping nmap -y
-RUN pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
 
 #run integration testing
 RUN ["chmod", "+x", "./api_test.py"]
