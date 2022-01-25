@@ -66,7 +66,7 @@ def show_help():
         #### MLBuffet MODEL SERVER ####
         ###############################
 
-MLBuffet is a model server developed by Zylk.net.
+MLBuffet is a Machine Learning model server developed by Zylk.net.
 For more information on the project go to https://github.com/zylklab/mlbuffet/.
 
 '''
