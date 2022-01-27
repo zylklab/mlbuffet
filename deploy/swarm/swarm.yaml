@@ -1,7 +1,8 @@
+version: '3'
 services:
 
   inferrer:
-    image: swarm.zylk.net/mlbuffet/deploy_inferrer
+    image: mlbuffet_inferrer
     environment:
       FLASK_PORT: '8443'
       INFERRER_API_BIND_TO_PORT: '8002'
@@ -17,7 +18,7 @@ services:
       - "8002:8000"
 
   modelhost:
-    image: swarm.zylk.net/mlbuffet/deploy_modelhost
+    image: mlbuffet_modelhost
     environment:
       FLASK_PORT: '8443'
       INFERRER_API_BIND_TO_PORT: '8002'
@@ -34,7 +35,7 @@ services:
       - ../../modelhost/flask_app/models:/usr/src/flask_app/models
 
   prometheus:
-    image: swarm.zylk.net/mlbuffet/deploy_prometheus
+    image: mlbuffet_prometheus
     networks:
       - mlbuffet_overlay
     ports:
@@ -44,5 +45,3 @@ networks:
   mlbuffet_overlay:
     driver: overlay
     external: true
-
-version: '3'
