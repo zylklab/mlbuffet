@@ -31,7 +31,7 @@ services:
     ports:
       - "8004:8000"
     volumes:
-      - ../modelhost/flask_app/models:/usr/src/flask_app/models
+      - ../../modelhost/flask_app/models:/usr/src/flask_app/models
 
   prometheus:
     image: swarm.zylk.net/mlbuffet/deploy_prometheus
