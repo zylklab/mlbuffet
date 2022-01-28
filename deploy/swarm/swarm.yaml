@@ -31,21 +31,23 @@ services:
       - "8004:8000"
     volumes:
       - ../../modelhost/flask_app/models:/usr/src/flask_app/models
+
   prometheus:
-    image: mlbuffet_metrics
+    image: mlbuffet_prometheus
     networks:
       - mlbuffet_overlay
     ports:
       - "9091:9090"
-#  cache:
-#    image: mlbuffet_cache
-#    networks:
-#      - mlbuffet_overlay
-##    ports:
-##      - "6379:6379"
+  cache:
+    image: mlbuffet_cache
+    networks:
+      - mlbuffet_overlay
+#    ports:
+#      - "6379:6379"
 
 
 networks:
   mlbuffet_overlay:
     driver: overlay
     external: true
+
