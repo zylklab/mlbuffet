@@ -15,7 +15,6 @@ COPY app.py .
 COPY wsgi.py .
 COPY modelhost_talker.py .
 COPY api_test.py .
-COPY cache/inferrer-cache.json /.cache/inferrer-cache.json
 
 COPY utils utils
 RUN mkdir /home/logs
