@@ -42,8 +42,6 @@ services:
     image: mlbuffet_cache
     networks:
       - mlbuffet_overlay
-#    ports:
-#      - "6379:6379"
 
 
 networks:
