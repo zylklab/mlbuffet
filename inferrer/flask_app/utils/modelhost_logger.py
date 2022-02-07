@@ -3,6 +3,7 @@ import sys
 from logging.handlers import TimedRotatingFileHandler
 import time
 
+
 class Logger:
 
     def __init__(self, filename):

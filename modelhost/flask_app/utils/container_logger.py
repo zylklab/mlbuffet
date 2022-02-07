@@ -3,16 +3,17 @@ import sys
 import time
 from logging.handlers import TimedRotatingFileHandler
 
-class Logger():
+
+class Logger:
 
     def __init__(self, filename):
         self.FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
         self.LOG_FILE = f'/home/logs/{filename}-{time.time()}.log'
 
         """DEBUG"""
-        #self.LOG_FILE = f'/tmp/{filename}-{time.time()}.log'
+        # self.LOG_FILE = f'/tmp/{filename}-{time.time()}.log'
 
-        #TODO
+        # TODO
         # self.LOG_LEVEL = DEBUG
         # this should go into a properties file
 
@@ -21,12 +22,10 @@ class Logger():
         console_handler.setFormatter(self.FORMATTER)
         return console_handler
 
-
     def get_file_handler(self):
         file_handler = TimedRotatingFileHandler(self.LOG_FILE, when='midnight')
         file_handler.setFormatter(self.FORMATTER)
         return file_handler
-
 
     def get_logger(self, logger_name):
         logger = logging.getLogger(logger_name)

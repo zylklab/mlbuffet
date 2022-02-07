@@ -1,5 +1,6 @@
 import nmap
 
+
 def IPScan(network):
     nm = nmap.PortScanner()
     nm.scan(hosts=network, arguments="-sn")
@@ -14,5 +15,3 @@ def IPScan(network):
             modelhostlist.append(addr)
 
     return listaddr
-
-

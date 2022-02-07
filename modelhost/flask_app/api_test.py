@@ -79,7 +79,6 @@ def get_model_list_information():
 
 
 def upload_model():
-    initial_models = get_model_list()
     new_model_name = 'testmodel.onnx'
     url = join(MODELHOST_BASE_URL, 'models/' + new_model_name)
 
@@ -95,7 +94,6 @@ def upload_model():
 
 
 def delete_model():
-    initial_models = get_model_list()
     model_to_delete = 'testmodel.onnx'
 
     url = join(MODELHOST_BASE_URL, 'models/' + model_to_delete)

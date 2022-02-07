@@ -12,6 +12,7 @@ import modelhost_talker as mh_talker
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
 from utils.inferer_pojos import HttpJsonResponse, Prediction
+from secrets import compare_digest
 
 # Path constants
 API_BASE_URL = '/api/v1/'
@@ -42,7 +43,7 @@ logger.info('... MLBuffet - INFERRER API succesfully started')
 # Authorization verification
 @auth.verify_token
 def verify_token(token):
-    return token == auth_token
+    return compare_digest(token, auth_token)
 
 
 # All endpoints supported by the API are defined below
@@ -190,7 +191,7 @@ def get_prediction(model_name):
         if cached_prediction is not None:
             return Prediction(200, values=cached_prediction).json()
 
-        # Otherwise compute it and save it in cache
+        # Otherwise, compute it and save it in cache
         result = mh_talker.make_a_prediction(model_name, test_values)
         prediction_cache.put_prediction_in_cache(hash_code=test_values_hash, prediction=result['values'])
 
@@ -203,7 +204,7 @@ def get_prediction(model_name):
         test_file = request.files['path']
         file_type = test_file.mimetype
 
-        # Currently only accepting images
+        # Currently, only accepting images
         if file_type.split('/')[0] == 'image':
             to_hash = request.files['path'].read()
 
@@ -215,7 +216,7 @@ def get_prediction(model_name):
             if cached_prediction is not None:
                 return Prediction(200, values=cached_prediction).json()
 
-            # Otherwise compute it and save it in cache
+            # Otherwise, compute it and save it in cache
             flat_image = numpy.frombuffer(to_hash, numpy.uint8)
             img_bgr = cv2.imdecode(flat_image, cv2.IMREAD_COLOR)
             img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)

@@ -1,10 +1,13 @@
 import hashlib
 import json
 import redis
+from utils.container_logger import Logger
 
-redis_host = 'cache'
+redis_host = 'mlbuffet_cache'
 redis_port = 6379
 redis_cli = redis.Redis(host=redis_host, port=redis_port)
+
+logger = Logger('inferrer').get_logger('cache')
 
 
 def get_hash(model_name, inputs):
@@ -18,9 +21,14 @@ def get_prediction(hash_code):
         result = redis_cli.get(hash_code)
         if result is not None:
             result = json.loads(result)
-    except:
+        else:
+            result = None
+        return result
+    except redis.exceptions as re:
+        re_str = str(re)
+        logger.info(re_str)
         result = None
-    return result
+        return result
 
 
 # Write prediction as json format
@@ -28,5 +36,6 @@ def put_prediction_in_cache(hash_code, prediction):
     j_prediction = json.dumps(prediction)
     try:
         redis_cli.set(hash_code, j_prediction)
-    except:
-        pass
+    except redis.exceptions as re:
+        re_str = str(re)
+        logger.info(re_str)
