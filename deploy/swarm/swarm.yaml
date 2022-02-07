@@ -36,4 +36,3 @@ networks:
   mlbuffet_overlay:
     driver: overlay
     external: true
-
