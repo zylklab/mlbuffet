@@ -9,13 +9,12 @@ from utils.ipscan import IPScan
 
 # Request constants
 OVERLAY_NETWORK = getenv('OVERLAY_NETWORK')
-MODELHOST_ENDPOINT = getenv('MODELHOST_ENDPOINT')
 URI_SCHEME = 'http://'
 
 
 def _url(resource):
     #    return URI_SCHEME + LOAD_BALANCER_ENDPOINT + resource
-    return URI_SCHEME + MODELHOST_ENDPOINT + ":8000" + resource
+    return URI_SCHEME + 'modelhost:8000' + resource
 
 
 def _is_ok(code):

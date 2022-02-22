@@ -13,6 +13,7 @@ from utils import metric_manager
 from utils.container_logger import Logger
 from utils.modelhost_pojos import HttpJsonResponse, Prediction, ModelList, ModelInformation
 import numpy
+from secrets import compare_digest
 
 # TODO: more prometheus metrics
 # TODO: (endpoint for each modelhost prometheus metrics)
@@ -80,7 +81,7 @@ def update_model_sessions():
 
 @auth.verify_token
 def verify_token(token):
-    return token == auth_token
+    return compare_digest(token, auth_token)
 
 
 @server.route(MODELHOST_BASE_URL, methods=['GET'])

@@ -4,7 +4,7 @@ import time
 from logging.handlers import TimedRotatingFileHandler
 
 
-class Logger():
+class Logger:
 
     def __init__(self, filename):
         self.FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")

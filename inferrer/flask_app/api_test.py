@@ -1,4 +1,4 @@
-from app import API_BASE_URL, server
+from app import server
 from utils.container_logger import Logger
 
 

@@ -23,12 +23,12 @@ while true; do
   fi
 done
 
-# start deploying and exit on any error
 echo "Creating deploy environment with $num Modelhost replicas..."
 
-# Run
-exec docker stack deploy -c swarmdeploy.yaml mlbuffet
+# create network if it is not already created
+docker network create -d overlay --subnet 10.0.13.0/24 mlbuffet_overlay
 
+# start deployment and exit on any error
+docker stack deploy -c swarm.yaml mlbuffet &&
 sleep 5
-
-exec docker service update modelhost --replicas=$num
+docker service update modelhost --replicas=$num

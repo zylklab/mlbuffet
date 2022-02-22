@@ -5,12 +5,12 @@
 This project is a Machine Learning Model Server based on Docker containers. MLBuffet consists of 4 main modules, each of
 which is in charge of a task as described in the table below:
 
-|Module|Description|
-|-----------|-------------|
-|Deploy| Contains the necessary files to deploy the project, such as docker-compose.yml.|
-|Inferrer| Receives HTTP requests and balances the workload between Modelhost modules.|
-|Modelhost| Worker for model deployment, inference and management. It only communicates with Inferrer module, so no HTTP calls should be made to this module except for developing or debugging purposes. There should be multiple instances of this module, each of whom takes over one or more ML models.|
-|Metrics| Gathers and manages performance metrics from host system and services.|
+| Module    | Description                                                                                                                                                                                                                                                                                     |
+|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Deploy    | Contains the necessary files to deploy the project, such as docker-compose.yml.                                                                                                                                                                                                                 |
+| Inferrer  | Receives HTTP requests and balances the workload between Modelhost modules.                                                                                                                                                                                                                     |
+| Modelhost | Worker for model deployment, inference and management. It only communicates with Inferrer module, so no HTTP calls should be made to this module except for developing or debugging purposes. There should be multiple instances of this module, each of whom takes over one or more ML models. |
+| Metrics   | Gathers and manages performance metrics from host system and services.                                                                                                                                                                                                                          |
 
 # Service description
 
@@ -36,12 +36,12 @@ Images must be built from source with docker-compose build. If you already have 
 proceed with the Swarm Deployment (or other orchestrator).
 
 The images in this branch are designed to be orchestrated by Swarm. Other orchestrators have not been tested yet, but
-the ports exposed are the same as with docker-compose. Lastly, in Swarm mode, all the iamges must be available for every
+the ports exposed are the same as with docker-compose. Lastly, in Swarm mode, all the images must be available for every
 node on the Swarm, otherwise the nodes will not be able to deploy containers from the images they lack.
 
 The commands to deploy the stack of services in Swarm mode are:
 
-```sh
+```commandline
 docker network create -d overlay --subnet 10.0.13.0/24 mlbuffet_overlay
 docker stack deploy -c swarm.yaml mlbuffet
 ```
@@ -61,7 +61,7 @@ docker-compose permission to access the docker.socket file, by running `sudo chm
 ## Test the API and welcome
 
 The module for the user to communicate with via HTTP requests is the Inferrer. Its associated container is called
-inferrer, and it has the port 8000 binded to localhost:8002. The IP for HTTP requests can be localhost or the internal
+inferrer, and it has the port 8000 bound to localhost:8002. The IP for HTTP requests can be localhost or the internal
 Docker network, but the former is preferred.
 
 To get welcomed by the API, use `curl http://localhost:8002/`
@@ -84,7 +84,7 @@ Or you can try asking for some help:
 
 ## Test the inferrer API and rebalance queries to modelhost nodes
 
-To test the inferrer API, there are some methods with the '_test_' prefix that are used to show the comunication between
+To test the inferrer API, there are some methods with the '_test_' prefix that are used to show the communication between
 the inferrer, the load balancer and the modelhost nodes.
 
 The following query can be used to call the inferrer node
@@ -218,7 +218,7 @@ types could be allowed in the future. For that predictions, the command to send 
   "values": [
     [
       8.3947160334219e-09,
-      ...,
+      ...
       2.68894262411834e-09
     ]
   ]

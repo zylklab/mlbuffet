@@ -12,3 +12,4 @@ Werkzeug==2.0.1
 #aiohttp==3.7.4.post0
 requests==2.26.0
 python-nmap==0.4.7
+redis==4.1.1
