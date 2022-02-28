@@ -9,6 +9,7 @@ from werkzeug.exceptions import HTTPException, Unauthorized
 from werkzeug.utils import secure_filename
 
 import modelhost_talker as mh_talker
+import trainer_executor as trainer
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
 from utils.inferer_pojos import HttpJsonResponse, Prediction
@@ -19,9 +20,11 @@ API_BASE_URL = '/api/v1/'
 ALLOWED_EXTENSIONS = ['onnx']
 
 # Authorization constants
-auth_token = 'password'  # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
+# TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
+auth_token = 'password'
 auth = HTTPTokenAuth('Bearer')
-auth.auth_error_callback = lambda *args, **kwargs: handle_exception(Unauthorized())
+auth.auth_error_callback = lambda *args, **kwargs: handle_exception(
+    Unauthorized())
 
 # Logger initialization
 logger = Logger('inferrer').get_logger('inferrer')
@@ -104,7 +107,8 @@ def _test_send_to_modelhost():
 
 
 # This endpoint is used by Prometheus and metrics are exposed here
-@server.route('/metrics', methods=['GET', 'POST'])  # TODO: needs to be authorized
+# TODO: needs to be authorized
+@server.route('/metrics', methods=['GET', 'POST'])
 def get_metrics():
     # force refresh system metrics
     metric_manager.compute_system_metrics()
@@ -129,7 +133,8 @@ def log_call():
         pass
     else:
         client_ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
-        logger.info(f'[{client_ip}] HTTP {request.method} call to {request.path}')
+        logger.info(
+            f'[{client_ip}] HTTP {request.method} call to {request.path}')
     my_stopwatch.start()
 
 
@@ -184,8 +189,10 @@ def get_prediction(model_name):
                 http_status_description='New observation is not a list enclosed by squared brackets').json()
 
         # Check if the same prediction has already been made before
-        test_values_hash = prediction_cache.get_hash(model_name=model_name, inputs=test_values)
-        cached_prediction = prediction_cache.get_prediction(hash_code=test_values_hash)
+        test_values_hash = prediction_cache.get_hash(
+            model_name=model_name, inputs=test_values)
+        cached_prediction = prediction_cache.get_prediction(
+            hash_code=test_values_hash)
 
         # If the prediction exists in cache, return it
         if cached_prediction is not None:
@@ -193,7 +200,8 @@ def get_prediction(model_name):
 
         # Otherwise, compute it and save it in cache
         result = mh_talker.make_a_prediction(model_name, test_values)
-        prediction_cache.put_prediction_in_cache(hash_code=test_values_hash, prediction=result['values'])
+        prediction_cache.put_prediction_in_cache(
+            hash_code=test_values_hash, prediction=result['values'])
 
         return result
 
@@ -209,8 +217,10 @@ def get_prediction(model_name):
             to_hash = request.files['path'].read()
 
             # Check if the same prediction has already been made before
-            test_values_hash = prediction_cache.get_hash(model_name=model_name, inputs=to_hash)
-            cached_prediction = prediction_cache.get_prediction(hash_code=test_values_hash)
+            test_values_hash = prediction_cache.get_hash(
+                model_name=model_name, inputs=to_hash)
+            cached_prediction = prediction_cache.get_prediction(
+                hash_code=test_values_hash)
 
             # If the prediction exists in cache, return it
             if cached_prediction is not None:
@@ -221,7 +231,8 @@ def get_prediction(model_name):
             img_bgr = cv2.imdecode(flat_image, cv2.IMREAD_COLOR)
             img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
             result = mh_talker.make_a_prediction(model_name, img.tolist())
-            prediction_cache.put_prediction_in_cache(hash_code=test_values_hash, prediction=result['values'])
+            prediction_cache.put_prediction_in_cache(
+                hash_code=test_values_hash, prediction=result['values'])
 
             return result
         else:
@@ -302,6 +313,44 @@ def model_handling(model_name):
     if request.method == 'DELETE':
         # Send the model as HTTP delete request
         return mh_talker.delete_model(model_name)
+
+
+# Start a new training session.
+@server.route(path.join(API_BASE_URL, 'train'), methods=['POST'])
+def train():
+    metric_manager.increment_train_counter()
+  
+    # Check that at least one file was provided
+    if not request.files:
+        return HttpJsonResponse(422, http_status_description='No files provided').json()
+    else:
+
+        uploaded_files = request.files.getlist("files")
+        
+        for file in uploaded_files:
+            filename = secure_filename(file.filename)
+
+            # Check train.py has been provided
+            if filename == "train.py":
+                train_script = file
+            # Check requirements.txt has been provided
+            if filename == "requirements.txt":
+                requirements = file
+            # Check dataset.csv has been provided
+            if filename == "dataset.csv":
+                dataset = file
+
+        # Check all 3 files have been provided
+        if False:
+            return HttpJsonResponse(422, http_status_description='Not all files provided. Please provide dataset, train script and requirements').json()
+
+        # Start training
+        trainer.start_training(train_script, requirements, dataset)
+
+        return "Training started!"
+
+
+    return trainer.get_information_of_all_models()
 
 
 if __name__ == '__main__':
