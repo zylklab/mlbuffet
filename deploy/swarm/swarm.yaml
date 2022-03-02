@@ -8,6 +8,8 @@ services:
       - mlbuffet_overlay
     ports:
       - "8002:8000"
+    volumes:
+      - ../../inferrer/flask_app/data:/dockerinferrer
 
   modelhost:
     image: mlbuffet_modelhost

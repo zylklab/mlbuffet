@@ -233,4 +233,4 @@ MLBuffet supports training using any Python-based library, but some interaction 
 
 The output models will be sent to a local directory via a Docker bind mount volume, you can make this directory coincide with the Modelhost mounting point for the models to be trained also being used for inference, if trained with ONNX supported format.
 
-curl -X POST localhost:8002/api/v1/train -F "files=@/path/to/dataset.csv" -F "files=@/path/to/train.py" -F "files=@/path/to/requirements.txt"
+```curl -X POST localhost:8002/api/v1/train -F "files=@/path/to/dataset.csv" -F "files=@/path/to/train.py" -F "files=@/path/to/requirements.txt"```

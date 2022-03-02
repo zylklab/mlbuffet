@@ -345,7 +345,16 @@ def train():
             return HttpJsonResponse(422, http_status_description='Not all files provided. Please provide dataset, train script and requirements').json()
 
         # Start training
-        trainer.start_training(train_script, requirements, dataset)
+        trainer.save_files(train_script, requirements, dataset)
+
+        # Create Dockerfile with the files in it
+        trainer.create_Dockerfile()
+
+        # Build the image
+        trainer.build_image()
+
+        # Run the image
+        trainer.run_training()
 
         return "Training started!"
 

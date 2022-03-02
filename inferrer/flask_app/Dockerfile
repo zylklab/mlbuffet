@@ -16,9 +16,10 @@ COPY app.py .
 COPY modelhost_talker.py .
 COPY trainer_executor.py .
 COPY api_test.py .
-
 COPY utils utils
+
 RUN mkdir /home/logs
+RUN mkdir /inferrerdocker
 
 #run integration testing
 RUN ["chmod", "+x", "./api_test.py"]
