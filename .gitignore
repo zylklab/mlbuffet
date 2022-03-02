@@ -15,4 +15,5 @@ venv/
 /modelhost/logs/
 /modelhost/flask_app/models/
 testing/
+/inferrer/flask_app/data/*
 
