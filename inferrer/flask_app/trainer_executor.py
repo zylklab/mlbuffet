@@ -50,13 +50,13 @@ def set_client():
 def build_image():
     client = set_client()
 
-    CONTEXT = open(UPLOADS_DIR + "environment.tar")
+    context = open(UPLOADS_DIR + "environment.tar")
 
     # Build the images sending the context to the external Docker daemon
-    client.images.build(fileobj=CONTEXT, rm=True, pull=True, custom_context=True, dockerfile=UPLOADS_DIR + "Dockerfile",
+    client.images.build(fileobj=context, rm=True, pull=True, custom_context=True, dockerfile=UPLOADS_DIR + "Dockerfile",
                         tag="trainer")
 
-    CONTEXT.close()
+    context.close()
 
 
 def run_training():
