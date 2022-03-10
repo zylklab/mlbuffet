@@ -17,12 +17,14 @@ def save_files(train_script, requirements, dataset):
 def create_dockerfile():
     dockerfile = open(UPLOADS_DIR + 'Dockerfile', 'w')
 
-    dockerfile.write("FROM python:3.8.1\n")
-    dockerfile.write("COPY /dockerinferrer/requirements.txt requirements.txt \n")
-    dockerfile.write("COPY /dockerinferrer/train.py train.py \n")
-    dockerfile.write("COPY /dockerinferrer/dataset.csv dataset.csv \n")
-    dockerfile.write("RUN pip install -r requirements.txt \n")
-    dockerfile.write("ENTRYPOINT python3 train.py")
+    dockerfile.write(
+        'FROM python:3.8.1\n'
+        f'COPY {UPLOADS_DIR}requirements.txt requirements.txt\n'
+        f'COPY {UPLOADS_DIR}train.py train.py\n'
+        f'COPY {UPLOADS_DIR}dataset.csv dataset.csv\n'
+        'RUN pip install -r requirements.txt\n'
+        'ENTRYPOINT python3 train.py\n'
+    )
     dockerfile.close()
 
     # Create a tar file with the docker environment
