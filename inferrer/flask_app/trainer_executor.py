@@ -14,7 +14,7 @@ def save_files(train_script, requirements, dataset):
     print("Data have been saved!")
 
 
-def create_Dockerfile():
+def create_dockerfile():
     try:
         dockerfile = open(UPLOADS_DIR + "Dockerfile", "xt")
     except:

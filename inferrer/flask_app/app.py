@@ -348,7 +348,7 @@ def train():
         trainer.save_files(train_script, requirements, dataset)
 
         # Create Dockerfile with the files in it
-        trainer.create_Dockerfile()
+        trainer.create_dockerfile()
 
         # Build the image
         trainer.build_image()
