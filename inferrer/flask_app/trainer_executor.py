@@ -6,22 +6,26 @@ import docker
 UPLOADS_DIR = '/dockerinferrer/'
 
 
+def get_path(file):
+    return path.join(UPLOADS_DIR, file)
+
+
 def save_files(train_script, requirements, dataset):
-    train_script.save(path.join(UPLOADS_DIR, train_script.filename))
-    requirements.save(path.join(UPLOADS_DIR, requirements.filename))
-    dataset.save(path.join(UPLOADS_DIR, dataset.filename))
+    train_script.save(get_path(train_script.filename))
+    requirements.save(get_path(requirements.filename))
+    dataset.save(get_path(dataset.filename))
 
     print("Data have been saved!")
 
 
 def create_dockerfile():
-    dockerfile = open(UPLOADS_DIR + 'Dockerfile', 'w')
+    dockerfile = open(get_path('Dockerfile'), 'w')
 
     dockerfile.write(
-        'FROM python:3.8.1\n'
-        f'COPY {UPLOADS_DIR}requirements.txt requirements.txt\n'
-        f'COPY {UPLOADS_DIR}train.py train.py\n'
-        f'COPY {UPLOADS_DIR}dataset.csv dataset.csv\n'
+        'FROM python:3.8.1\n' +
+        'COPY ' + get_path('requirements.txt') + ' requirements.txt\n' +
+        'COPY ' + get_path('train.py') + ' train.py\n' +
+        'COPY ' + get_path('dataset.csv') + ' dataset.csv\n' +
         'RUN pip install -r requirements.txt\n'
         'ENTRYPOINT python3 train.py\n'
     )
@@ -29,11 +33,11 @@ def create_dockerfile():
 
     # Create a tar file with the docker environment
 
-    buildenv = tar.open(name=UPLOADS_DIR + "environment.tar", mode="x")
-    buildenv.add(name=UPLOADS_DIR + "Dockerfile")
-    buildenv.add(name=UPLOADS_DIR + "train.py")
-    buildenv.add(name=UPLOADS_DIR + "requirements.txt")
-    buildenv.add(name=UPLOADS_DIR + "dataset.csv")
+    buildenv = tar.open(name=get_path('environment.tar'), mode='x')
+    buildenv.add(name=get_path('Dockerfile'))
+    buildenv.add(name=get_path('train.py'))
+    buildenv.add(name=get_path('requirements.txt'))
+    buildenv.add(name=get_path('dataset.csv'))
     buildenv.close()
 
 
@@ -49,10 +53,10 @@ def set_client():
 def build_image():
     client = set_client()
 
-    context = open(UPLOADS_DIR + "environment.tar")
+    context = open(get_path('environment.tar'))
 
     # Build the images sending the context to the external Docker daemon
-    client.images.build(fileobj=context, rm=True, pull=True, custom_context=True, dockerfile=UPLOADS_DIR + "Dockerfile",
+    client.images.build(fileobj=context, rm=True, pull=True, custom_context=True, dockerfile=get_path('Dockerfile'),
                         tag="trainer")
 
     context.close()
