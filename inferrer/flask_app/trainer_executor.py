@@ -15,10 +15,7 @@ def save_files(train_script, requirements, dataset):
 
 
 def create_dockerfile():
-    try:
-        dockerfile = open(UPLOADS_DIR + "Dockerfile", "xt")
-    except:
-        dockerfile = open(UPLOADS_DIR + "Dockerfile", "wt")
+    dockerfile = open(UPLOADS_DIR + 'Dockerfile', 'w')
 
     dockerfile.write("FROM python:3.8.1\n")
     dockerfile.write("COPY /dockerinferrer/requirements.txt requirements.txt \n")
