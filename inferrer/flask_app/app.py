@@ -1,5 +1,6 @@
 from os import path
 from pathlib import Path
+from secrets import compare_digest
 
 import cv2
 import numpy
@@ -13,7 +14,6 @@ import trainer_executor as trainer
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
 from utils.inferer_pojos import HttpJsonResponse, Prediction
-from secrets import compare_digest
 
 # Path constants
 API_BASE_URL = '/api/v1/'
@@ -319,14 +319,14 @@ def model_handling(model_name):
 @server.route(path.join(API_BASE_URL, 'train'), methods=['POST'])
 def train():
     metric_manager.increment_train_counter()
-  
+
     # Check that at least one file was provided
     if not request.files:
         return HttpJsonResponse(422, http_status_description='No files provided').json()
     else:
 
         uploaded_files = request.files.getlist("files")
-        
+
         for file in uploaded_files:
             filename = secure_filename(file.filename)
 
@@ -357,7 +357,6 @@ def train():
         trainer.run_training()
 
         return "Training started!"
-
 
     return trainer.get_information_of_all_models()
 
