@@ -41,17 +41,15 @@ def create_dockerfile():
     buildenv.close()
 
 
-def set_client():
-    # Configure the Docker Client of the external machine.
+def create_client():
+    # Configure the Docker Client to connect to the external machine
     tlsconfig = docker.TLSConfig(client_cert=("./utils/client/cert.pem", "./utils/client/key.pem"),
                                  ca_cert="./utils/client/ca.pem")
-    client = docker.DockerClient(base_url="tcp://172.17.0.1:2376", tls=tlsconfig)
-
-    return client
+    return docker.DockerClient(base_url='tcp://172.17.0.1:2376', tls=tlsconfig)
 
 
 def build_image():
-    client = set_client()
+    client = create_client()
 
     context = open(get_path('environment.tar'))
 
@@ -63,7 +61,7 @@ def build_image():
 
 
 def run_training():
-    client = set_client()
+    client = create_client()
 
     container = client.containers.run(image="trainer")
 
