@@ -17,3 +17,4 @@ venv/
 testing/
 /inferrer/flask_app/data/*
 
+crearimagenes.yaml
