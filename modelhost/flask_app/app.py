@@ -42,7 +42,7 @@ logger.info('Starting Flask API...')
 
 # Server initialization
 server = Flask(__name__)
-logger.info('... Flask API succesfully started')
+logger.info('... Flask API successfully started')
 
 
 # All the methods supported by the API are described below
@@ -165,7 +165,7 @@ def predict(model_name):
         return Prediction(
             404,
             http_status_description=f'{model_name} does not exist. '
-                                    f'Visit GET {path.join(API_BASE_URL, "models")} for a list of avaliable models'
+                                    f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
         ).json()
 
     inference_session = model_sessions[model_name]['inference_session']
@@ -234,7 +234,7 @@ def model_information(model_name):
             return ModelInformation(
                 404,
                 http_status_description=f'{model_name} does not exist. '
-                                        f'Visit GET {path.join(API_BASE_URL, "models")} for a list of avaliable models'
+                                        f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
             ).json()
 
         description = model_sessions[model_name]
@@ -252,7 +252,7 @@ def model_information(model_name):
             return HttpJsonResponse(
                 404,
                 http_status_description=f'{model_name} does not exist. '
-                                        f'Visit GET {path.join(API_BASE_URL, "models")} for a list of avaliable models'
+                                        f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
             ).json()
 
         model_path = path.join(MODEL_FOLDER, model_name)
@@ -308,7 +308,7 @@ def manage_model(model_name):
             return HttpJsonResponse(
                 404,
                 http_status_description=f'{model_name} does not exist. Visit GET {path.join(API_BASE_URL, "models")} '
-                                        f'for a list of avaliable models'
+                                        f'for a list of available models'
             ).json()
 
 
