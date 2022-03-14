@@ -60,9 +60,17 @@ def build_image():
     context.close()
 
 
-def run_training():
-    client = create_client()
+def run_training(train_script, requirements, dataset):
+    save_files(train_script, requirements, dataset)
 
+    # Create Dockerfile with the files in it
+    create_dockerfile()
+
+    # Build the image
+    build_image()
+
+    # Run the image
+    client = create_client()  # TODO: do not create client again
     container = client.containers.run(image="trainer")
 
     # >> CREATE DOCKERFILE

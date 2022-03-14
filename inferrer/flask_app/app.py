@@ -10,7 +10,7 @@ from werkzeug.exceptions import HTTPException, Unauthorized
 from werkzeug.utils import secure_filename
 
 import modelhost_talker as mh_talker
-import trainer_executor as trainer
+from trainer_executor import run_training
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
 from utils.inferer_pojos import HttpJsonResponse, Prediction
@@ -345,16 +345,7 @@ def train():
             return HttpJsonResponse(422, http_status_description='Not all files provided. Please provide dataset, train script and requirements').json()
 
         # Start training
-        trainer.save_files(train_script, requirements, dataset)
-
-        # Create Dockerfile with the files in it
-        trainer.create_dockerfile()
-
-        # Build the image
-        trainer.build_image()
-
-        # Run the image
-        trainer.run_training()
+        run_training(train_script, requirements, dataset)
 
         return "Training started!"
 
