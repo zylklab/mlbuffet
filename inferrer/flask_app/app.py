@@ -320,36 +320,33 @@ def model_handling(model_name):
 def train():
     metric_manager.increment_train_counter()
 
-    # Check that at least one file was provided
-    if not request.files:
-        return HttpJsonResponse(422, http_status_description='No files provided').json()
-    else:
+    # Check that the script was provided
+    if not request.files.getlist('script'):
+        return HttpJsonResponse(422, http_status_description='No training script provided with name \'script\'').json()
 
-        uploaded_files = request.files.getlist("files")
+    # Check that requirements.txt was provided
+    if not request.files.getlist('requirements'):
+        return HttpJsonResponse(
+            422, http_status_description='No requirements provided with name \'requirements\'').json()
 
-        for file in uploaded_files:
-            filename = secure_filename(file.filename)
+    # Check that data was provided
+    if not request.files.getlist('dataset'):
+        return HttpJsonResponse(422, http_status_description='No data provided with name \'dataset\'').json()
 
-            # Check train.py has been provided
-            if filename == "train.py":
-                train_script = file
-            # Check requirements.txt has been provided
-            if filename == "requirements.txt":
-                requirements = file
-            # Check dataset.csv has been provided
-            if filename == "dataset.csv":
-                dataset = file
+    # get training script, requirements and data
+    train_script = request.files.getlist('script')[0]
+    requirements = request.files.getlist('requirements')[0]
+    dataset = request.files.getlist('dataset')[0]
 
-        # Check all 3 files have been provided
-        if False:
-            return HttpJsonResponse(422, http_status_description='Not all files provided. Please provide dataset, train script and requirements').json()
+    # Change filenames to match expected ones TODO preserve original names
+    train_script.filename = 'train.py'
+    requirements.filename = 'requirements.txt'
+    dataset.filename = 'dataset.csv'
 
-        # Start training
-        run_training(train_script, requirements, dataset)
+    # Start training
+    run_training(train_script, requirements, dataset)
 
-        return "Training started!"
-
-    return trainer.get_information_of_all_models()
+    return HttpJsonResponse(200, http_status_description='Training started!').json()
 
 
 if __name__ == '__main__':

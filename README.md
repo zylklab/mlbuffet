@@ -230,12 +230,18 @@ types could be allowed in the future. For that predictions, the command to send 
 **Prepare your scripts**
 
 MLBuffet supports training using any Python-based library, but some interaction and configuration is required from the
-user. You will need 3 files to perform training on a virtualized container environment, which are your custom train.py
-script, requirements.txt with all the libraries and tools to be imported during train.py, and dataset.csv or any other
-data file which must be read during runtime by train.py to make operations over the dataset and perform the training.
+user. You will need 3 files to perform training on a virtualized container environment, which are your custom
+`train.py` script, `requirements.txt` with all the libraries and tools to be imported during training, and `dataset.csv`
+or any other data file which must be read during runtime by the training script to make operations over the dataset and
+perform the training.
 
-The output models will be sent to a local directory via a Docker bind mount volume, you can make this directory coincide
+The way MLBuffet knows which file that has been uploaded corresponds to each of the above is via form names. "script" is
+for the training script, "requirements" for `requirements.txt` and "dataset" for the dataset.
+
+The output models will be sent to a local directory via a Docker bind mount volume. You can make this directory coincide
 with the Modelhost mounting point for the models to be trained also being used for inference, if trained with ONNX
 supported format.
 
-```curl -X POST localhost:8002/api/v1/train -F "files=@/path/to/dataset.csv" -F "files=@/path/to/train.py" -F "files=@/path/to/requirements.txt"```
+Example `curl` request:
+
+```curl -X POST localhost:8002/api/v1/train -F "dataset=@/path/to/dataset.csv" -F "script=@/path/to/train.py" -F "requirements=@/path/to/requirements.txt"```
