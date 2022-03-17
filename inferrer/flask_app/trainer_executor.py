@@ -1,6 +1,7 @@
+from distutils.command.upload import upload
+import re
 import tarfile as tar
 from os import path
-
 import docker
 
 UPLOADS_DIR = '/dockerinferrer/'
@@ -11,12 +12,18 @@ def upload_path(file):
 
 
 def save_files(train_script, requirements, dataset):
-    train_script.save(upload_path(train_script.filename))
-    requirements.save(upload_path(requirements.filename))
-    dataset.save(upload_path(dataset.filename))
 
-    print("Data have been saved!")
+    files = [train_script, requirements, dataset]
 
+    for file in files:
+        file.save(upload_path(file.filename))
+
+        with open(upload_path(file.filename),'rb') as source_file:
+            contents = source_file.read()
+            asciiinfo = contents.decode(encoding='utf-8').encode(encoding='ascii',errors='replace')
+
+        with open(upload_path(file.filename), 'w+b') as dest_file:
+            dest_file.write(asciiinfo)
 
 def create_dockerfile():
     dockerfile = open(upload_path('Dockerfile'), 'w')
@@ -32,9 +39,8 @@ def create_dockerfile():
     dockerfile.close()
 
     # Create a tar file with the docker environment
-
     buildenv = tar.open(name=upload_path('environment.tar'), mode='x')
-    buildenv.add(name=upload_path('Dockerfile'))
+    buildenv.add(name=upload_path('Dockerfile'), arcname='Dockerfile')
     buildenv.add(name=upload_path('train.py'))
     buildenv.add(name=upload_path('requirements.txt'))
     buildenv.add(name=upload_path('dataset.csv'))
@@ -49,14 +55,19 @@ def create_client():
 
 
 def build_image():
+
     client = create_client()
 
-    context = open(upload_path('environment.tar'))
+    context = open(upload_path('environment.tar'), "r")
+
+    ## Pasar un filtro de encoding para que todos los ficheros dentro de context sean ascii
 
     # Build the images sending the context to the external Docker daemon
-    client.images.build(fileobj=context, rm=True, pull=True, custom_context=True, dockerfile=upload_path('Dockerfile'),
-                        tag="trainer")
+    client.images.build(fileobj=context, rm=True, pull=True, custom_context=True,
+                        tag="trainer", dockerfile='Dockerfile')
 
+    # client.api.build(fileobj=context, rm=True, pull=True,
+    #                     tag="trainer")
     context.close()
 
 
@@ -68,10 +79,12 @@ def run_training(train_script, requirements, dataset):
 
     # Build the image
     build_image()
+    print("Image built!")
 
     # Run the image
     client = create_client()  # TODO: do not create client again
     container = client.containers.run(image="trainer")
+    print("Training started!")
 
     # >> CREATE DOCKERFILE
     # >> CREATE IMAGE
