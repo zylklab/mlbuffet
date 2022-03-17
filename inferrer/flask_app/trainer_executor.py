@@ -54,20 +54,14 @@ def create_client():
     return docker.DockerClient(base_url='tcp://172.17.0.1:2376', tls=tlsconfig)
 
 
-def build_image():
-
-    client = create_client()
+def build_image(client):
 
     context = open(upload_path('environment.tar'), "r")
-
-    ## Pasar un filtro de encoding para que todos los ficheros dentro de context sean ascii
 
     # Build the images sending the context to the external Docker daemon
     client.images.build(fileobj=context, rm=True, pull=True, custom_context=True,
                         tag="trainer", dockerfile='Dockerfile')
 
-    # client.api.build(fileobj=context, rm=True, pull=True,
-    #                     tag="trainer")
     context.close()
 
 
