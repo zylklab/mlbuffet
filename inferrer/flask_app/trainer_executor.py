@@ -76,11 +76,9 @@ def run_training(train_script, requirements, dataset):
 
     # Build the image
     build_image(client)
-    print("Image built!")
 
     # Run the image
     container = client.containers.run(image="trainer")
-    print("Training started!")
 
     remove(upload_path("Dockerfile"))
     remove(upload_path("requirements.txt"))
