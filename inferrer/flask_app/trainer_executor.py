@@ -1,7 +1,7 @@
 from distutils.command.upload import upload
 import re
 import tarfile as tar
-from os import path
+from os import path, remove
 import docker
 
 UPLOADS_DIR = '/dockerinferrer/'
@@ -77,15 +77,21 @@ def run_training(train_script, requirements, dataset):
     # Create Dockerfile with the files in it
     create_dockerfile()
 
+    client = create_client()
+
     # Build the image
-    build_image()
+    build_image(client)
     print("Image built!")
 
     # Run the image
-    client = create_client()  # TODO: do not create client again
     container = client.containers.run(image="trainer")
     print("Training started!")
 
+    remove(upload_path("Dockerfile"))
+    remove(upload_path("requirements.txt"))
+    remove(upload_path("train.py"))
+    remove(upload_path("dataset.csv"))
+    remove(upload_path("environment.tar"))
     # >> CREATE DOCKERFILE
     # >> CREATE IMAGE
     # >> RUN Container
