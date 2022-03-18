@@ -316,8 +316,8 @@ def model_handling(model_name):
 
 
 # Start a new training session.
-@server.route(path.join(API_BASE_URL, 'train'), methods=['POST'])
-def train():
+@server.route(path.join(API_BASE_URL, 'train/<model_name>'), methods=['POST'])
+def train(model_name):
     metric_manager.increment_train_counter()
 
     # Check that the script was provided
@@ -344,7 +344,7 @@ def train():
     dataset.filename = 'dataset.csv'
 
     # Start training
-    run_training(train_script, requirements, dataset)
+    run_training(train_script, requirements, dataset, model_name)
 
     return HttpJsonResponse(200, http_status_description='Training started!').json()
 

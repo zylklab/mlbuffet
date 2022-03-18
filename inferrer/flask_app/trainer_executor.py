@@ -66,11 +66,11 @@ def build_image(client):
     context.close()
 
 
-def run_training(train_script, requirements, dataset):
+def run_training(train_script, requirements, dataset, model_name):
     save_files(train_script, requirements, dataset)
 
     # Create Dockerfile with the files in it
-    create_dockerfile()
+    create_dockerfile(model_name)
 
     client = create_client()
 
