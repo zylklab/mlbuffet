@@ -3,12 +3,11 @@ import time
 import json
 import shutil
 
-archivos_folder = "archivos"
+archivos_folder = "files"
 
 
 def save_file(file, tag, file_name):
     model_folder = os.path.join(archivos_folder, tag)
-
     # Creation of the name folder to the model and the history file
     if not os.path.exists(model_folder):
         os.makedirs(model_folder)
@@ -20,7 +19,6 @@ def save_file(file, tag, file_name):
             hf.write('{}')
         with open(latest_file, "w") as hf:
             hf.write('0')
-
     ts = time.time()
     time_string = time.strftime('%H:%M:%S %d/%m/%Y', time.localtime(ts))
     with open(os.path.join(model_folder, '.latest'), 'r') as fl:
@@ -44,8 +42,8 @@ def save_file(file, tag, file_name):
 
 
 def remove_file(name, version):
-    latest_file = os.path.join('archivos', name, '.latest')
-    history_file = os.path.join('archivos', name, '.history')
+    latest_file = os.path.join(archivos_folder, name, '.latest')
+    history_file = os.path.join(archivos_folder, name, '.history')
 
     folders = []
 
@@ -73,5 +71,5 @@ def remove_file(name, version):
     with open(history_file, 'w') as fh:
         fh.write(json.dumps(data_json, sort_keys=True))
         fh.close()
-    folder_file = os.path.join('archivos', name, str(version))
+    folder_file = os.path.join(archivos_folder, name, str(version))
     shutil.rmtree(folder_file)
