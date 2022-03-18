@@ -67,6 +67,12 @@ def build_image(client):
 
     context.close()
 
+    remove(upload_path("Dockerfile"))
+    remove(upload_path("requirements.txt"))
+    remove(upload_path("train.py"))
+    remove(upload_path("dataset.csv"))
+    remove(upload_path("environment.tar"))
+
 
 def run_training(train_script, requirements, dataset, model_name):
     save_files(train_script, requirements, dataset)
@@ -82,11 +88,7 @@ def run_training(train_script, requirements, dataset, model_name):
     # Run the image
     container = client.containers.run(image="trainer")
 
-    remove(upload_path("Dockerfile"))
-    remove(upload_path("requirements.txt"))
-    remove(upload_path("train.py"))
-    remove(upload_path("dataset.csv"))
-    remove(upload_path("environment.tar"))
+
     # >> CREATE DOCKERFILE
     # >> CREATE IMAGE
     # >> RUN Container
