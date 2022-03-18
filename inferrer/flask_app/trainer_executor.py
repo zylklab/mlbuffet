@@ -4,7 +4,7 @@ import tarfile as tar
 from os import path, remove
 import docker
 
-UPLOADS_DIR = '/dockerinferrer/'
+UPLOADS_DIR = '/trainerfiles/'
 
 
 def upload_path(file):

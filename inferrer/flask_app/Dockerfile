@@ -19,7 +19,7 @@ COPY api_test.py .
 COPY utils utils
 
 RUN mkdir /home/logs
-RUN mkdir /dockerinferrer
+RUN mkdir /trainerfiles
 
 #run integration testing
 RUN ["chmod", "+x", "./api_test.py"]
