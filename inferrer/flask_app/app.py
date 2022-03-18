@@ -17,7 +17,7 @@ from utils.inferer_pojos import HttpJsonResponse, Prediction
 
 # Path constants
 API_BASE_URL = '/api/v1/'
-ALLOWED_EXTENSIONS = ['onnx']
+ALLOWED_EXTENSIONS = ['onnx', 'pb']
 
 # Authorization constants
 # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
