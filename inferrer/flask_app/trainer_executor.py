@@ -25,17 +25,19 @@ def save_files(train_script, requirements, dataset):
         with open(upload_path(file.filename), 'w+b') as dest_file:
             dest_file.write(asciiinfo)
 
-def create_dockerfile():
+def create_dockerfile(model_name):
     dockerfile = open(upload_path('Dockerfile'), 'w')
 
     # TODO: HTTP CALL TO INFERRER TO UPLOAD MODEL
+    MODEL_PATH = path.join("./", model_name)
+    
     dockerfile.write(
         'FROM python:3.8.1\n' +
         'COPY ' + upload_path('requirements.txt') + ' requirements.txt\n' +
         'COPY ' + upload_path('train.py') + ' train.py\n' +
         'COPY ' + upload_path('dataset.csv') + ' dataset.csv\n' +
-        'RUN pip install -r requirements.txt\n'
-        'ENTRYPOINT python3 train.py && curl -X PUT -F "path=@/path/to/model" http://172.17.0.1:8002/api/v1/models/lstm.onnx'
+        'RUN pip install -r requirements.txt\n' + 
+        f'ENTRYPOINT python3 train.py && curl -X PUT -F "path=@{MODEL_PATH}" http://172.17.0.1:8002/api/v1/models/{model_name}'
     )
     dockerfile.close()
 
