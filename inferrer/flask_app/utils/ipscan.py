@@ -11,7 +11,7 @@ def IPScan(network):
     for addr in listaddr:
         try:
             is_host = nm[addr].get('hostnames')[0]['name']
-        except:
+        except IndexError:
             is_host = ''
 
         if 'modelhost' in is_host:
