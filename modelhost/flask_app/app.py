@@ -56,27 +56,32 @@ def update_model_sessions():
 
     for model_name in listdir(MODEL_FOLDER):
         model_path = path.join(MODEL_FOLDER, model_name)
-        model = onnx.load(model_path)
+        try:
+            model = onnx.load(model_path)
+            # Get model metadata
+            inference_session = rt.InferenceSession(model_path)
+            model_type = model.graph.node[0].name
+            dimensions = inference_session.get_inputs()[0].shape  # TODO dimensions
+            input_name = inference_session.get_inputs()[0].name
+            output_name = inference_session.get_outputs()[0].name
+            label_name = inference_session.get_outputs()[0].name
+            description = model.doc_string
 
-        # Get model metadata
-        inference_session = rt.InferenceSession(model_path)
-        model_type = model.graph.node[0].name
-        dimensions = inference_session.get_inputs()[0].shape  # TODO dimensions
-        input_name = inference_session.get_inputs()[0].name
-        output_name = inference_session.get_outputs()[0].name
-        label_name = inference_session.get_outputs()[0].name
-        description = model.doc_string
+            full_description = {'model': model,
+                                'inference_session': inference_session,
+                                'model_type': model_type,
+                                'dimensions': dimensions,
+                                'input_name': input_name,  # TODO: or input name?
+                                'output_name': output_name,
+                                'label_name': label_name,
+                                'description': description}
 
-        full_description = {'model': model,
-                            'inference_session': inference_session,
-                            'model_type': model_type,
-                            'dimensions': dimensions,
-                            'input_name': input_name,  # TODO: or input name?
-                            'output_name': output_name,
-                            'label_name': label_name,
-                            'description': description}
+            model_sessions[model_name] = full_description
+    
+        except: 
+            print(model_name + " may not be ONNX format or not ONNX compatible.")
 
-        model_sessions[model_name] = full_description
+
 
 
 @auth.verify_token
