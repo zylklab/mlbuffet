@@ -79,7 +79,7 @@ def update_model_sessions():
             model_sessions[model_name] = full_description
     
         except: 
-            print(model_name + " may not be ONNX format or not ONNX compatible.")
+            logger.info(f'{model_name} may not be ONNX format or not ONNX compatible.')
 
 
 
