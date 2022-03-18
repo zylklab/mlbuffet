@@ -1,5 +1,5 @@
 from flask import Flask, request, Response
-import buffetvc
+import utils.buffetvc as buffetvc
 
 server = Flask(__name__)
 
@@ -27,4 +27,4 @@ def remove(tag):
 
 
 if __name__ == '__main__':
-    server.run()
+    pass
