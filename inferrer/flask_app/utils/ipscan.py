@@ -14,7 +14,7 @@ def IPScan(network):
         except:
             is_host = ''
 
-        if 'modelhost' in nm[addr].hostname():
+        if 'modelhost' in is_host:
             modelhostlist.append(addr)
 
     return listaddr
