@@ -33,6 +33,16 @@ services:
     networks:
       - mlbuffet_overlay
 
+  storage:
+    image: mlbuffet_storage
+    networks:
+      - mlbuffet_overlay
+    ports:
+      - "8006:8000"
+    volumes:
+      - ../../buffetvc/files:/usr/src/flask_app/files
+
+
 
 networks:
   mlbuffet_overlay:
