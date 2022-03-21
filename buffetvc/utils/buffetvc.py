@@ -83,22 +83,62 @@ def remove_file(name: str, version: str):
             folders.append(i)
         if version == 'latest':
             version = folders[-1]
-        del data_json[str(version)]
+        del data_history[str(version)]
 
-    with open(latest_file, 'r') as fl:
-        data = fl.read()
-        if data == version or version == 'latest':
-            version = data
-        fl.close()
-    with open(latest_file, 'w') as fl:
-        if int(data) == int(version):
-            fl.write(str(folders[-1]-1))
-        else:
-            fl.write(data)
-        fl.close()
+    no_files = False
 
-    with open(history_file, 'w') as fh:
-        fh.write(json.dumps(data_json, sort_keys=True))
-        fh.close()
-    folder_file = os.path.join(archivos_folder, name, str(version))
-    shutil.rmtree(folder_file)
+    # Check if the folder will be empty
+    try:
+        new_last_file = folders[-2]
+    except IndexError:
+        no_files = True
+
+    # If the folder is empty: remove. Else: manage the versions
+    if no_files:
+        tag_folder = os.path.join(archivos_folder, name)
+        shutil.rmtree(tag_folder)
+        extern_tagged_folder = os.path.join(extern_folder, name)
+        shutil.rmtree(extern_tagged_folder)
+    else:
+        # Open the latest file and checks the version of the file
+        with open(latest_file, 'r') as lf:
+            data_latest = lf.read()
+            if data_latest == version or version == 'latest':
+                version = data_latest
+            lf.close()
+
+        # Rewrite the latest file with the last version available
+        with open(latest_file, 'w') as lf:
+            if int(data_latest) == int(version):
+                try:
+                    new_last_file = folders[-2]
+                    lf.write(str(new_last_file))
+                except IndexError:
+                    lf.write('')
+            else:
+                lf.write(data_latest)
+            lf.close()
+
+        # Rewrite the history file without the information of the removed file
+        with open(history_file, 'w') as hf:
+            hf.write(json.dumps(data_history, sort_keys=True))
+            hf.close()
+
+        # Remove the file
+        folder_file = os.path.join(archivos_folder, name, str(version))
+        shutil.rmtree(folder_file)
+
+        # Put the last versioned file in the extern folder
+        with open(latest_file, 'r') as lf:
+            data_latest = lf.read()
+            print(data_latest)
+            new_last_path = os.path.join(archivos_folder, name, str(data_latest))
+        extern_path = os.path.join(extern_folder, name)
+
+        # Check if the extern_path is empty. If not, remove the file
+        files_extern_path = os.listdir(extern_path)
+        if len(files_extern_path) != 0:
+            for file_extern in files_extern_path:
+                os.remove(os.path.join(extern_path, file_extern))
+
+        shutil.copytree(new_last_path, extern_path, dirs_exist_ok=True)
