@@ -31,8 +31,12 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str):
     # Check the existence of the version folder
     if not os.path.exists(folder_dir):
         os.makedirs(folder_dir)
-    file.save(os.path.join(folder_dir, file_name))
 
+    # Save the file
+    intern_path = os.path.join(folder_dir, file_name)
+    file.save(intern_path)
+
+    # Rewrite the history file with the new data
     with open(os.path.join(model_folder, '.history'), 'r+') as fh:
         data = json.load(fh)
         data[new_folder] = {"folder": folder_dir, "file": file_name, "time": time_string, "timestamp": ts}
