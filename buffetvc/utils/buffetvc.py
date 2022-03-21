@@ -8,7 +8,7 @@ archivos_folder = "files"
 extern_folder = 'modelhostfiles'
 
 
-def save_file(file, tag, file_name):
+def save_file(file: ds.FileStorage, tag: str, file_name: str):
     model_folder = os.path.join(archivos_folder, tag)
     # Creation of the name folder to the model and the history file
     if not os.path.exists(model_folder):
@@ -43,7 +43,10 @@ def save_file(file, tag, file_name):
         fl.write(new_folder)
 
 
-def remove_file(name, version):
+    shutil.copy(intern_path, extern_path)
+
+
+def remove_file(name: str, version: str):
     latest_file = os.path.join(archivos_folder, name, '.latest')
     history_file = os.path.join(archivos_folder, name, '.history')
 
