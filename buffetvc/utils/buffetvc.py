@@ -10,7 +10,7 @@ extern_folder = 'modelhostfiles'
 
 def save_file(file: ds.FileStorage, tag: str, file_name: str):
     model_folder = os.path.join(archivos_folder, tag)
-    # Creation of the name folder to the model and the history file
+    # Creation of the name folder to the model and the history/latest files
     if not os.path.exists(model_folder):
         os.makedirs(model_folder)
         history_file = os.path.join(model_folder, '.history')
@@ -21,13 +21,14 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str):
             hf.write('{}')
         with open(latest_file, "w") as hf:
             hf.write('0')
-    ts = time.time()
-    time_string = time.strftime('%H:%M:%S %d/%m/%Y', time.localtime(ts))
+
+    # Check the latest file to find the version of the new file
     with open(os.path.join(model_folder, '.latest'), 'r') as fl:
         last_folder = int(fl.read())
         new_folder = str(last_folder + 1)
         folder_dir = os.path.join(model_folder, new_folder)
 
+    # Check the existence of the version folder
     if not os.path.exists(folder_dir):
         os.makedirs(folder_dir)
     file.save(os.path.join(folder_dir, file_name))
@@ -39,6 +40,7 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str):
         fh.write(json.dumps(data, sort_keys=True))
         fh.close()
 
+    # Rewrite the latest file with the new version
     with open(os.path.join(model_folder, '.latest'), 'w') as fl:
         fl.write(new_folder)
 
