@@ -50,6 +50,21 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str):
     with open(os.path.join(model_folder, '.latest'), 'w') as fl:
         fl.write(new_folder)
 
+    # Save the file into the bind volume shared with the modelhosts
+    extern_model_folder = os.path.join(extern_folder, tag)
+    if not os.path.exists(extern_model_folder):
+        os.makedirs(extern_model_folder)
+    extern_path = os.path.join(extern_model_folder, file_name)
+
+    # Check if extern_path is empty, if not, remove the file inside
+    if len(os.listdir(extern_model_folder)) != 0:
+        for file_to_remove in os.listdir(extern_model_folder):
+
+            print(f'file_to_remove: {file_to_remove}')
+
+            filer = os.path.join(extern_model_folder, file_to_remove)
+            print(filer)
+            os.remove(filer)
 
     shutil.copy(intern_path, extern_path)
 
