@@ -1,5 +1,5 @@
 from flask import Flask, request, Response
-import utils.buffetvc as buffetvc
+import utils.buffetvc as bvc
 
 server = Flask(__name__)
 
@@ -8,7 +8,7 @@ server = Flask(__name__)
 def save(tag):
     file = request.files['path']
     filename = file.filename
-    buffetvc.save_file(file=file, tag=tag, file_name=filename)
+    bvc.save_file(file=file, tag=tag, file_name=filename)
     return Response(f'File {filename} saved with the tag {tag}\n')
 
 
@@ -22,7 +22,7 @@ def remove(tag):
         tag = name_splitted[0]
         version = name_splitted[1]
 
-    buffetvc.remove_file(name=tag, version=version)
+    bvc.remove_file(name=tag, version=version)
     return Response(f'{tag} removed\n')
 
 
