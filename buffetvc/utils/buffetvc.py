@@ -75,9 +75,10 @@ def remove_file(name: str, version: str):
 
     folders = []
 
-    with open(history_file, 'r') as fh:
-        data_json = json.load(fh)
-        for i in data_json:
+    # Open the history file and removes the data of the file
+    with open(history_file, 'r') as hf:
+        data_history = json.load(hf)
+        for i in data_history:
             i = int(i)
             folders.append(i)
         if version == 'latest':
