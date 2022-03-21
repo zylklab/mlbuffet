@@ -5,6 +5,7 @@ import shutil
 import werkzeug.datastructures as ds
 
 archivos_folder = "files"
+extern_folder = 'modelhostfiles'
 
 
 def save_file(file, tag, file_name):
