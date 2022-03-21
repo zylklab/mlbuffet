@@ -40,7 +40,7 @@ services:
     ports:
       - "8006:8000"
     volumes:
-      - ../../buffetvc/files:/usr/src/flask_app/files
+      - ../../buffetvc/files:/usr/src/flask_app/modelhostfiles
 
 
 
