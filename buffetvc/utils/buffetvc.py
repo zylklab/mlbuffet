@@ -6,7 +6,7 @@ import werkzeug.datastructures as ds
 from flask import Response, send_file
 
 HISTORY = '.history'
-LATEST = '.latest'
+DEFAULT = '.default'
 
 archivos_folder = "files"
 extern_folder = 'modelhostfiles'
@@ -18,7 +18,7 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str):
     if not os.path.exists(model_folder):
         os.makedirs(model_folder)
         history_file = os.path.join(model_folder, HISTORY)
-        latest_file = os.path.join(model_folder, LATEST)
+        latest_file = os.path.join(model_folder, DEFAULT)
         open(history_file, 'x')
         open(latest_file, 'x')
         with open(history_file, "w") as hf:
@@ -27,7 +27,7 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str):
             hf.write('0')
 
     # Check the latest file to find the version of the new file
-    with open(os.path.join(model_folder, LATEST), 'r') as fl:
+    with open(os.path.join(model_folder, DEFAULT), 'r') as fl:
         last_folder = int(fl.read())
         new_folder = str(last_folder + 1)
         folder_dir = os.path.join(model_folder, new_folder)
@@ -45,13 +45,13 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str):
         data = json.load(fh)
         ts = time.time()
         time_string = time.strftime('%H:%M:%S %d/%m/%Y', time.localtime(ts))
-        data[new_folder] = {"folder": folder_dir, "file": file_name, "time": time_string, "timestamp": ts}
+        data[new_folder] = {"folder": folder_dir, "file": file_name, "time": time_string}
         fh.seek(0)
         fh.write(json.dumps(data, sort_keys=True))
         fh.close()
 
     # Rewrite the latest file with the new version
-    with open(os.path.join(model_folder, LATEST), 'w') as fl:
+    with open(os.path.join(model_folder, DEFAULT), 'w') as fl:
         fl.write(new_folder)
 
     # Save the file into the bind volume shared with the modelhosts
@@ -71,7 +71,7 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str):
 
 
 def remove_file(name: str, version: str):
-    latest_file = os.path.join(archivos_folder, name, LATEST)
+    latest_file = os.path.join(archivos_folder, name, DEFAULT)
     history_file = os.path.join(archivos_folder, name, HISTORY)
 
     folders = []
