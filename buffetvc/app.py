@@ -16,7 +16,7 @@ def save(tag):
 def remove(tag):
     separator = tag.find(':')
     if separator < 0:
-        version = 'latest'
+        version = 'default'
     else:
         name_splitted = tag.split(':')
         tag = name_splitted[0]
