@@ -17,7 +17,7 @@ Ahora mismo, está en una versión pre-pre-pre-alpha. Únicamente tenemos dos m�
 
 Hasta ahora, hemos estado gestionando los archivos de forma que el nombre del archivo del modelo (_p.e. iris.onnx_) al propio modelo. Ahora esto se desacopla, ya que tenemos:
 
-* `etiqueta` Sería el nombre asociado al modelo, sin extensiones. (p.e. _iris, dog_model, etc_). Cuando se borre el modelo, se le puede añadir la versión separada con dos puntos si se quiere especificar la versión concreta (_iris:latest, dogmodel:2_).
+* `etiqueta` Sería el nombre asociado al modelo, sin extensiones. (p.e. _iris, dog_model, etc_). Cuando se borre el modelo, se le puede añadir la versión separada con dos puntos si se quiere especificar la versión concreta (_iris:default, dogmodel:2_).
 * `nombre_archivo` El nombre en sí del archivo del modelo, con extensiones. (p.e. _irisv1.onnx, dogmodel_finalversion.onnx_)
 
 Cuando se lea los métodos, seguramente se entienda mejor.
@@ -46,12 +46,12 @@ archivos/
     ├── 1
     │   └── probefile.txt
     ├── .history
-    └── .latest
+    └── .default
 
 ```
 El archivo `probefile.txt` ha sido guardado con la etiqueta asignada `hello` y como es la primera versión, en este caso está guardado en la carpeta `1`. Además, se han generado dos archivos:
 * `.history` Contiene el histórico de los archivos que existen en la carpeta `hello`.
-* `.latest` Contiene la versión del último archivo guardado
+* `.default` Contiene la versión del último archivo guardado
 Si lanzamos el mismo comando 3 veces más, obtenemos lo siguiente:
 ```shell
 archivos/
@@ -65,7 +65,7 @@ archivos/
     ├── 4
     │   └── probefile.txt
     ├── .history
-    └── .latest
+    └── .default
 
 ```
 Cada archivo se ha guardado dentro de la carpeta `hello` en la carpeta de su versión correspondiente.
@@ -98,7 +98,7 @@ Además, este es el contendio del archivo `.history`:
   }
 }
 ```
-Y éste el de `.latest`
+Y éste el de `.default`
 
 ```json
 4
@@ -120,12 +120,12 @@ Ejemplos:
 
 ```commandline
 curl -X DELETE http://localhost:5000/remove/hello
-curl -X DELETE http://localhost:5000/remove/hello:latest
+curl -X DELETE http://localhost:5000/remove/hello:default
 curl -X DELETE http://localhost:5000/remove/hello:2
 ```
 
 En este caso, indicar la versión es totalmente opcional.
-Las dos primeras sentencias, que contienen las etiquetas _hello_ y _hello:latest_ tienen el mismo efecto: borrar el último archivo subido.
+Las dos primeras sentencias, que contienen las etiquetas _hello_ y _hello:default_ tienen el mismo efecto: borrar el último archivo subido.
 La otra sentencia, que contiene la etiqueta _hello:2_ elimina la versión _2_ del archivo asignado a la etiqueta _hello_.
 
 En los 3 casos, el archivo `.history` se actualiza con la eliminación de la información al correspondiente archivo.
@@ -133,8 +133,8 @@ En los 3 casos, el archivo `.history` se actualiza con la eliminación de la inf
 #### TODO
 
 * _Implementar un método para listar los archivos. Posiblemente 2 métodos distintos:_
-    1. _Uno que liste los elementos asignados a la versión `latest` de todas las etiquetas._
+    1. _Uno que liste los elementos asignados a la versión `default` de todas las etiquetas._
     2. _Uno que liste todos los elementos de una etiqueta en concreto._
-* _Actualmente `remove_file` si borra todos los elementos de una etiqueta, deja la carpeta de esa etiqueta y los archivos `.history` y `.latest`. Solucionar esto._
-* _Implementar `buffetStorage`, un contenedor que contenga todos los archivos, pero que deje abierto a los modelhost el correspondiente a la versión `latest`._
+* _Actualmente `remove_file` si borra todos los elementos de una etiqueta, deja la carpeta de esa etiqueta y los archivos `.history` y `.default`. Solucionar esto._
+* _Implementar `buffetStorage`, un contenedor que contenga todos los archivos, pero que deje abierto a los modelhost el correspondiente a la versión `default`._
 * _Unificar BuffetVC con MLBUFFET_
