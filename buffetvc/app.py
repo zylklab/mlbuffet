@@ -26,5 +26,17 @@ def remove(tag):
     return Response(f'{tag} removed\n')
 
 
+@server.route('/download/<tag>', methods=['GET'])
+def download(tag):
+    separator = tag.find(':')
+    if separator < 0:
+        version = 'default'
+    else:
+        name_splitted = tag.split(':')
+        tag = name_splitted[0]
+        version = name_splitted[1]
+    return bvc.download_file(name=tag, version=version)
+
+
 if __name__ == '__main__':
     pass
