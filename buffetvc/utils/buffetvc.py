@@ -164,10 +164,27 @@ def download_file(name: str, version: str):
 
 def update_default(name: str, version: str):
     folder_path = os.path.join(archivos_folder, name)
+    extern_folder_path = os.path.join(extern_folder, name)
     try:
-        with open(folder_path, 'w') as lf:
+
+        with open(os.path.join(folder_path, '.latest'), 'w') as lf:
             lf.write(version)
             lf.close()
-            return Response(f'The file {name} with the version {version} has been set as default')
+            file_to_remove = os.listdir(os.path.join(extern_folder, name))[0]
+            os.remove(os.path.join(extern_folder_path, file_to_remove))
+            new_default_file = os.listdir(os.path.join(folder_path, version))[0]
+            path_to_default = os.path.join(extern_folder_path, new_default_file)
+            shutil.copy(new_default_file, path_to_default)
+            return Response(f'The file {name} with the version {version} has been set as default\n')
     except FileNotFoundError:
-        return Response('File not found, please check the name introduced')
+        return Response('File not found, please check the name introduced\n')
+
+
+def get_information(name: str):
+    folder_path = os.path.join(archivos_folder, name)
+    try:
+        with open(os.path.join(folder_path, HISTORY), 'r') as hf:
+            data = hf.read()
+            return data
+    except FileNotFoundError:
+        return Response('File not found, please check the name introduced\n')
