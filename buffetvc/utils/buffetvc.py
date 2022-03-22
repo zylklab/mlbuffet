@@ -63,9 +63,6 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str):
     # Check if extern_path is empty, if not, remove the file inside
     if len(os.listdir(extern_model_folder)) != 0:
         for file_to_remove in os.listdir(extern_model_folder):
-
-            print(f'file_to_remove: {file_to_remove}')
-
             filer = os.path.join(extern_model_folder, file_to_remove)
             print(filer)
             os.remove(filer)
@@ -146,3 +143,20 @@ def remove_file(name: str, version: str):
                 os.remove(os.path.join(extern_path, file_extern))
 
         shutil.copytree(new_last_path, extern_path, dirs_exist_ok=True)
+
+
+def download_file(name: str, version: str):
+    # Check default file
+    if version == 'default':
+        with open(os.path.join(archivos_folder, name, '.latest'), 'r') as lf:
+            version = lf.read()
+            lf.close()
+    folder_path = os.path.join(archivos_folder, name, version)
+    # Return the file
+    try:
+        file_name = os.listdir(folder_path)[0]
+        file = os.path.join(folder_path, file_name)
+        print(file)
+        return send_file(path_or_file=file, as_attachment=True)
+    except FileNotFoundError:
+        return Response('File not found, please check the name introduced')
