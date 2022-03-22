@@ -38,9 +38,15 @@ def download(tag):
     return bvc.download_file(name=tag, version=version)
 
 
-@server.route('/default/<tag>/<new_default>', methods = ['POST'])
+@server.route('/default/<tag>/<new_default>', methods=['POST'])
 def update_default(tag, new_default):
     return bvc.update_default(name=tag, version=new_default)
+
+
+@server.route('/info/<tag>', methods=['GET'])
+def get_info(tag):
+    information = bvc.get_information(tag)
+    return Response(information)
 
 
 if __name__ == '__main__':
