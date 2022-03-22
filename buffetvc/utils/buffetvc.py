@@ -4,6 +4,9 @@ import json
 import shutil
 import werkzeug.datastructures as ds
 
+HISTORY = '.history'
+LATEST = '.latest'
+
 archivos_folder = "files"
 extern_folder = 'modelhostfiles'
 
@@ -13,8 +16,8 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str):
     # Creation of the name folder to the model and the history/latest files
     if not os.path.exists(model_folder):
         os.makedirs(model_folder)
-        history_file = os.path.join(model_folder, '.history')
-        latest_file = os.path.join(model_folder, '.latest')
+        history_file = os.path.join(model_folder, HISTORY)
+        latest_file = os.path.join(model_folder, LATEST)
         open(history_file, 'x')
         open(latest_file, 'x')
         with open(history_file, "w") as hf:
@@ -23,7 +26,7 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str):
             hf.write('0')
 
     # Check the latest file to find the version of the new file
-    with open(os.path.join(model_folder, '.latest'), 'r') as fl:
+    with open(os.path.join(model_folder, LATEST), 'r') as fl:
         last_folder = int(fl.read())
         new_folder = str(last_folder + 1)
         folder_dir = os.path.join(model_folder, new_folder)
@@ -37,7 +40,7 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str):
     file.save(intern_path)
 
     # Rewrite the history file with the new data
-    with open(os.path.join(model_folder, '.history'), 'r+') as fh:
+    with open(os.path.join(model_folder, HISTORY), 'r+') as fh:
         data = json.load(fh)
         ts = time.time()
         time_string = time.strftime('%H:%M:%S %d/%m/%Y', time.localtime(ts))
@@ -47,7 +50,7 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str):
         fh.close()
 
     # Rewrite the latest file with the new version
-    with open(os.path.join(model_folder, '.latest'), 'w') as fl:
+    with open(os.path.join(model_folder, LATEST), 'w') as fl:
         fl.write(new_folder)
 
     # Save the file into the bind volume shared with the modelhosts
@@ -70,8 +73,8 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str):
 
 
 def remove_file(name: str, version: str):
-    latest_file = os.path.join(archivos_folder, name, '.latest')
-    history_file = os.path.join(archivos_folder, name, '.history')
+    latest_file = os.path.join(archivos_folder, name, LATEST)
+    history_file = os.path.join(archivos_folder, name, HISTORY)
 
     folders = []
 
@@ -89,7 +92,7 @@ def remove_file(name: str, version: str):
 
     # Check if the folder will be empty
     try:
-        new_last_file = folders[-2]
+        folders[-2]
     except IndexError:
         no_files = True
 
@@ -103,7 +106,7 @@ def remove_file(name: str, version: str):
         # Open the latest file and checks the version of the file
         with open(latest_file, 'r') as lf:
             data_latest = lf.read()
-            if data_latest == version or version == 'latest':
+            if data_latest == version or version == 'default':
                 version = data_latest
             lf.close()
 
