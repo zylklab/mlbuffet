@@ -152,11 +152,22 @@ def download_file(name: str, version: str):
             version = lf.read()
             lf.close()
     folder_path = os.path.join(archivos_folder, name, version)
+
     # Return the file
     try:
         file_name = os.listdir(folder_path)[0]
         file = os.path.join(folder_path, file_name)
-        print(file)
         return send_file(path_or_file=file, as_attachment=True)
+    except FileNotFoundError:
+        return Response('File not found, please check the name introduced')
+
+
+def update_default(name: str, version: str):
+    folder_path = os.path.join(archivos_folder, name)
+    try:
+        with open(folder_path, 'w') as lf:
+            lf.write(version)
+            lf.close()
+            return Response(f'The file {name} with the version {version} has been set as default')
     except FileNotFoundError:
         return Response('File not found, please check the name introduced')
