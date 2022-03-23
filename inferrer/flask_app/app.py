@@ -148,7 +148,7 @@ def log_response(response):
     elif request.path == '/api/v1/models/information':
         logger.info('Models and descriptions listed')
     elif 'path' in request.files:
-        logger.info('Prediction done')
+        logger.info('Model uploaded')
     elif response and response.get_json():
         logger.info(response.get_json())
 
