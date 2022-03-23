@@ -28,7 +28,7 @@ def save_files(train_script, requirements, dataset):
 def create_dockerfile(model_name):
     dockerfile = open(upload_path('Dockerfile'), 'w')
 
-    # TODO: HTTP CALL TO INFERRER TO UPLOAD MODEL
+    # TODO: USE GLOB LIBRARY TO SEARCH THE MODEL IN THE TRAINER CONTAINER
     MODEL_PATH = path.join("./", model_name)
     
     dockerfile.write(
@@ -36,9 +36,11 @@ def create_dockerfile(model_name):
         'COPY ' + upload_path('requirements.txt') + ' requirements.txt\n' +
         'COPY ' + upload_path('train.py') + ' train.py\n' +
         'COPY ' + upload_path('dataset.csv') + ' dataset.csv\n' +
+        'COPY ' + upload_path('find.py') + ' find.py\n' + 
         'RUN pip install -r requirements.txt\n' + 
-        f'ENTRYPOINT python3 train.py && curl -X PUT -F "path=@{MODEL_PATH}" http://172.17.0.1:8002/api/v1/models/{model_name}'
+        f'ENTRYPOINT python3 train.py && python3 find.py {model_name}'
     )
+    # f'ENTRYPOINT python3 train.py && glob {model_name} && curl -X PUT -F "path=@{MODEL_PATH}" http://172.17.0.1:8002/api/v1/models/{model_name}'
     dockerfile.close()
 
     # Create a tar file with the docker environment
@@ -47,6 +49,7 @@ def create_dockerfile(model_name):
     buildenv.add(name=upload_path('train.py'))
     buildenv.add(name=upload_path('requirements.txt'))
     buildenv.add(name=upload_path('dataset.csv'))
+    buildenv.add(name=upload_path('find.py'))
     buildenv.close()
 
 
