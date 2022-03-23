@@ -2,7 +2,7 @@ ARG PYTHON_VERSION=3.8
 
 FROM python:${PYTHON_VERSION}
 
-WORKDIR usr/src/flask_app
+WORKDIR /usr/src/flask_app
 
 RUN apt-get update
 RUN apt-get install ffmpeg libsm6 libxext6 iputils-ping nmap -y
@@ -20,6 +20,7 @@ COPY utils utils
 
 RUN mkdir /home/logs
 RUN mkdir /trainerfiles
+RUN mv utils/find.py /trainerfiles/find.py
 
 #run integration testing
 RUN ["chmod", "+x", "./api_test.py"]
