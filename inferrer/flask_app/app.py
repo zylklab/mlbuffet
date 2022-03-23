@@ -1,5 +1,4 @@
 from os import path
-from pathlib import Path
 from secrets import compare_digest
 
 import cv2
@@ -17,7 +16,7 @@ from utils.inferer_pojos import HttpJsonResponse, Prediction
 
 # Path constants
 API_BASE_URL = '/api/v1/'
-ALLOWED_EXTENSIONS = ['onnx', 'pb']
+ALLOWED_EXTENSIONS = ['.onnx', '.pb']
 
 # Authorization constants
 # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
@@ -160,7 +159,7 @@ def log_response(response):
 
 # TODO this should go into utils folder
 def get_file_extension(file_name):
-    return Path(file_name).suffix[1:].lower()
+    return path.splitext(file_name)[1]
 
 
 # Prediction method. Given a json with input data, sends it to modelhost for predictions.
