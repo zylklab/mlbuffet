@@ -370,5 +370,75 @@ def train():
     return trainer.get_information_of_all_models()
 
 
+"""
+PRUEBAS CON EL STORAGE
+"""
+
+
+@server.route(path.join(API_BASE_URL, 'probe/<tag>'), methods=['GET', 'PUT', 'POST', 'DELETE'])
+def probe(tag: str):
+    metric_manager.increment_storage_counter()
+
+    # For GET requests, download the model
+    if request.method == 'GET':
+        response = st_talker.download_model(tag=tag)
+        return response
+
+    # For PUT requests, upload a new model
+    elif request.method == 'PUT':
+        # Check a file path has been provided
+        if not request.files or 'path' not in request.files:
+            return HttpJsonResponse(422, http_status_description='No file path (named \'path\') specified').json()
+
+        # Get model file from the given path
+        new_model = request.files['path']
+        model_name = new_model.filename
+        logger.info(model_name)
+        # Check that the extension is allowed (.onnx supported)
+        if get_file_extension(model_name) not in ALLOWED_EXTENSIONS:
+            return HttpJsonResponse(
+                415,
+                http_status_description=f'Filename extension not allowed. '
+                                        f'Please use one of these: {ALLOWED_EXTENSIONS}').json()
+
+        try:
+            desc = request.form['model_description']
+        except TypeError:
+            desc = 'Not description provided'
+
+        return st_talker.upload_new_model(tag=tag, file=new_model, file_name=model_name, description=desc)
+
+    # For DELETE requests, delete a given model
+    elif request.method == 'DELETE':
+        # Send the model as HTTP delete request
+        return st_talker.delete_model(tag)
+
+    # For POST requests, set a new model for default tag
+    elif request.method == 'POST':
+        # Check that any json data has been provided
+        if not request.json:
+            return HttpJsonResponse(
+                422,
+                http_status_description='No json data provided {default:string}').json()
+
+        # Check that model_description has been provided
+        if 'default' not in request.json:
+            return HttpJsonResponse(422, http_status_description='No default value provided').json()
+
+        default = request.json['default']
+
+        # Check that model_description is a string
+        if not isinstance(default, int):
+            return HttpJsonResponse(422, http_status_description='default value must be an integer').json()
+
+        return st_talker.set_default_model(tag, str(default))
+
+
+@server.route(path.join(API_BASE_URL, 'probe/<tag>/information'), methods=['GET'])
+def get_info(tag):
+    metric_manager.increment_storage_counter()
+    return st_talker.get_tag_information(tag)
+
+
 if __name__ == '__main__':
     pass
