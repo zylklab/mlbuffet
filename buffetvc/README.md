@@ -154,16 +154,16 @@ Método para descargar archivos.
 Como en el resto de métodos, se le puede indicar una versión en concreto o dejarlo sin nada para que coja el `default`.
 
 ```commandline
-wget http://localhost:8006/download/<tag>
+wget http://localhost:8006/download/<tag> --content-disposition
 ```
 
 Ejemplos:
 
 
 ```commandline
-wget http://localhost:8006/download/hello
-wget http://localhost:8006/download/hello:default
-wget http://localhost:8006/download/hello:2
+wget http://localhost:8006/download/hello --content-disposition
+wget http://localhost:8006/download/hello:default --content-disposition
+wget http://localhost:8006/download/hello:2 --content-disposition
 ```
 
 ### update_default
