@@ -162,6 +162,7 @@ def download_file(name: str, version: str):
 
 
 def update_default(name: str, version: str):
+    version = str(version)
     folder_path = os.path.join(archivos_folder, name)
     extern_folder_path = os.path.join(extern_folder, name)
 
