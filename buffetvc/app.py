@@ -73,7 +73,40 @@ def get_metrics():  # TODO: where is the result of this method used
     )
 
 
-@server.route('/remove/<tag>', methods=['DELETE'])
+@server.before_request
+def log_call():
+    if request.path == '/metrics':  # don't log prometheus' method
+        pass
+    else:
+        client_ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+        logger.info(f'[{client_ip}] HTTP {request.method} call to {request.path}')
+
+
+@server.after_request
+def log_response(response):
+    if request.path == '/metrics':  # don't log prometheus' method
+        pass
+    elif request.path == '/help':  # don't display the whole help
+        logger.info('Help displayed')
+    return response
+
+
+@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['PUT'])
+def save(tag):
+    file = request.files['path']
+    filename = request.files['filename'].stream.read().decode("utf-8")
+    # filename = request.files['file_name'].stream.read().decode("utf-8")
+    desc = request.files['model_description'].stream.read().decode("utf-8")
+    bvc.save_file(file=file,
+                  tag=tag,
+                  file_name=filename,
+                  description=desc)
+    # return Response(f'File {filename} saved with the tag {tag}\n')
+    return HttpJsonResponse(http_status_code=200,
+                            http_status_description=f'File {filename} saved with the tag {tag}').json()
+
+
+@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['DELETE'])
 def remove(tag):
     separator = tag.find(':')
     if separator < 0:
