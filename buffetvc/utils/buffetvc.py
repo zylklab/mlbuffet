@@ -46,7 +46,7 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str):
         data = json.load(fh)
         ts = time.time()
         time_string = time.strftime('%H:%M:%S %d/%m/%Y', time.localtime(ts))
-        data[new_folder] = {"folder": folder_dir, "file": file_name, "time": time_string}
+        data[new_folder] = {"folder": folder_dir, "file": file_name, "time": time_string, "description": description}
         fh.seek(0)
         fh.write(json.dumps(data, sort_keys=True))
         fh.close()
