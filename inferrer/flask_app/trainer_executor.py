@@ -33,14 +33,19 @@ def create_dockerfile(model_name):
     
     dockerfile.write(
         'FROM python:3.8.1\n' +
-        'COPY ' + upload_path('requirements.txt') + ' requirements.txt\n' +
-        'COPY ' + upload_path('train.py') + ' train.py\n' +
-        'COPY ' + upload_path('dataset.csv') + ' dataset.csv\n' +
-        'COPY ' + upload_path('find.py') + ' find.py\n' + 
+        'RUN useradd -s /bin/bash trainer\n' +
+        'RUN mkdir /home/trainer\n'
+        'RUN chown -R trainer:trainer /home/trainer\n'
+        'USER trainer\n' + 
+        'WORKDIR /home/trainer\n'
+        'COPY --chown=trainer ' + upload_path('requirements.txt') + ' requirements.txt\n' +
+        'COPY --chown=trainer ' + upload_path('train.py') + ' train.py\n' +
+        'COPY --chown=trainer ' + upload_path('dataset.csv') + ' dataset.csv\n' +
+        'COPY --chown=trainer ' + upload_path('find.py') + ' find.py\n' + 
         'RUN pip install -r requirements.txt\n' + 
-        f'ENTRYPOINT python3 train.py && python3 find.py {model_name}'
+        f'ENTRYPOINT python3 train.py && python3 find.py {model_name}\n'
     )
-    # f'ENTRYPOINT python3 train.py && glob {model_name} && curl -X PUT -F "path=@{MODEL_PATH}" http://172.17.0.1:8002/api/v1/models/{model_name}'
+    
     dockerfile.close()
 
     # Create a tar file with the docker environment
