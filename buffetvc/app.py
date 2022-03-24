@@ -140,10 +140,10 @@ def update_default_file(tag):
     return response
 
 
-@server.route('/info/<tag>', methods=['GET'])
+@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>/information'), methods=['GET'])
 def get_info(tag):
     information = bvc.get_information(tag)
-    return Response(information)
+    return information
 
 
 if __name__ == '__main__':
