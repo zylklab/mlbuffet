@@ -34,10 +34,11 @@ def create_dockerfile(model_name):
     dockerfile.write(
         'FROM python:3.8.1\n' +
         'RUN useradd -s /bin/bash trainer\n' +
-        'RUN mkdir /home/trainer\n'
-        'RUN chown -R trainer:trainer /home/trainer\n'
+        'RUN mkdir /home/trainer\n' +
+        'RUN chown -R trainer:trainer /home/trainer\n' +
         'USER trainer\n' + 
-        'WORKDIR /home/trainer\n'
+        'WORKDIR /home/trainer\n' +
+        'RUN pip install requests\n' + 
         'COPY --chown=trainer ' + upload_path('requirements.txt') + ' requirements.txt\n' +
         'COPY --chown=trainer ' + upload_path('train.py') + ' train.py\n' +
         'COPY --chown=trainer ' + upload_path('dataset.csv') + ' dataset.csv\n' +
