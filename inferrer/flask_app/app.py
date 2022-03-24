@@ -348,7 +348,10 @@ def train():
 
         # Check all 3 files have been provided
         if False:
-            return HttpJsonResponse(422, http_status_description='Not all files provided. Please provide dataset, train script and requirements').json()
+            return HttpJsonResponse(422,
+                                    http_status_description='Not all files provided.'
+                                                            ' Please provide dataset, train script and requirements')\
+                .json()
 
         # Start training
         trainer.save_files(train_script, requirements, dataset)
