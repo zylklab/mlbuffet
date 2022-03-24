@@ -18,7 +18,13 @@ auth_token = 'password'  # TODO: https://github.com/miguelgrinberg/Flask-HTTPAut
 auth = HTTPTokenAuth('Bearer')
 auth.auth_error_callback = lambda *args, **kwargs: handle_exception(Unauthorized())
 
+# Logger initialization
+logger = Logger('storage').get_logger('storage')
+logger.info('Starting Flask API...')
+
+# Server initialization
 server = Flask(__name__)
+logger.info('... Flask API successfully started')
 
 
 @server.route('/save/<tag>', methods=['PUT'])
