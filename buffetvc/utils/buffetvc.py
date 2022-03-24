@@ -178,11 +178,20 @@ def update_default(name: str, version: str):
 
         # Copy the new default file into the external path
         new_default_file = os.listdir(os.path.join(folder_path, version))[0]
+        new_default_path = os.path.join(folder_path, version, new_default_file)
+
         path_to_default = os.path.join(extern_folder_path, new_default_file)
-        shutil.copy(new_default_file, path_to_default)
-        return Response(f'The file {name} with the version {version} has been set as default\n')
+
+        shutil.copy(new_default_path, path_to_default)
+        response = HttpJsonResponse(200,
+                                    http_status_description=f'The file {name} with the version {version} has '
+                                                            f'been set as default').json()
+
     except FileNotFoundError:
-        return Response('File not found, please check the name introduced\n')
+        response = HttpJsonResponse(422,
+                                    http_status_description='File not found, please check the name introduced').json()
+
+    return response
 
 
 def get_information(name: str):
