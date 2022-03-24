@@ -117,7 +117,7 @@ def remove(tag):
         version = name_split[1]
 
     bvc.remove_file(name=tag, version=version)
-    return Response(f'{tag} removed\n')
+    return HttpJsonResponse(200, http_status_description=f'{tag} removed\n').json()
 
 
 @server.route('/download/<tag>', methods=['GET'])
