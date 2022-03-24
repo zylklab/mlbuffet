@@ -18,4 +18,4 @@ RUN mkdir logs
 COPY app.py .
 COPY utils utils
 
-CMD ["gunicorn", "-w", "1", "-k", "gevent", "--worker-connections", "1000", "-b", "0.0.0.0:8000", "app:server"]
+CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:8000", "app:server"]
