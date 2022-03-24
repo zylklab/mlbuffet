@@ -13,6 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 RUN mkdir files
 RUN mkdir modelhostfiles
+RUN mkdir logs
 
 COPY app.py .
 COPY utils utils
