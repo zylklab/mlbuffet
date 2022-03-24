@@ -132,9 +132,12 @@ def download(tag):
     return bvc.download_file(name=tag, version=version)
 
 
-@server.route('/default/<tag>/<new_default>', methods=['POST'])
-def update_default(tag, new_default):
-    return bvc.update_default(name=tag, version=new_default)
+@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>/default'), methods=['POST'])
+def update_default_file(tag):
+    new_default = request.json['default']
+    response = bvc.update_default(name=tag, version=new_default)
+    # HttpJsonResponse(http_status_code=200, http_status_description=response).json()
+    return response
 
 
 @server.route('/info/<tag>', methods=['GET'])
