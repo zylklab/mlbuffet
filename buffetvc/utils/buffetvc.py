@@ -142,15 +142,15 @@ def remove_file(name: str, version: str):
 
 
 def download_file(name: str, version: str):
-    # Check default file
-    if version == 'default':
-        with open(os.path.join(archivos_folder, name, DEFAULT), 'r') as lf:
-            version = lf.read()
-            lf.close()
-    folder_path = os.path.join(archivos_folder, name, version)
-
     # Return the file
     try:
+        # Check default file
+        if version == 'default':
+            with open(os.path.join(archivos_folder, name, DEFAULT), 'r') as lf:
+                version = lf.read()
+                lf.close()
+        folder_path = os.path.join(archivos_folder, name, version)
+
         file_name = os.listdir(folder_path)[0]
         file = os.path.join(folder_path, file_name)
         return send_file(path_or_file=file, as_attachment=True)
