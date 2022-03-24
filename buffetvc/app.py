@@ -112,9 +112,9 @@ def remove(tag):
     if separator < 0:
         version = 'default'
     else:
-        name_splitted = tag.split(':')
-        tag = name_splitted[0]
-        version = name_splitted[1]
+        name_split = tag.split(':')
+        tag = name_split[0]
+        version = name_split[1]
 
     bvc.remove_file(name=tag, version=version)
     return Response(f'{tag} removed\n')
