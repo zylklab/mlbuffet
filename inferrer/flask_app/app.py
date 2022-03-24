@@ -1,5 +1,5 @@
 from os import path
-from pathlib import Path
+from secrets import compare_digest
 
 import cv2
 import numpy
@@ -9,19 +9,21 @@ from werkzeug.exceptions import HTTPException, Unauthorized
 from werkzeug.utils import secure_filename
 
 import modelhost_talker as mh_talker
+from trainer_executor import run_training
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
 from utils.inferer_pojos import HttpJsonResponse, Prediction
-from secrets import compare_digest
 
 # Path constants
 API_BASE_URL = '/api/v1/'
-ALLOWED_EXTENSIONS = ['onnx']
+ALLOWED_EXTENSIONS = ['.onnx', '.pb']
 
 # Authorization constants
-auth_token = 'password'  # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
+# TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
+auth_token = 'password'
 auth = HTTPTokenAuth('Bearer')
-auth.auth_error_callback = lambda *args, **kwargs: handle_exception(Unauthorized())
+auth.auth_error_callback = lambda *args, **kwargs: handle_exception(
+    Unauthorized())
 
 # Logger initialization
 logger = Logger('inferrer').get_logger('inferrer')
@@ -104,7 +106,8 @@ def _test_send_to_modelhost():
 
 
 # This endpoint is used by Prometheus and metrics are exposed here
-@server.route('/metrics', methods=['GET', 'POST'])  # TODO: needs to be authorized
+# TODO: needs to be authorized
+@server.route('/metrics', methods=['GET', 'POST'])
 def get_metrics():
     # force refresh system metrics
     metric_manager.compute_system_metrics()
@@ -129,7 +132,8 @@ def log_call():
         pass
     else:
         client_ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
-        logger.info(f'[{client_ip}] HTTP {request.method} call to {request.path}')
+        logger.info(
+            f'[{client_ip}] HTTP {request.method} call to {request.path}')
     my_stopwatch.start()
 
 
@@ -144,7 +148,7 @@ def log_response(response):
     elif request.path == '/api/v1/models/information':
         logger.info('Models and descriptions listed')
     elif 'path' in request.files:
-        logger.info('Prediction done')
+        logger.info('Model uploaded')
     elif response and response.get_json():
         logger.info(response.get_json())
 
@@ -155,7 +159,7 @@ def log_response(response):
 
 # TODO this should go into utils folder
 def get_file_extension(file_name):
-    return Path(file_name).suffix[1:].lower()
+    return path.splitext(file_name)[1]
 
 
 # Prediction method. Given a json with input data, sends it to modelhost for predictions.
@@ -184,8 +188,10 @@ def get_prediction(model_name):
                 http_status_description='New observation is not a list enclosed by squared brackets').json()
 
         # Check if the same prediction has already been made before
-        test_values_hash = prediction_cache.get_hash(model_name=model_name, inputs=test_values)
-        cached_prediction = prediction_cache.get_prediction(hash_code=test_values_hash)
+        test_values_hash = prediction_cache.get_hash(
+            model_name=model_name, inputs=test_values)
+        cached_prediction = prediction_cache.get_prediction(
+            hash_code=test_values_hash)
 
         # If the prediction exists in cache, return it
         if cached_prediction is not None:
@@ -193,7 +199,8 @@ def get_prediction(model_name):
 
         # Otherwise, compute it and save it in cache
         result = mh_talker.make_a_prediction(model_name, test_values)
-        prediction_cache.put_prediction_in_cache(hash_code=test_values_hash, prediction=result['values'])
+        prediction_cache.put_prediction_in_cache(
+            hash_code=test_values_hash, prediction=result['values'])
 
         return result
 
@@ -209,8 +216,10 @@ def get_prediction(model_name):
             to_hash = request.files['path'].read()
 
             # Check if the same prediction has already been made before
-            test_values_hash = prediction_cache.get_hash(model_name=model_name, inputs=to_hash)
-            cached_prediction = prediction_cache.get_prediction(hash_code=test_values_hash)
+            test_values_hash = prediction_cache.get_hash(
+                model_name=model_name, inputs=to_hash)
+            cached_prediction = prediction_cache.get_prediction(
+                hash_code=test_values_hash)
 
             # If the prediction exists in cache, return it
             if cached_prediction is not None:
@@ -221,7 +230,8 @@ def get_prediction(model_name):
             img_bgr = cv2.imdecode(flat_image, cv2.IMREAD_COLOR)
             img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
             result = mh_talker.make_a_prediction(model_name, img.tolist())
-            prediction_cache.put_prediction_in_cache(hash_code=test_values_hash, prediction=result['values'])
+            prediction_cache.put_prediction_in_cache(
+                hash_code=test_values_hash, prediction=result['values'])
 
             return result
         else:
@@ -302,6 +312,40 @@ def model_handling(model_name):
     if request.method == 'DELETE':
         # Send the model as HTTP delete request
         return mh_talker.delete_model(model_name)
+
+
+# Start a new training session.
+@server.route(path.join(API_BASE_URL, 'train/<model_name>'), methods=['POST'])
+def train(model_name):
+    metric_manager.increment_train_counter()
+
+    # Check that the script was provided
+    if not request.files.getlist('script'):
+        return HttpJsonResponse(422, http_status_description='No training script provided with name \'script\'').json()
+
+    # Check that requirements.txt was provided
+    if not request.files.getlist('requirements'):
+        return HttpJsonResponse(
+            422, http_status_description='No requirements provided with name \'requirements\'').json()
+
+    # Check that data was provided
+    if not request.files.getlist('dataset'):
+        return HttpJsonResponse(422, http_status_description='No data provided with name \'dataset\'').json()
+
+    # get training script, requirements and data
+    train_script = request.files.getlist('script')[0]
+    requirements = request.files.getlist('requirements')[0]
+    dataset = request.files.getlist('dataset')[0]
+
+    # Change filenames to match expected ones TODO preserve original names
+    train_script.filename = 'train.py'
+    requirements.filename = 'requirements.txt'
+    dataset.filename = 'dataset.csv'
+
+    # Start training
+    run_training(train_script, requirements, dataset, model_name)
+
+    return HttpJsonResponse(200, http_status_description='Training container created and running!').json()
 
 
 if __name__ == '__main__':

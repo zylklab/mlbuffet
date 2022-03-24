@@ -31,4 +31,4 @@ docker network create -d overlay --subnet 10.0.13.0/24 mlbuffet_overlay
 # start deployment and exit on any error
 docker stack deploy -c swarm.yaml mlbuffet &&
 sleep 5
-docker service update modelhost --replicas=$num
+docker service update mlbuffet_modelhost --replicas=$num

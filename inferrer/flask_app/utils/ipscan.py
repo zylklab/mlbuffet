@@ -9,9 +9,12 @@ def IPScan(network):
     modelhostlist = []
 
     for addr in listaddr:
-        print(nm[addr].hostname())
+        try:
+            is_host = nm[addr].get('hostnames')[0]['name']
+        except IndexError:
+            is_host = ''
 
-        if 'modelhost' in nm[addr].hostname():
+        if 'modelhost' in is_host:
             modelhostlist.append(addr)
 
-    return listaddr
+    return modelhostlist
