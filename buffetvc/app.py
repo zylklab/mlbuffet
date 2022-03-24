@@ -120,7 +120,7 @@ def remove(tag):
     return HttpJsonResponse(200, http_status_description=f'{tag} removed\n').json()
 
 
-@server.route('/download/<tag>', methods=['GET'])
+@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['GET'])
 def download(tag):
     separator = tag.find(':')
     if separator < 0:
