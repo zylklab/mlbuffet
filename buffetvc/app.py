@@ -27,12 +27,50 @@ server = Flask(__name__)
 logger.info('... Flask API successfully started')
 
 
-@server.route('/save/<tag>', methods=['PUT'])
-def save(tag):
-    file = request.files['path']
-    filename = file.filename
-    bvc.save_file(file=file, tag=tag, file_name=filename)
-    return Response(f'File {filename} saved with the tag {tag}\n')
+# All the methods supported by the API are described below
+# These methods are not supposed to be exposed to the user, who should communicate
+# with Inferrer instead. These methods shall be called by Inferrer
+
+
+@auth.verify_token
+def verify_token(token):
+    return compare_digest(token, auth_token)
+
+
+@server.route(STORAGE_BASE_URL, methods=['GET'])
+def hello_world():
+    return HttpJsonResponse(
+        200,
+        http_status_description='Greetings from MLBuffet - Storage, the Machine Learning model server. '
+                                'Are you supposed to be reading this? Guess not. Go to Inferrer!'
+    ).json()
+
+
+@server.route(path.join(STORAGE_BASE_URL, 'api/test'), methods=['GET'])
+def get_test():
+    metric_manager.increment_test_counter()
+    return HttpJsonResponse(200).json()
+
+
+@server.errorhandler(HTTPException)
+def handle_exception(exception):
+    """Return JSON instead of HTML for HTTP errors."""
+
+    return HttpJsonResponse(
+        http_status_code=exception.code,
+        http_status_name=exception.name,
+        http_status_description=exception.description
+    ).json()
+
+
+@server.route('/metrics', methods=['GET', 'POST'])
+def get_metrics():  # TODO: where is the result of this method used
+    # force refresh system metrics
+    metric_manager.compute_system_metrics()
+    metrics = metric_manager.get_metrics()
+    return Response(
+        metrics, mimetype='text/plain'
+    )
 
 
 @server.route('/remove/<tag>', methods=['DELETE'])
