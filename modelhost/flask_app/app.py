@@ -197,8 +197,6 @@ def predict(model_name):
         npimage = numpy.asarray(new_observation)
         new_observation2 = numpy.rollaxis(npimage, 2, 0).tolist()
         image2_dimensions = list(numpy.shape(new_observation2))
-        print(image2_dimensions)
-        print(model_dimensions)
 
         if image2_dimensions == model_dimensions:
             try:
