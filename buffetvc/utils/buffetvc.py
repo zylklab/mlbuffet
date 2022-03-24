@@ -201,6 +201,7 @@ def get_information(name: str):
     try:
         with open(os.path.join(folder_path, HISTORY), 'r') as hf:
             data = hf.read()
-            return data
+            return HttpJsonResponse(200, http_status_description=data).json()
     except FileNotFoundError:
-        return Response('File not found, please check the name introduced\n')
+        return HttpJsonResponse(422,
+                                http_status_description='File not found, please check the name introduced\n').json()
