@@ -1,5 +1,22 @@
+from os import path
+
 from flask import Flask, request, Response
 import utils.buffetvc as bvc
+from flask_httpauth import HTTPTokenAuth
+from werkzeug.exceptions import HTTPException, Unauthorized
+
+from utils import metric_manager
+from utils.container_logger import Logger
+from utils.storage_pojos import HttpJsonResponse
+from secrets import compare_digest
+
+# Path constants
+STORAGE_BASE_URL = '/storage'
+
+# Authorization constants
+auth_token = 'password'  # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
+auth = HTTPTokenAuth('Bearer')
+auth.auth_error_callback = lambda *args, **kwargs: handle_exception(Unauthorized())
 
 server = Flask(__name__)
 
