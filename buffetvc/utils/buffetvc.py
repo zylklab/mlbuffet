@@ -13,7 +13,7 @@ archivos_folder = "files"
 extern_folder = 'modelhostfiles'
 
 
-def save_file(file: ds.FileStorage, tag: str, file_name: str):
+def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str):
     model_folder = os.path.join(archivos_folder, tag)
     # Creation of the name folder to the model and the history/default files
     if not os.path.exists(model_folder):
