@@ -4,6 +4,7 @@ import json
 import shutil
 import werkzeug.datastructures as ds
 from flask import Response, send_file
+from utils.storage_pojos import HttpJsonResponse
 
 HISTORY = '.history'
 DEFAULT = '.default'
