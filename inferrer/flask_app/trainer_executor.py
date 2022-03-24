@@ -95,13 +95,9 @@ def run_training(train_script, requirements, dataset, model_name):
 
     # TODO: Do this in a thread so the user gets back the control of his terminal
     # Run the image
-    container = client.containers.run(image="trainer")
+    container = client.containers.run(image="trainer", detach=True)
 
 
-    # >> CREATE DOCKERFILE
-    # >> CREATE IMAGE
-    # >> RUN Container
     # >> CHECK CONTAINER header_length
-    # >> REMOVE FILES
 
 # TODO: def check_logs():

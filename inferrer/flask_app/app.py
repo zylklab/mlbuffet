@@ -345,7 +345,7 @@ def train(model_name):
     # Start training
     run_training(train_script, requirements, dataset, model_name)
 
-    return HttpJsonResponse(200, http_status_description='Training started!').json()
+    return HttpJsonResponse(200, http_status_description='Training container created and running!').json()
 
 
 if __name__ == '__main__':
