@@ -153,9 +153,12 @@ def download_file(name: str, version: str):
 
         file_name = os.listdir(folder_path)[0]
         file = os.path.join(folder_path, file_name)
-        return send_file(path_or_file=file, as_attachment=True)
+        return send_file(path_or_file=file,
+                         mimetype='application/octet-stream',
+                         as_attachment=True,
+                         download_name=file_name)
     except FileNotFoundError:
-        return Response('File not found, please check the name introduced')
+        return HttpJsonResponse(422, http_status_description='File not found, please check the name introduced').json()
 
 
 def update_default(name: str, version: str):
