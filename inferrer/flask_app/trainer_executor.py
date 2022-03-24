@@ -93,6 +93,7 @@ def run_training(train_script, requirements, dataset, model_name):
     # Build the image
     build_image(client)
 
+    # TODO: Do this in a thread so the user gets back the control of his terminal
     # Run the image
     container = client.containers.run(image="trainer")
 
