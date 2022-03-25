@@ -2,7 +2,6 @@ import io
 from json import JSONDecodeError
 from os import path, getenv
 
-import flask
 import gevent
 import requests
 from flask import send_file
@@ -61,14 +60,13 @@ def _delete(resource):
 
 def upload_new_model(tag, file, file_name, description):
     resource = '/storage/model/' + tag
-    # update_models()
     files = [('path', file), ('model_description', description), ('filename', file_name)]
+    update_models()
     return _put(resource, files)
 
 
 def delete_model(tag):
     resource = '/storage/model/' + tag
-    # update_models()
     return _delete(resource)
 
 
@@ -91,6 +89,7 @@ def download_model(tag):
 def set_default_model(tag, new_version):
     resource = '/storage/model/' + tag + '/default'
     json_data = {'default': new_version}
+    update_models()
     return _post(resource, json_data)
 
 
