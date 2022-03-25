@@ -263,7 +263,7 @@ def update_models():
 
 
 # This method is in charge of model handling. Performs operations on models and manages models in the server.
-@server.route(path.join(API_BASE_URL, 'models/<model_name>'), methods=['GET', 'PUT', 'POST', 'DELETE'])
+@server.route(path.join(API_BASE_URL, 'models/<tag>'), methods=['GET', 'PUT', 'POST', 'DELETE'])
 def model_handling(tag):
     metric_manager.increment_model_counter()
 
@@ -279,15 +279,20 @@ def model_handling(tag):
 
         # Get model file from the given path
         new_model = request.files['path']
+        model_name = new_model.filename
 
         # Check that the extension is allowed (.onnx supported)
-        if get_file_extension(tag) not in ALLOWED_EXTENSIONS:
+        if get_file_extension(model_name) not in ALLOWED_EXTENSIONS:
             return HttpJsonResponse(
                 415,
                 http_status_description=f'Filename extension not allowed. '
                                         f'Please use one of these: {ALLOWED_EXTENSIONS}').json()
+        if not request.form:
+            desc = 'Not description provided'
+        else:
+            desc = request.form['model_description']
 
-        return mh_talker.upload_new_model(tag, new_model)
+        return st_talker.upload_new_model(tag=tag, file=new_model, file_name=model_name, description=desc)
 
     # For POST requests, update the information of a given model
     if request.method == 'POST':
