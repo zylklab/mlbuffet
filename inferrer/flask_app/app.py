@@ -264,13 +264,12 @@ def update_models():
 
 # This method is in charge of model handling. Performs operations on models and manages models in the server.
 @server.route(path.join(API_BASE_URL, 'models/<model_name>'), methods=['GET', 'PUT', 'POST', 'DELETE'])
-def model_handling(model_name):
+def model_handling(tag):
     metric_manager.increment_model_counter()
-    # model_name = secure_filename(model_name)
 
     # For GET requests, display model information
     if request.method == 'GET':
-        return mh_talker.get_information_of_a_model(model_name)
+        return mh_talker.get_information_of_a_model(tag)
 
     # For PUT requests, upload the given model file to the modelhost server
     if request.method == 'PUT':
@@ -282,13 +281,13 @@ def model_handling(model_name):
         new_model = request.files['path']
 
         # Check that the extension is allowed (.onnx supported)
-        if get_file_extension(model_name) not in ALLOWED_EXTENSIONS:
+        if get_file_extension(tag) not in ALLOWED_EXTENSIONS:
             return HttpJsonResponse(
                 415,
                 http_status_description=f'Filename extension not allowed. '
                                         f'Please use one of these: {ALLOWED_EXTENSIONS}').json()
 
-        return mh_talker.upload_new_model(model_name, new_model)
+        return mh_talker.upload_new_model(tag, new_model)
 
     # For POST requests, update the information of a given model
     if request.method == 'POST':
@@ -308,12 +307,12 @@ def model_handling(model_name):
         if not isinstance(description, str):
             return HttpJsonResponse(422, http_status_description='model_description must be a string').json()
 
-        return mh_talker.write_model_description(model_name, description)
+        return mh_talker.write_model_description(tag, description)
 
     # For DELETE requests, delete a given model
     if request.method == 'DELETE':
         # Send the model as HTTP delete request
-        return mh_talker.delete_model(model_name)
+        return mh_talker.delete_model(tag)
 
 
 # Start a new training session.
