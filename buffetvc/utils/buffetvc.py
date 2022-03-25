@@ -82,7 +82,7 @@ def remove_file(name: str, version: str):
         for i in data_history:
             i = int(i)
             folders.append(i)
-        if version == 'latest':
+        if version == 'default':
             version = folders[-1]
         del data_history[str(version)]
 
@@ -167,6 +167,12 @@ def update_default(name: str, version: str):
     extern_folder_path = os.path.join(extern_folder, name)
 
     try:
+        try:
+            new_default_file = os.listdir(os.path.join(folder_path, version))[0]
+        except FileNotFoundError:
+            return HttpJsonResponse(422,
+                                    http_status_description='Version not found, please check the version value '
+                                                            'introduced').json()
         # Rewrite .default file with the new default tag
         with open(os.path.join(folder_path, DEFAULT), 'w') as lf:
             lf.write(version)
@@ -177,14 +183,13 @@ def update_default(name: str, version: str):
         os.remove(os.path.join(extern_folder_path, file_to_remove))
 
         # Copy the new default file into the external path
-        new_default_file = os.listdir(os.path.join(folder_path, version))[0]
         new_default_path = os.path.join(folder_path, version, new_default_file)
 
         path_to_default = os.path.join(extern_folder_path, new_default_file)
 
         shutil.copy(new_default_path, path_to_default)
         response = HttpJsonResponse(200,
-                                    http_status_description=f'The file {name} with the version {version} has '
+                                    http_status_description=f'The tag {name} with the version {version} has '
                                                             f'been set as default').json()
 
     except FileNotFoundError:
@@ -198,10 +203,7 @@ def get_information(name: str):
     folder_path = os.path.join(archivos_folder, name)
 
     # Read the history file
-    try:
-        with open(os.path.join(folder_path, HISTORY), 'r') as hf:
-            data = hf.read()
-            return HttpJsonResponse(200, http_status_description=data).json()
-    except FileNotFoundError:
-        return HttpJsonResponse(422,
-                                http_status_description='File not found, please check the name introduced\n').json()
+    with open(os.path.join(folder_path, HISTORY), 'r') as hf:
+        data = hf.read()
+        output = json.loads(data)
+        return output

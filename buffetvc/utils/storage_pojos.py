@@ -37,4 +37,12 @@ class HttpJsonResponse:
         return jsonify(**self.data), self.data['http_status']['code']
 
 
+class ModelListInformation(HttpJsonResponse):
+    def __init__(self,
+                 http_status_code: int,
+                 http_status_name: str = None,
+                 http_status_description: str = None,
+                 tag_list: {} = None):
+        super().__init__(http_status_code, http_status_name, http_status_description)
 
+        self.data['tag_list_versions'] = tag_list

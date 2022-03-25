@@ -7,7 +7,7 @@ from werkzeug.exceptions import HTTPException, Unauthorized
 
 from utils import metric_manager
 from utils.container_logger import Logger
-from utils.storage_pojos import HttpJsonResponse
+from utils.storage_pojos import HttpJsonResponse, ModelListInformation
 from secrets import compare_digest
 
 # Path constants
@@ -142,8 +142,12 @@ def update_default_file(tag):
 
 @server.route(path.join(STORAGE_BASE_URL, 'model/<tag>/information'), methods=['GET'])
 def get_info(tag):
-    information = bvc.get_information(tag)
-    return information
+    try:
+        information = bvc.get_information(tag)
+        return ModelListInformation(200, tag_list=information).json()
+    except FileNotFoundError:
+        return HttpJsonResponse(422,
+                                http_status_description='Tag not found, please check the name introduced').json()
 
 
 if __name__ == '__main__':
