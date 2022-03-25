@@ -54,8 +54,12 @@ logger.info('... Flask API successfully started')
 def update_model_sessions():
     model_sessions.clear()
 
-    for model_name in listdir(MODEL_FOLDER):
-        model_path = path.join(MODEL_FOLDER, model_name)
+    tags = listdir(MODEL_FOLDER)
+
+    for tag in tags:
+        tag_path = path.join(MODEL_FOLDER, tag)
+        model_name = listdir(tag_path)[0]
+        model_path = path.join(tag_path, model_name)
         model = onnx.load(model_path)
 
         # Get model metadata
@@ -67,7 +71,9 @@ def update_model_sessions():
         label_name = inference_session.get_outputs()[0].name
         description = model.doc_string
 
-        full_description = {'model': model,
+        full_description = {'tag': tag,
+                            'model': model,
+                            'model_name': model_name,
                             'inference_session': inference_session,
                             'model_type': model_type,
                             'dimensions': dimensions,
@@ -75,8 +81,7 @@ def update_model_sessions():
                             'output_name': output_name,
                             'label_name': label_name,
                             'description': description}
-
-        model_sessions[model_name] = full_description
+        model_sessions[tag] = full_description
 
 
 @auth.verify_token
