@@ -15,7 +15,6 @@ URI_SCHEME = 'http://'
 
 
 def _url(resource):
-    #    return URI_SCHEME + LOAD_BALANCER_ENDPOINT + resource
     return URI_SCHEME + 'storage:8000' + resource
 
 
@@ -28,7 +27,6 @@ def _get(resource):
 
 
 def _download(resource):
-    # return requests.get(_url(resource))
     file = requests.get(_url(resource), stream=True)
     return file
 
@@ -40,8 +38,8 @@ def _post(resource, json_data):
 
 def _put(resource, files):
     response = requests.put(_url(resource), files=files).json()
-    # if _is_ok(response['http_status']['code']):
-    # update_models()
+    if _is_ok(response['http_status']['code']):
+        update_models()
     return response
 
 
@@ -49,11 +47,11 @@ def _delete(resource):
     raw_response = requests.delete(_url(resource))
     try:
         response = raw_response.json()
-        # if _is_ok(response['http_status']['code']):
-        # update_models()
+        if _is_ok(response['http_status']['code']):
+            update_models()
     except JSONDecodeError:
         response = raw_response.text
-        # update_models()
+        update_models()
 
     return response
 
