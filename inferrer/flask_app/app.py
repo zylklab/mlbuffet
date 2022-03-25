@@ -403,9 +403,11 @@ def download_model(tag):
     return response
 
 
-@server.route(path.join(API_BASE_URL, 'probe/<tag>/information'), methods=['GET'])
+@server.route(path.join(API_BASE_URL, 'models/<tag>/information'), methods=['GET'])
 def get_info(tag):
     metric_manager.increment_storage_counter()
+
+    # Get information of the tag
     return st_talker.get_tag_information(tag)
 
 
