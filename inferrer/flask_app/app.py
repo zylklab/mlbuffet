@@ -265,14 +265,14 @@ def update_models():
 # This method is in charge of model handling. Performs operations on models and manages models in the server.
 @server.route(path.join(API_BASE_URL, 'models/<tag>'), methods=['GET', 'PUT', 'POST', 'DELETE'])
 def model_handling(tag):
-    metric_manager.increment_model_counter()
-
     # For GET requests, display model information
     if request.method == 'GET':
+        metric_manager.increment_model_counter()
         return mh_talker.get_information_of_a_model(tag)
 
     # For PUT requests, upload the given model file to the modelhost server
     if request.method == 'PUT':
+        metric_manager.increment_storage_counter()
         # Check a file path has been provided
         if not request.files or 'path' not in request.files:
             return HttpJsonResponse(422, http_status_description='No file path (named \'path\') specified').json()
@@ -296,6 +296,8 @@ def model_handling(tag):
 
     # For POST requests, update the information of a given model
     if request.method == 'POST':
+        metric_manager.increment_model_counter()
+
         # Check that any json data has been provided
         if not request.json:
             return HttpJsonResponse(
@@ -316,6 +318,7 @@ def model_handling(tag):
 
     # For DELETE requests, delete a given tag from the storage
     if request.method == 'DELETE':
+        metric_manager.increment_storage_counter()
         # Send the tag as HTTP delete request
         return st_talker.delete_model(tag)
 
@@ -349,7 +352,7 @@ def train():
         if False:
             return HttpJsonResponse(422,
                                     http_status_description='Not all files provided.'
-                                                            ' Please provide dataset, train script and requirements')\
+                                                            ' Please provide dataset, train script and requirements') \
                 .json()
 
         # Start training
@@ -371,6 +374,7 @@ def train():
 
 @server.route(path.join(API_BASE_URL, 'models/<tag>/default'), methods=['POST'])
 def upload_default(tag):
+    metric_manager.increment_storage_counter()
     # Check that any json data has been provided
     if not request.json:
         return HttpJsonResponse(
