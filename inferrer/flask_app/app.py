@@ -1,13 +1,9 @@
-import io
-import logging
 from os import path
 from pathlib import Path
 from secrets import compare_digest
 
 import cv2
-import flask
 import numpy
-import werkzeug.datastructures
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
