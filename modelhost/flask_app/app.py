@@ -161,24 +161,24 @@ def log_response(response):
     return response
 
 
-@server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>/prediction'), methods=['POST'])
-def predict(model_name):
+@server.route(path.join(MODELHOST_BASE_URL, 'models/<tag>/prediction'), methods=['POST'])
+def predict(tag):
     metric_manager.increment_model_counter()
 
     # Check that the model exists
-    if model_name not in model_sessions.keys():
+    if tag not in model_sessions.keys():
         return Prediction(
             404,
-            http_status_description=f'{model_name} does not exist. '
+            http_status_description=f'{tag} does not exist. '
                                     f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
         ).json()
 
-    inference_session = model_sessions[model_name]['inference_session']
-    input_name = model_sessions[model_name]['input_name']
-    output_name = model_sessions[model_name]['output_name']
+    inference_session = model_sessions[tag]['inference_session']
+    input_name = model_sessions[tag]['input_name']
+    output_name = model_sessions[tag]['output_name']
 
     new_observation = request.json['values']
-    model_dimensions = model_sessions[model_name]['dimensions'][1:]
+    model_dimensions = model_sessions[tag]['dimensions'][1:]
     image_dimensions = list(numpy.shape(new_observation))
 
     if model_dimensions == image_dimensions:
@@ -223,7 +223,7 @@ def predict(model_name):
         else:
             return Prediction(
                 404,
-                http_status_description=f'{model_name} does not support this input. {image_dimensions} is '
+                http_status_description=f'{tag} does not support this input. {image_dimensions} is '
                                         f'received, but {model_dimensions} is allowed. Please, check it and try '
                                         f'again. '
             ).json()
