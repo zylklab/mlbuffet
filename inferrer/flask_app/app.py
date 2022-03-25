@@ -169,7 +169,6 @@ def get_file_extension(file_name):
 @server.route(path.join(API_BASE_URL, 'models/<model_name>/prediction'), methods=['POST'])
 def get_prediction(model_name):
     metric_manager.increment_model_counter()
-    model_name = secure_filename(model_name)
 
     # Test values can be a json (array) or a file (image)
     # If a file was not provided, suppose that it is a json
@@ -267,7 +266,7 @@ def update_models():
 @server.route(path.join(API_BASE_URL, 'models/<model_name>'), methods=['GET', 'PUT', 'POST', 'DELETE'])
 def model_handling(model_name):
     metric_manager.increment_model_counter()
-    model_name = secure_filename(model_name)
+    # model_name = secure_filename(model_name)
 
     # For GET requests, display model information
     if request.method == 'GET':
