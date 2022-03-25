@@ -166,8 +166,8 @@ def get_file_extension(file_name):
 
 
 # Prediction method. Given a json with input data, sends it to modelhost for predictions.
-@server.route(path.join(API_BASE_URL, 'models/<model_name>/prediction'), methods=['POST'])
-def get_prediction(model_name):
+@server.route(path.join(API_BASE_URL, 'models/<tag>/prediction'), methods=['POST'])
+def get_prediction(tag):
     metric_manager.increment_model_counter()
 
     # Test values can be a json (array) or a file (image)
@@ -191,7 +191,7 @@ def get_prediction(model_name):
 
         # Check if the same prediction has already been made before
         test_values_hash = prediction_cache.get_hash(
-            model_name=model_name, inputs=test_values)
+            model_name=tag, inputs=test_values)
         cached_prediction = prediction_cache.get_prediction(
             hash_code=test_values_hash)
 
@@ -200,7 +200,7 @@ def get_prediction(model_name):
             return Prediction(200, values=cached_prediction).json()
 
         # Otherwise, compute it and save it in cache
-        result = mh_talker.make_a_prediction(model_name, test_values)
+        result = mh_talker.make_a_prediction(tag, test_values)
         prediction_cache.put_prediction_in_cache(
             hash_code=test_values_hash, prediction=result['values'])
 
@@ -219,7 +219,7 @@ def get_prediction(model_name):
 
             # Check if the same prediction has already been made before
             test_values_hash = prediction_cache.get_hash(
-                model_name=model_name, inputs=to_hash)
+                model_name=tag, inputs=to_hash)
             cached_prediction = prediction_cache.get_prediction(
                 hash_code=test_values_hash)
 
@@ -231,7 +231,7 @@ def get_prediction(model_name):
             flat_image = numpy.frombuffer(to_hash, numpy.uint8)
             img_bgr = cv2.imdecode(flat_image, cv2.IMREAD_COLOR)
             img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-            result = mh_talker.make_a_prediction(model_name, img.tolist())
+            result = mh_talker.make_a_prediction(tag, img.tolist())
             prediction_cache.put_prediction_in_cache(
                 hash_code=test_values_hash, prediction=result['values'])
 
