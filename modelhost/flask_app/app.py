@@ -277,17 +277,13 @@ def get_model_list():
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/information'), methods=['GET'])
 def get_model_list_information():
-    model_name = list(model_sessions.keys())[0]
-    description = model_sessions[model_name]
     output = []
-    for modelname in list(model_sessions.keys()):
-        logger.info(modelname)
-        descripcion = model_sessions[modelname]
-        dict_info = {'model_name': model_name, 'input_name': descripcion['input_name'], 'dimensions': descripcion['dimensions'],
-                     'output_name': descripcion['output_name'], 'description': descripcion['description'],
-                     'model_type': descripcion['model_type']}
+    for tag in list(model_sessions.keys()):
+        description = model_sessions[tag]
+        dict_info = {'tag': tag, 'model_file_name': description['model_name'], 'input_name': description['input_name'],
+                     'dimensions': description['dimensions'], 'output_name': description['output_name'],
+                     'description': description['description'], 'model_type': description['model_type']}
         output.append(dict_info)
-
     logger.info(output)
     return ModelListInformation(200, list_descriptions=output).json()
 
