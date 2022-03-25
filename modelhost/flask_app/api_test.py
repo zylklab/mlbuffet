@@ -75,7 +75,7 @@ def get_model_list_information():
     )
     assert response.status_code == 200
     content = json.loads(next(response.response))
-    return content['description']
+    return content['model_list_description']
 
 
 def upload_model():
