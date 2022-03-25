@@ -242,14 +242,14 @@ def get_prediction(tag):
                                              'The model server only supports images so far').json()
 
 
-# Display a list of available models
+# Display a list of available models in the modelhosts
 @server.route(path.join(API_BASE_URL, 'models'), methods=['GET'])
 def show_models():
     metric_manager.increment_model_counter()
     return mh_talker.get_list_of_models()
 
 
-# Display all the information related to every available model
+# Display all the information related to every available model in the modelhosts
 @server.route(path.join(API_BASE_URL, 'models/information'), methods=['GET'])
 def show_model_descriptions():  # TODO new pojo for this? or delete
     metric_manager.increment_model_counter()
@@ -367,6 +367,27 @@ def train():
         return "Training started!"
 
     return trainer.get_information_of_all_models()
+
+
+@server.route(path.join(API_BASE_URL, 'models/<tag>/default'), methods=['POST'])
+def upload_default(tag):
+    # Check that any json data has been provided
+    if not request.json:
+        return HttpJsonResponse(
+            422,
+            http_status_description='No json data provided {default:string}').json()
+
+    # Check that model_description has been provided
+    if 'default' not in request.json:
+        return HttpJsonResponse(422, http_status_description='No default value provided').json()
+
+    default = request.json['default']
+
+    # Check that model_description is a string
+    if not isinstance(default, int):
+        return HttpJsonResponse(422, http_status_description='Default value must be an integer').json()
+
+    return st_talker.set_default_model(tag, str(default))
 
 
 """
