@@ -314,10 +314,10 @@ def model_handling(tag):
 
         return mh_talker.write_model_description(tag, description)
 
-    # For DELETE requests, delete a given model
+    # For DELETE requests, delete a given tag from the storage
     if request.method == 'DELETE':
-        # Send the model as HTTP delete request
-        return mh_talker.delete_model(tag)
+        # Send the tag as HTTP delete request
+        return st_talker.delete_model(tag)
 
 
 # Start a new training session.
