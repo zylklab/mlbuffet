@@ -60,30 +60,30 @@ def get_information_of_all_models():
     return _get(resource)
 
 
-def get_information_of_a_model(model_name):
-    resource = f'/modelhost/{model_name}/information'
+def get_information_of_a_model(tag):
+    resource = f'/modelhost/{tag}/information'
     return _get(resource)
 
 
-def make_a_prediction(model_name, new_observation):  # TODO: for example here update wouldn't be necessary WHERE TO CALL
-    resource = f'/modelhost/models/{model_name}/prediction'
+def make_a_prediction(tag, new_observation):  # TODO: for example here update wouldn't be necessary WHERE TO CALL
+    resource = f'/modelhost/models/{tag}/prediction'
     return _post(resource, {'values': new_observation})
 
 
-def write_model_description(model_name, description):
-    resource = f'/modelhost/{model_name}/information'
+def write_model_description(tag, description):
+    resource = f'/modelhost/{tag}/information'
     update_models()
     return _post(resource, {'model_description': description})
 
 
-def upload_new_model(model_name, new_model):
-    resource = '/modelhost/models/' + model_name
+def upload_new_model(tag, new_model):
+    resource = '/modelhost/models/' + tag
     update_models()
     return _put(resource, {'model': new_model})
 
 
-def delete_model(model_name):
-    resource = '/modelhost/models/' + model_name
+def delete_model(tag):
+    resource = '/modelhost/models/' + tag
     update_models()
     return _delete(resource)
 
