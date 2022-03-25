@@ -229,18 +229,18 @@ def predict(tag):
             ).json()
 
 
-@server.route(path.join(MODELHOST_BASE_URL, '<model_name>/information'), methods=['GET', 'POST'])
-def model_information(model_name):
+@server.route(path.join(MODELHOST_BASE_URL, '<tag>/information'), methods=['GET', 'POST'])
+def model_information(tag):
     if request.method == 'GET':
         # Check that the model exists
-        if model_name not in model_sessions.keys():
+        if tag not in model_sessions.keys():
             return ModelInformation(
                 404,
-                http_status_description=f'{model_name} does not exist. '
+                http_status_description=f'{tag} does not exist. '
                                         f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
             ).json()
 
-        description = model_sessions[model_name]
+        description = model_sessions[tag]
         return ModelInformation(
             200,
             input_name=description['input_name'],
@@ -251,17 +251,17 @@ def model_information(model_name):
 
     elif request.method == 'POST':
         # Check that the model exists
-        if model_name not in model_sessions.keys():
+        if tag not in model_sessions.keys():
             return HttpJsonResponse(
                 404,
-                http_status_description=f'{model_name} does not exist. '
+                http_status_description=f'{tag} does not exist. '
                                         f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
             ).json()
 
-        model_path = path.join(MODEL_FOLDER, model_name)
+        model_path = path.join(MODEL_FOLDER, tag)
         new_model_description = request.json['model_description']
 
-        model_sessions[model_name]['description'] = new_model_description
+        model_sessions[tag]['description'] = new_model_description
         model = onnx.load(model_path)
         model.doc_string = new_model_description
         onnx.save(model, model_path)
