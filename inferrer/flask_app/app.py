@@ -9,7 +9,12 @@ from werkzeug.exceptions import HTTPException, Unauthorized
 from werkzeug.utils import secure_filename
 
 import modelhost_talker as mh_talker
+
 from trainer_executor import run_training
+
+import storage_talker as st_talker
+import trainer_executor as trainer
+
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
 from utils.inferer_pojos import HttpJsonResponse, Prediction
@@ -149,6 +154,9 @@ def log_response(response):
         logger.info('Models and descriptions listed')
     elif 'path' in request.files:
         logger.info('Model uploaded')
+    elif 'prediction' in request.path:
+        if 'path' in request.files:
+            logger.info('Prediction done')
     elif response and response.get_json():
         logger.info(response.get_json())
 
@@ -163,10 +171,9 @@ def get_file_extension(file_name):
 
 
 # Prediction method. Given a json with input data, sends it to modelhost for predictions.
-@server.route(path.join(API_BASE_URL, 'models/<model_name>/prediction'), methods=['POST'])
-def get_prediction(model_name):
+@server.route(path.join(API_BASE_URL, 'models/<tag>/prediction'), methods=['POST'])
+def get_prediction(tag):
     metric_manager.increment_model_counter()
-    model_name = secure_filename(model_name)
 
     # Test values can be a json (array) or a file (image)
     # If a file was not provided, suppose that it is a json
@@ -189,7 +196,7 @@ def get_prediction(model_name):
 
         # Check if the same prediction has already been made before
         test_values_hash = prediction_cache.get_hash(
-            model_name=model_name, inputs=test_values)
+            model_name=tag, inputs=test_values)
         cached_prediction = prediction_cache.get_prediction(
             hash_code=test_values_hash)
 
@@ -198,7 +205,7 @@ def get_prediction(model_name):
             return Prediction(200, values=cached_prediction).json()
 
         # Otherwise, compute it and save it in cache
-        result = mh_talker.make_a_prediction(model_name, test_values)
+        result = mh_talker.make_a_prediction(tag, test_values)
         prediction_cache.put_prediction_in_cache(
             hash_code=test_values_hash, prediction=result['values'])
 
@@ -217,7 +224,7 @@ def get_prediction(model_name):
 
             # Check if the same prediction has already been made before
             test_values_hash = prediction_cache.get_hash(
-                model_name=model_name, inputs=to_hash)
+                model_name=tag, inputs=to_hash)
             cached_prediction = prediction_cache.get_prediction(
                 hash_code=test_values_hash)
 
@@ -229,7 +236,7 @@ def get_prediction(model_name):
             flat_image = numpy.frombuffer(to_hash, numpy.uint8)
             img_bgr = cv2.imdecode(flat_image, cv2.IMREAD_COLOR)
             img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
-            result = mh_talker.make_a_prediction(model_name, img.tolist())
+            result = mh_talker.make_a_prediction(tag, img.tolist())
             prediction_cache.put_prediction_in_cache(
                 hash_code=test_values_hash, prediction=result['values'])
 
@@ -240,14 +247,14 @@ def get_prediction(model_name):
                                              'The model server only supports images so far').json()
 
 
-# Display a list of available models
+# Display a list of available models in the modelhosts
 @server.route(path.join(API_BASE_URL, 'models'), methods=['GET'])
 def show_models():
     metric_manager.increment_model_counter()
     return mh_talker.get_list_of_models()
 
 
-# Display all the information related to every available model
+# Display all the information related to every available model in the modelhosts
 @server.route(path.join(API_BASE_URL, 'models/information'), methods=['GET'])
 def show_model_descriptions():  # TODO new pojo for this? or delete
     metric_manager.increment_model_counter()
@@ -261,23 +268,23 @@ def update_models():
 
 
 # This method is in charge of model handling. Performs operations on models and manages models in the server.
-@server.route(path.join(API_BASE_URL, 'models/<model_name>'), methods=['GET', 'PUT', 'POST', 'DELETE'])
-def model_handling(model_name):
-    metric_manager.increment_model_counter()
-    model_name = secure_filename(model_name)
-
+@server.route(path.join(API_BASE_URL, 'models/<tag>'), methods=['GET', 'PUT', 'POST', 'DELETE'])
+def model_handling(tag):
     # For GET requests, display model information
     if request.method == 'GET':
-        return mh_talker.get_information_of_a_model(model_name)
+        metric_manager.increment_model_counter()
+        return mh_talker.get_information_of_a_model(tag)
 
     # For PUT requests, upload the given model file to the modelhost server
     if request.method == 'PUT':
+        metric_manager.increment_storage_counter()
         # Check a file path has been provided
         if not request.files or 'path' not in request.files:
             return HttpJsonResponse(422, http_status_description='No file path (named \'path\') specified').json()
 
         # Get model file from the given path
         new_model = request.files['path']
+        model_name = new_model.filename
 
         # Check that the extension is allowed (.onnx supported)
         if get_file_extension(model_name) not in ALLOWED_EXTENSIONS:
@@ -285,11 +292,17 @@ def model_handling(model_name):
                 415,
                 http_status_description=f'Filename extension not allowed. '
                                         f'Please use one of these: {ALLOWED_EXTENSIONS}').json()
+        if not request.form:
+            desc = 'Not description provided'
+        else:
+            desc = request.form['model_description']
 
-        return mh_talker.upload_new_model(model_name, new_model)
+        return st_talker.upload_new_model(tag=tag, file=new_model, file_name=model_name, description=desc)
 
     # For POST requests, update the information of a given model
     if request.method == 'POST':
+        metric_manager.increment_model_counter()
+
         # Check that any json data has been provided
         if not request.json:
             return HttpJsonResponse(
@@ -306,12 +319,13 @@ def model_handling(model_name):
         if not isinstance(description, str):
             return HttpJsonResponse(422, http_status_description='model_description must be a string').json()
 
-        return mh_talker.write_model_description(model_name, description)
+        return mh_talker.write_model_description(tag, description)
 
-    # For DELETE requests, delete a given model
+    # For DELETE requests, delete a given tag from the storage
     if request.method == 'DELETE':
-        # Send the model as HTTP delete request
-        return mh_talker.delete_model(model_name)
+        metric_manager.increment_storage_counter()
+        # Send the tag as HTTP delete request
+        return st_talker.delete_model(tag)
 
 
 # Start a new training session.
@@ -327,6 +341,25 @@ def train(model_name):
     if not request.files.getlist('requirements'):
         return HttpJsonResponse(
             422, http_status_description='No requirements provided with name \'requirements\'').json()
+            # Check train.py has been provided
+            if filename == "train.py":
+                train_script = file
+            # Check requirements.txt has been provided
+            if filename == "requirements.txt":
+                requirements = file
+            # Check dataset.csv has been provided
+            if filename == "dataset.csv":
+                dataset = file
+
+        # Check all 3 files have been provided
+        if False:
+            return HttpJsonResponse(422,
+                                    http_status_description='Not all files provided.'
+                                                            ' Please provide dataset, train script and requirements') \
+                .json()
+
+        # Start training
+        trainer.save_files(train_script, requirements, dataset)
 
     # Check that data was provided
     if not request.files.getlist('dataset'):
@@ -346,6 +379,45 @@ def train(model_name):
     run_training(train_script, requirements, dataset, model_name)
 
     return HttpJsonResponse(200, http_status_description='Training container created and running!').json()
+
+
+@server.route(path.join(API_BASE_URL, 'models/<tag>/default'), methods=['POST'])
+def upload_default(tag):
+    metric_manager.increment_storage_counter()
+    # Check that any json data has been provided
+    if not request.json:
+        return HttpJsonResponse(
+            422,
+            http_status_description='No json data provided {default:string}').json()
+
+    # Check that model_description has been provided
+    if 'default' not in request.json:
+        return HttpJsonResponse(422, http_status_description='No default value provided').json()
+
+    default = request.json['default']
+
+    # Check that model_description is a string
+    if not isinstance(default, int):
+        return HttpJsonResponse(422, http_status_description='Default value must be an integer').json()
+
+    return st_talker.set_default_model(tag, str(default))
+
+
+@server.route(path.join(API_BASE_URL, 'models/<tag>/download'), methods=['GET'])
+def download_model(tag):
+    metric_manager.increment_storage_counter()
+
+    # Download the model
+    response = st_talker.download_model(tag=tag)
+    return response
+
+
+@server.route(path.join(API_BASE_URL, 'models/<tag>/information'), methods=['GET'])
+def get_info(tag):
+    metric_manager.increment_storage_counter()
+
+    # Get information of the tag
+    return st_talker.get_tag_information(tag)
 
 
 if __name__ == '__main__':

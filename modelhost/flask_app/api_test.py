@@ -75,7 +75,7 @@ def get_model_list_information():
     )
     assert response.status_code == 200
     content = json.loads(next(response.response))
-    return content['description']
+    return content['model_list_description']
 
 
 def upload_model():
@@ -104,7 +104,7 @@ def delete_model():
 
 
 def test_get_prediction():
-    url = join(MODELHOST_BASE_URL, 'models/iris.onnx/prediction')
+    url = join(MODELHOST_BASE_URL, 'models/iris_model/prediction')
     response = server.test_client().post(
         url,
         data=json.dumps({'values': [7.0, 3.2, 4.7, 1.4]}),
