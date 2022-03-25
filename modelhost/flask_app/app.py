@@ -11,7 +11,7 @@ from werkzeug.exceptions import HTTPException, Unauthorized
 
 from utils import metric_manager
 from utils.container_logger import Logger
-from utils.modelhost_pojos import HttpJsonResponse, Prediction, ModelList, ModelInformation
+from utils.modelhost_pojos import HttpJsonResponse, Prediction, ModelList, ModelInformation, ModelListInformation
 import numpy
 from secrets import compare_digest
 
@@ -272,19 +272,19 @@ def get_model_list():
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/information'), methods=['GET'])
 def get_model_list_information():
-    # update_model_sessions()  # TODO where
-    # TODO: WORKAROUND, THIS MAKES NO SENSE
     model_name = list(model_sessions.keys())[0]
     description = model_sessions[model_name]
+    output = []
+    for modelname in list(model_sessions.keys()):
+        logger.info(modelname)
+        descripcion = model_sessions[modelname]
+        dict_info = {'model_name': model_name, 'input_name': descripcion['input_name'], 'dimensions': descripcion['dimensions'],
+                     'output_name': descripcion['output_name'], 'description': descripcion['description'],
+                     'model_type': descripcion['model_type']}
+        output.append(dict_info)
 
-    return ModelInformation(
-        200,
-        input_name=description['input_name'],
-        num_inputs=description['dimensions'],
-        output_name=description['output_name'],
-        description=description['description'],
-        model_type=description['model_type']
-    ).json()
+    logger.info(output)
+    return ModelListInformation(200, list_descriptions=output).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>'), methods=['PUT', 'DELETE'])
