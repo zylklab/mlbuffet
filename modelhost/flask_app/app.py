@@ -66,7 +66,7 @@ def update_model_sessions():
             # Get model metadata
             inference_session = rt.InferenceSession(model_path)
             model_type = model.graph.node[0].name
-            dimensions = inference_session.get_inputs()[0].shape  # TODO dimensions
+            dimensions = inference_session.get_inputs()[0].shape
             input_name = inference_session.get_inputs()[0].name
             output_name = inference_session.get_outputs()[0].name
             label_name = inference_session.get_outputs()[0].name
@@ -78,7 +78,7 @@ def update_model_sessions():
                                 'inference_session': inference_session,
                                 'model_type': model_type,
                                 'dimensions': dimensions,
-                                'input_name': input_name,  # TODO: or input name?
+                                'input_name': input_name,
                                 'output_name': output_name,
                                 'label_name': label_name,
                                 'description': description}
