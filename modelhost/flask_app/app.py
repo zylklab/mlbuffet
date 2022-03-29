@@ -54,10 +54,15 @@ logger.info('... Flask API successfully started')
 # Call this function every time a model is added, modified or deleted
 def update_model_sessions():
     model_sessions.clear()
-    for model_name in listdir(MODEL_FOLDER):
-        model_path = path.join(MODEL_FOLDER, model_name)
+    tags = listdir(MODEL_FOLDER)
+
+    for tag in tags:
+        tag_path = path.join(MODEL_FOLDER, tag)
+        model_name = listdir(tag_path)[0]
         try:
+            model_path = path.join(tag_path, model_name)
             model = onnx.load(model_path)
+
             # Get model metadata
             inference_session = rt.InferenceSession(model_path)
             model_type = model.graph.node[0].name
@@ -67,7 +72,9 @@ def update_model_sessions():
             label_name = inference_session.get_outputs()[0].name
             description = model.doc_string
 
-            full_description = {'model': model,
+            full_description = {'tag': tag,
+                                'model': model,
+                                'model_name': model_name,
                                 'inference_session': inference_session,
                                 'model_type': model_type,
                                 'dimensions': dimensions,
