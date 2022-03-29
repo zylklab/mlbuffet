@@ -324,6 +324,8 @@ supported format.
 
 Example `curl` request:
 
-```curl -X POST localhost:8002/api/v1/train/<model_name> -F "dataset=@/path/to/dataset.csv" -F "script=@/path/to/train.py" -F "requirements=@/path/to/requirements.txt"```
+```curl -X POST localhost:8002/api/v1/train/<tag>/<model_name> -F "dataset=@/path/to/dataset.csv" -F "script=@/path/to/train.py" -F "requirements=@/path/to/requirements.txt"```
 
-Take into account that these code will be executed inside a containerized environment and the resulting model must be able to be located by the Trainer container to auto-upload it into the system. The model name must be the same that you used in the HTTP request <model_name>.
+Take into account that these code will be executed inside a containerized environment and the resulting model must be 
+able to be located by the Trainer container to auto-upload it into the system. The tag associated to the model must be 
+provided in `<tag>`. The model name must be the same that you sed in the HTTP request `<model_name>`.
