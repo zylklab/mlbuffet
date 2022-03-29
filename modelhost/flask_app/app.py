@@ -85,34 +85,6 @@ def update_model_sessions():
             model_sessions[tag] = full_description
         except (RuntimeError, InvalidArgument):
             logger.info(f'{model_name} may not be ONNX format or not ONNX compatible.')
-    tags = listdir(MODEL_FOLDER)
-
-    for tag in tags:
-        tag_path = path.join(MODEL_FOLDER, tag)
-        model_name = listdir(tag_path)[0]
-        model_path = path.join(tag_path, model_name)
-        model = onnx.load(model_path)
-
-        # Get model metadata
-        inference_session = rt.InferenceSession(model_path)
-        model_type = model.graph.node[0].name
-        dimensions = inference_session.get_inputs()[0].shape
-        input_name = inference_session.get_inputs()[0].name
-        output_name = inference_session.get_outputs()[0].name
-        label_name = inference_session.get_outputs()[0].name
-        description = model.doc_string
-
-        full_description = {'tag': tag,
-                            'model': model,
-                            'model_name': model_name,
-                            'inference_session': inference_session,
-                            'model_type': model_type,
-                            'dimensions': dimensions,
-                            'input_name': input_name,
-                            'output_name': output_name,
-                            'label_name': label_name,
-                            'description': description}
-        model_sessions[tag] = full_description
 
 
 @auth.verify_token
