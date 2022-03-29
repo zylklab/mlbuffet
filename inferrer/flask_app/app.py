@@ -329,8 +329,8 @@ def model_handling(tag):
 
 
 # Start a new training session.
-@server.route(path.join(API_BASE_URL, 'train/<model_name>'), methods=['POST'])
-def train(model_name):
+@server.route(path.join(API_BASE_URL, 'train/<tag>/<model_name>'), methods=['POST'])
+def train(tag, model_name):
     metric_manager.increment_train_counter()
 
     # Check that the script was provided
@@ -341,25 +341,6 @@ def train(model_name):
     if not request.files.getlist('requirements'):
         return HttpJsonResponse(
             422, http_status_description='No requirements provided with name \'requirements\'').json()
-            # Check train.py has been provided
-            if filename == "train.py":
-                train_script = file
-            # Check requirements.txt has been provided
-            if filename == "requirements.txt":
-                requirements = file
-            # Check dataset.csv has been provided
-            if filename == "dataset.csv":
-                dataset = file
-
-        # Check all 3 files have been provided
-        if False:
-            return HttpJsonResponse(422,
-                                    http_status_description='Not all files provided.'
-                                                            ' Please provide dataset, train script and requirements') \
-                .json()
-
-        # Start training
-        trainer.save_files(train_script, requirements, dataset)
 
     # Check that data was provided
     if not request.files.getlist('dataset'):
