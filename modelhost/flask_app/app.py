@@ -5,6 +5,7 @@ from os import listdir
 
 import onnx
 import onnxruntime as rt
+from onnxruntime.capi.onnxruntime_pybind11_state import InvalidArgument
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
