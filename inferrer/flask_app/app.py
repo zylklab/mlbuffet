@@ -357,7 +357,7 @@ def train(tag, model_name):
     dataset.filename = 'dataset.csv'
 
     # Start training
-    run_training(train_script, requirements, dataset, model_name)
+    run_training(train_script, requirements, dataset, model_name, tag)
 
     return HttpJsonResponse(200, http_status_description='Training container created and running!').json()
 
