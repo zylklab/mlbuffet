@@ -82,10 +82,8 @@ def update_model_sessions():
                                 'output_name': output_name,
                                 'label_name': label_name,
                                 'description': description}
-
-            model_sessions[model_name] = full_description
-    
-        except :
+            model_sessions[tag] = full_description
+        except (RuntimeError, InvalidArgument):
             logger.info(f'{model_name} may not be ONNX format or not ONNX compatible.')
     tags = listdir(MODEL_FOLDER)
 
