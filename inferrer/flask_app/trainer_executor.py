@@ -25,7 +25,8 @@ def save_files(train_script, requirements, dataset):
         with open(upload_path(file.filename), 'w+b') as dest_file:
             dest_file.write(asciiinfo)
 
-def create_dockerfile(model_name):
+
+def create_dockerfile(model_name, tag):
     dockerfile = open(upload_path('Dockerfile'), 'w')
 
     # TODO: USE GLOB LIBRARY TO SEARCH THE MODEL IN THE TRAINER CONTAINER
@@ -44,7 +45,7 @@ def create_dockerfile(model_name):
         'COPY --chown=trainer ' + upload_path('dataset.csv') + ' dataset.csv\n' +
         'COPY --chown=trainer ' + upload_path('find.py') + ' find.py\n' + 
         'RUN pip install -r requirements.txt\n' + 
-        f'ENTRYPOINT python3 train.py && python3 find.py {model_name}\n'
+        f'ENTRYPOINT python3 train.py && python3 find.py {model_name} {tag}\n'
     )
     
     dockerfile.close()
@@ -83,11 +84,11 @@ def build_image(client):
     remove(upload_path("environment.tar"))
 
 
-def run_training(train_script, requirements, dataset, model_name):
+def run_training(train_script, requirements, dataset, model_name, tag):
     save_files(train_script, requirements, dataset)
 
     # Create Dockerfile with the files in it
-    create_dockerfile(model_name)
+    create_dockerfile(model_name, tag)
 
     client = create_client()
 
