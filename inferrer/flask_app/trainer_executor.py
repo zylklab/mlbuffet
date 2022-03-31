@@ -1,6 +1,4 @@
-from distutils.command.upload import upload
-import re
-import tarfile as tar
+from zipfile import ZipFile
 from os import path, remove
 import docker
 
@@ -15,49 +13,48 @@ def save_files(train_script, requirements, dataset):
 
     files = [train_script, requirements, dataset]
 
-    for file in files:
-        file.save(upload_path(file.filename))
+    with ZipFile(upload_path('environment.zip'), 'w') as zipfile:
+        
+        zipfile.write(upload_path('find.py'))
 
-        with open(upload_path(file.filename),'rb') as source_file:
-            contents = source_file.read()
-            asciiinfo = contents.decode(encoding='utf-8').encode(encoding='ascii',errors='replace')
+        for file in files:
+            # Save the file in /trainerfiles/filename path
+            file.save(upload_path(file.filename))
 
-        with open(upload_path(file.filename), 'w+b') as dest_file:
-            dest_file.write(asciiinfo)
+            #Add file to environment.zip
+            zipfile.write(upload_path(file.filename))
 
-def create_dockerfile(model_name):
+def remove_buildenv():
+    remove(upload_path("Dockerfile"))
+    remove(upload_path("requirements.txt"))
+    remove(upload_path("train.py"))
+    try:
+        remove(upload_path("dataset.csv"))
+    except Exception as e:
+        print(e)
+        remove(upload_path("dataset.zip"))
+    remove(upload_path("environment.zip"))
+
+
+def create_dockerfile(model_name, tag):
     dockerfile = open(upload_path('Dockerfile'), 'w')
 
-    # TODO: USE GLOB LIBRARY TO SEARCH THE MODEL IN THE TRAINER CONTAINER
-    MODEL_PATH = path.join("./", model_name)
-    
     dockerfile.write(
         'FROM python:3.8.1\n' +
         'RUN useradd -s /bin/bash trainer\n' +
         'RUN mkdir /home/trainer\n' +
         'RUN chown -R trainer:trainer /home/trainer\n' +
-        'USER trainer\n' + 
+        'USER trainer\n' +
         'WORKDIR /home/trainer\n' +
-        'RUN pip install requests\n' + 
-        'COPY --chown=trainer ' + upload_path('requirements.txt') + ' requirements.txt\n' +
-        'COPY --chown=trainer ' + upload_path('train.py') + ' train.py\n' +
-        'COPY --chown=trainer ' + upload_path('dataset.csv') + ' dataset.csv\n' +
-        'COPY --chown=trainer ' + upload_path('find.py') + ' find.py\n' + 
-        'RUN pip install -r requirements.txt\n' + 
-        f'ENTRYPOINT python3 train.py && python3 find.py {model_name}\n'
+        'RUN pip install requests\n' +
+        'RUN curl 172.17.0.1:8002/api/v1/train/download_buildenv --output environment.zip\n'
+        'RUN unzip environment.zip\n' + 
+        'WORKDIR /home/trainer/trainerfiles\n' +
+        'RUN pip install -r requirements.txt\n' +
+        f'ENTRYPOINT python3 train.py && python3 find.py {model_name} {tag}\n'
     )
-    
+
     dockerfile.close()
-
-    # Create a tar file with the docker environment
-    buildenv = tar.open(name=upload_path('environment.tar'), mode='x')
-    buildenv.add(name=upload_path('Dockerfile'), arcname='Dockerfile')
-    buildenv.add(name=upload_path('train.py'))
-    buildenv.add(name=upload_path('requirements.txt'))
-    buildenv.add(name=upload_path('dataset.csv'))
-    buildenv.add(name=upload_path('find.py'))
-    buildenv.close()
-
 
 def create_client():
     # Configure the Docker Client to connect to the external machine
@@ -67,38 +64,23 @@ def create_client():
 
 
 def build_image(client):
-
-    context = open(upload_path('environment.tar'), "r")
-
     # Build the images sending the context to the external Docker daemon
-    client.images.build(fileobj=context, rm=True, pull=True, custom_context=True,
-                        tag="trainer", dockerfile='Dockerfile')
+    client.images.build(path=UPLOADS_DIR, rm=True,
+                        pull=True, tag='trainer')
 
-    context.close()
-
-    remove(upload_path("Dockerfile"))
-    remove(upload_path("requirements.txt"))
-    remove(upload_path("train.py"))
-    remove(upload_path("dataset.csv"))
-    remove(upload_path("environment.tar"))
-
-
-def run_training(train_script, requirements, dataset, model_name):
+def run_training(train_script, requirements, dataset, model_name, tag):
     save_files(train_script, requirements, dataset)
 
     # Create Dockerfile with the files in it
-    create_dockerfile(model_name)
+    create_dockerfile(model_name, tag)
 
     client = create_client()
-
     # Build the image
     build_image(client)
 
     # TODO: Do this in a thread so the user gets back the control of his terminal
     # Run the image
     container = client.containers.run(image="trainer", detach=True)
-
-
     # >> CHECK CONTAINER header_length
 
 # TODO: def check_logs():
