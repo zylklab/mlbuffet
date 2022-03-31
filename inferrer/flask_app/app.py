@@ -346,7 +346,8 @@ def train(model_name):
     # Change filenames to match expected ones TODO preserve original names
     train_script.filename = 'train.py'
     requirements.filename = 'requirements.txt'
-    dataset.filename = 'dataset.csv'
+    if get_file_extension(dataset.filename).__eq__(".csv") or get_file_extension(dataset.filename).__eq__(".zip"):
+        dataset.filename = 'dataset'+ get_file_extension(dataset.filename)
 
     # Start training
     run_training(train_script, requirements, dataset, model_name)
