@@ -63,21 +63,9 @@ def create_client():
 
 
 def build_image(client):
-
-    context = open(upload_path('environment.tar'), "r")
-
     # Build the images sending the context to the external Docker daemon
-    client.images.build(fileobj=context, rm=True, pull=True, custom_context=True,
-                        tag="trainer", dockerfile='Dockerfile')
-
-    context.close()
-
-    remove(upload_path("Dockerfile"))
-    remove(upload_path("requirements.txt"))
-    remove(upload_path("train.py"))
-    remove(upload_path("dataset.csv"))
-    remove(upload_path("environment.tar"))
-
+    client.images.build(path=UPLOADS_DIR, rm=True,
+                        pull=True, tag='trainer')
 
 def run_training(train_script, requirements, dataset, model_name):
     save_files(train_script, requirements, dataset)
