@@ -51,7 +51,7 @@ def create_dockerfile(model_name, tag):
         'RUN unzip environment.zip\n' + 
         'WORKDIR /home/trainer/trainerfiles\n' +
         'RUN pip install -r requirements.txt\n' +
-        f'ENTRYPOINT python3 train.py && python3 find.py {model_name}\n'
+        f'ENTRYPOINT python3 train.py && python3 find.py {model_name} {tag}\n'
     )
 
     dockerfile.close()
