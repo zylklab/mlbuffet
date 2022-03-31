@@ -154,8 +154,14 @@ def log_response(response):
 
     my_stopwatch.stop()
 
+    if request.path == '/api/v1/train/download_buildenv':
+        try:
+            remove_buildenv()
+        except Exception as e:
+            pass
+        return response
+    
     return response
-
 
 # TODO this should go into utils folder
 def get_file_extension(file_name):
