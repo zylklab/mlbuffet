@@ -35,7 +35,8 @@ def remove_buildenv():
         remove(upload_path("dataset.zip"))
     remove(upload_path("environment.zip"))
 
-def create_dockerfile(model_name):
+
+def create_dockerfile(model_name, tag):
     dockerfile = open(upload_path('Dockerfile'), 'w')
 
     dockerfile.write(
@@ -67,11 +68,11 @@ def build_image(client):
     client.images.build(path=UPLOADS_DIR, rm=True,
                         pull=True, tag='trainer')
 
-def run_training(train_script, requirements, dataset, model_name):
+def run_training(train_script, requirements, dataset, model_name, tag):
     save_files(train_script, requirements, dataset)
 
     # Create Dockerfile with the files in it
-    create_dockerfile(model_name)
+    create_dockerfile(model_name, tag)
 
     client = create_client()
     # Build the image

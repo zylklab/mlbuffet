@@ -10,6 +10,7 @@ graphs = {
     'c': Counter('model_request_operations_total', 'numero total de peticiones al modelo procesadas'),
     't': Counter('test_request_operations_total', 'numero total de peticiones de testing'),
     'T': Counter('model_training_operations_total', 'numero total de entrenamientos procesados'),
+    's': Counter('storage_request_operations_total', 'numero total de peticiones de almacenamiento'),
     'g': Gauge('cpu_usage', 'The amount of cpu used.')
 }
 
@@ -24,6 +25,10 @@ def increment_test_counter():
 
 def increment_train_counter():
     graphs['T'].inc()
+
+
+def increment_storage_counter():
+    graphs['s'].inc()
 
 
 def get_metrics():

@@ -5,13 +5,14 @@ from os import listdir
 
 import onnx
 import onnxruntime as rt
+from onnxruntime.capi.onnxruntime_pybind11_state import InvalidArgument
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
 
 from utils import metric_manager
 from utils.container_logger import Logger
-from utils.modelhost_pojos import HttpJsonResponse, Prediction, ModelList, ModelInformation
+from utils.modelhost_pojos import HttpJsonResponse, Prediction, ModelList, ModelInformation, ModelListInformation
 import numpy
 from secrets import compare_digest
 
@@ -53,35 +54,37 @@ logger.info('... Flask API successfully started')
 # Call this function every time a model is added, modified or deleted
 def update_model_sessions():
     model_sessions.clear()
+    tags = listdir(MODEL_FOLDER)
 
-    for model_name in listdir(MODEL_FOLDER):
-        model_path = path.join(MODEL_FOLDER, model_name)
+    for tag in tags:
+        tag_path = path.join(MODEL_FOLDER, tag)
+        model_name = listdir(tag_path)[0]
         try:
+            model_path = path.join(tag_path, model_name)
             model = onnx.load(model_path)
+
             # Get model metadata
             inference_session = rt.InferenceSession(model_path)
             model_type = model.graph.node[0].name
-            dimensions = inference_session.get_inputs()[0].shape  # TODO dimensions
+            dimensions = inference_session.get_inputs()[0].shape
             input_name = inference_session.get_inputs()[0].name
             output_name = inference_session.get_outputs()[0].name
             label_name = inference_session.get_outputs()[0].name
             description = model.doc_string
 
-            full_description = {'model': model,
+            full_description = {'tag': tag,
+                                'model': model,
+                                'model_name': model_name,
                                 'inference_session': inference_session,
                                 'model_type': model_type,
                                 'dimensions': dimensions,
-                                'input_name': input_name,  # TODO: or input name?
+                                'input_name': input_name,
                                 'output_name': output_name,
                                 'label_name': label_name,
                                 'description': description}
-
-            model_sessions[model_name] = full_description
-    
-        except: 
+            model_sessions[tag] = full_description
+        except (RuntimeError, InvalidArgument):
             logger.info(f'{model_name} may not be ONNX format or not ONNX compatible.')
-
-
 
 
 @auth.verify_token
@@ -161,24 +164,24 @@ def log_response(response):
     return response
 
 
-@server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>/prediction'), methods=['POST'])
-def predict(model_name):
+@server.route(path.join(MODELHOST_BASE_URL, 'models/<tag>/prediction'), methods=['POST'])
+def predict(tag):
     metric_manager.increment_model_counter()
 
     # Check that the model exists
-    if model_name not in model_sessions.keys():
+    if tag not in model_sessions.keys():
         return Prediction(
             404,
-            http_status_description=f'{model_name} does not exist. '
+            http_status_description=f'{tag} does not exist. '
                                     f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
         ).json()
 
-    inference_session = model_sessions[model_name]['inference_session']
-    input_name = model_sessions[model_name]['input_name']
-    output_name = model_sessions[model_name]['output_name']
+    inference_session = model_sessions[tag]['inference_session']
+    input_name = model_sessions[tag]['input_name']
+    output_name = model_sessions[tag]['output_name']
 
     new_observation = request.json['values']
-    model_dimensions = model_sessions[model_name]['dimensions'][1:]
+    model_dimensions = model_sessions[tag]['dimensions'][1:]
     image_dimensions = list(numpy.shape(new_observation))
 
     if model_dimensions == image_dimensions:
@@ -202,8 +205,6 @@ def predict(model_name):
         npimage = numpy.asarray(new_observation)
         new_observation2 = numpy.rollaxis(npimage, 2, 0).tolist()
         image2_dimensions = list(numpy.shape(new_observation2))
-        print(image2_dimensions)
-        print(model_dimensions)
 
         if image2_dimensions == model_dimensions:
             try:
@@ -225,24 +226,24 @@ def predict(model_name):
         else:
             return Prediction(
                 404,
-                http_status_description=f'{model_name} does not support this input. {image_dimensions} is '
+                http_status_description=f'{tag} does not support this input. {image_dimensions} is '
                                         f'received, but {model_dimensions} is allowed. Please, check it and try '
                                         f'again. '
             ).json()
 
 
-@server.route(path.join(MODELHOST_BASE_URL, '<model_name>/information'), methods=['GET', 'POST'])
-def model_information(model_name):
+@server.route(path.join(MODELHOST_BASE_URL, '<tag>/information'), methods=['GET', 'POST'])
+def model_information(tag):
     if request.method == 'GET':
         # Check that the model exists
-        if model_name not in model_sessions.keys():
+        if tag not in model_sessions.keys():
             return ModelInformation(
                 404,
-                http_status_description=f'{model_name} does not exist. '
+                http_status_description=f'{tag} does not exist. '
                                         f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
             ).json()
 
-        description = model_sessions[model_name]
+        description = model_sessions[tag]
         return ModelInformation(
             200,
             input_name=description['input_name'],
@@ -253,17 +254,17 @@ def model_information(model_name):
 
     elif request.method == 'POST':
         # Check that the model exists
-        if model_name not in model_sessions.keys():
+        if tag not in model_sessions.keys():
             return HttpJsonResponse(
                 404,
-                http_status_description=f'{model_name} does not exist. '
+                http_status_description=f'{tag} does not exist. '
                                         f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
             ).json()
 
-        model_path = path.join(MODEL_FOLDER, model_name)
+        model_path = path.join(MODEL_FOLDER, tag)
         new_model_description = request.json['model_description']
 
-        model_sessions[model_name]['description'] = new_model_description
+        model_sessions[tag]['description'] = new_model_description
         model = onnx.load(model_path)
         model.doc_string = new_model_description
         onnx.save(model, model_path)
@@ -279,19 +280,15 @@ def get_model_list():
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/information'), methods=['GET'])
 def get_model_list_information():
-    # update_model_sessions()  # TODO where
-    # TODO: WORKAROUND, THIS MAKES NO SENSE
-    model_name = list(model_sessions.keys())[0]
-    description = model_sessions[model_name]
-
-    return ModelInformation(
-        200,
-        input_name=description['input_name'],
-        num_inputs=description['dimensions'],
-        output_name=description['output_name'],
-        description=description['description'],
-        model_type=description['model_type']
-    ).json()
+    output = []
+    for tag in list(model_sessions.keys()):
+        description = model_sessions[tag]
+        dict_info = {'tag': tag, 'model_file_name': description['model_name'], 'input_name': description['input_name'],
+                     'dimensions': description['dimensions'], 'output_name': description['output_name'],
+                     'description': description['description'], 'model_type': description['model_type']}
+        output.append(dict_info)
+    logger.info(output)
+    return ModelListInformation(200, list_descriptions=output).json()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>'), methods=['PUT', 'DELETE'])
