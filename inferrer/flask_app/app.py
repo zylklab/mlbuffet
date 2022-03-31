@@ -9,16 +9,9 @@ from werkzeug.exceptions import HTTPException, Unauthorized
 from werkzeug.utils import secure_filename
 
 import modelhost_talker as mh_talker
-<<<<<<< HEAD
-from trainer_executor import run_training, remove_buildenv
-=======
-
-from trainer_executor import run_training
-
 import storage_talker as st_talker
 import trainer_executor as trainer
 
->>>>>>> e305d386103b6636fd8415a39cf071d114c72907
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
 from utils.inferer_pojos import HttpJsonResponse, Prediction
@@ -168,7 +161,7 @@ def log_response(response):
 
     if request.path == '/api/v1/train/download_buildenv':
         try:
-            remove_buildenv()
+            trainer.remove_buildenv()
         except Exception as e:
             pass
         return response
@@ -368,7 +361,7 @@ def train(tag, model_name):
         dataset.filename = 'dataset'+ get_file_extension(dataset.filename)
 
     # Start training
-    run_training(train_script, requirements, dataset, model_name, tag)
+    trainer.run_training(train_script, requirements, dataset, model_name, tag)
 
     return HttpJsonResponse(200, http_status_description='Training container created and running!').json()
 
