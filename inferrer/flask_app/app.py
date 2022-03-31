@@ -3,13 +3,13 @@ from secrets import compare_digest
 
 import cv2
 import numpy
-from flask import Flask, request, Response
+from flask import Flask, request, Response, send_file
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
 from werkzeug.utils import secure_filename
 
 import modelhost_talker as mh_talker
-from trainer_executor import run_training
+from trainer_executor import run_training, remove_buildenv
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
 from utils.inferer_pojos import HttpJsonResponse, Prediction
@@ -347,6 +347,14 @@ def train(model_name):
 
     return HttpJsonResponse(200, http_status_description='Training container created and running!').json()
 
+
+@server.route(path.join(API_BASE_URL, 'train/download_buildenv'), methods=['GET'])
+def download_buildenv():
+    try:
+        return send_file('/trainerfiles/environment.zip', attachment_filename='environment.zip')
+    
+    except Exception as e:
+	    return str(e)
 
 if __name__ == '__main__':
     pass
