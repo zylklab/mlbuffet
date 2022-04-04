@@ -1,7 +1,7 @@
 version: '3'
 services:
   inferrer:
-    image: mlbuffet_inferrer
+    image: mlbuffet_inferrer:arm64
     environment:
       OVERLAY_NETWORK: '10.0.13.0/24'
     networks:
@@ -10,7 +10,7 @@ services:
       - "8002:8000"
 
   modelhost:
-    image: mlbuffet_modelhost
+    image: mlbuffet_modelhost:arm64
     deploy:
       replicas: 1
     networks:
@@ -21,18 +21,18 @@ services:
       - ../../modelhost/flask_app/models:/usr/src/flask_app/models
 
   prometheus:
-    image: mlbuffet_prometheus
+    image: mlbuffet_metrics:arm64
     networks:
       - mlbuffet_overlay
     ports:
       - "9091:9090"
   cache:
-    image: mlbuffet_cache
+    image: mlbuffet_cache:arm64
     networks:
       - mlbuffet_overlay
 
   storage:
-    image: mlbuffet_storage
+    image: mlbuffet_storage:arm64
     networks:
       - mlbuffet_overlay
     ports:
