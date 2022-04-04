@@ -4,6 +4,9 @@ FROM python:${PYTHON_VERSION}
 
 WORKDIR usr/src/flask_app
 
+RUN apt-get update -y
+RUN apt-get install -y libprotobuf-dev protobuf-compiler
+
 COPY requirements.txt .
 
 RUN pip install --upgrade pip
@@ -21,5 +24,5 @@ RUN ["chmod", "+x", "./api_test.py"]
 RUN python ./api_test.py
 
 # HTTP
-CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:8000", "app:server"]
+CMD ["gunicorn", "--timeout", "1000","-w", "1", "-b", "0.0.0.0:8000", "app:server"]
 
