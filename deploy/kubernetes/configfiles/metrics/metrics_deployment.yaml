@@ -7,15 +7,15 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: metrics
+      app: mlbuffet_metrics
   template:
     metadata:
       labels:
-        app: metrics
+        app: mlbuffet_metrics
     spec:
       containers:
       - name: metrics
-        image: prometheus
+        image: docker.io/library/mlbuffet_metrics:arm64
         imagePullPolicy: IfNotPresent
         ports: 
         - containerPort: 9090
