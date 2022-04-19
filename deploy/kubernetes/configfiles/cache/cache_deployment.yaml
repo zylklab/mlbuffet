@@ -19,6 +19,3 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 6379
-          env:
-            - name: OVERLAY_NETWORK
-              value: "172.17.0.0/24"
