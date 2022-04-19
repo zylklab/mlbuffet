@@ -7,18 +7,24 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: inferrer
+      app: mlbuffet_inferrer
   template:
     metadata:
       labels:
-        app: inferrer
+        app: mlbuffet_inferrer
     spec:
       containers:
         - name: inferrer
-          image: inferrer
+          image: docker.io/library/mlbuffet_inferrer:arm64
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
           env:
             - name: OVERLAY_NETWORK
               value: "172.17.0.0/24"
+            
+            - name: ORCHESTRATOR
+              value: "KUBERNETES"
+            
+            - name: MODELHOST_REPLICAS
+              value: "4"
