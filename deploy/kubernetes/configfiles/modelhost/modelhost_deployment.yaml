@@ -21,9 +21,6 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
-          env:
-            - name: OVERLAY_NETWORK
-              value: "10.0.13.0/24"
           volumeMounts:
             - mountPath: /usr/src/flask_app/models
               name: models
