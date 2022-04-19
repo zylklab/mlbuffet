@@ -109,13 +109,20 @@ def test_load_balancer(data_array):
 
 def update_models():
     resource = '/modelhost/updatemodels'
+    key = 'ORCHESTRATOR' 
+    if getenv(key) == 'KUBERNETES':
+        for i in range(int(getenv('MODELHOST_REPLICAS'))): 
+            SERVICE = 'modelhost'
+            url = URI_SCHEME + SERVICE + ":8000" + resource
+            gevent.spawn(requests.get, url=url)
 
-    MODELHOST_IP_LIST = IPScan(OVERLAY_NETWORK)
+    else:
 
-    for IP in MODELHOST_IP_LIST:
-        print(IP)
-        url = URI_SCHEME + IP + ":8000" + resource
-        print(url)
-        gevent.spawn(requests.get, url=url)
+        MODELHOST_IP_LIST = IPScan(OVERLAY_NETWORK)
+        for IP in MODELHOST_IP_LIST:
+            print(IP)
+            url = URI_SCHEME + IP + ":8000" + resource
+            print(url)
+            gevent.spawn(requests.get, url=url)
 
     return HttpJsonResponse(200).json()
