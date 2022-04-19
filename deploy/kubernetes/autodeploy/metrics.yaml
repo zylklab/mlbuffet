@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics
+  namespace: mlbuffet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlbuffet_metrics
+  template:
+    metadata:
+      labels:
+        app: mlbuffet_metrics
+    spec:
+      containers:
+      - name: metrics
+        image: docker.io/library/mlbuffet_metrics:arm64
+        imagePullPolicy: IfNotPresent
+        ports: 
+        - containerPort: 9090
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics
+  namespace: mlbuffet
+spec:
+  selector:
+    app: mlbuffet_metrics
+  ports:
+  - protocol: TCP
+    port: 9090
+    targetPort: 9090
+  type: NodePort
+

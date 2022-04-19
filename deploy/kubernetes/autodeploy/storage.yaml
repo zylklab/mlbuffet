@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storage
+  namespace: mlbuffet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlbuffet_storage
+  template:
+    metadata:
+      labels:
+        app: mlbuffet_storage
+    spec:
+      containers:
+        - name: storage
+          image: docker.io/library/mlbuffet_storage:arm64
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000 
+          volumeMounts:
+            - mountPath: /usr/src/flask_app/models
+              name: models
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: modelhostpvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: storage
+  namespace: mlbuffet
+spec:
+  selector:
+    app: mlbuffet_storage
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: NodePort
+
