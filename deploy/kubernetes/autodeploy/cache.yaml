@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: cache
-          image: docker.io/library/mlbuffet_cache:arm64
+          image: docker.io/library/mlbuffet_cache:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 6379

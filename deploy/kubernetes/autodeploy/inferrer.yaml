@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: inferrer
-          image: docker.io/library/mlbuffet_inferrer:arm64
+          image: docker.io/library/mlbuffet_inferrer:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
