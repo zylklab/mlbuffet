@@ -4,26 +4,23 @@ metadata:
   name: modelhost
   namespace: mlbuffet
   labels:
-    app: modelhost
+    app: mlbuffet_modelhost
 spec:
   replicas: 4
   selector:
     matchLabels:
-      app: modelhost
+      app: mlbuffet_modelhost
   template:
     metadata:
       labels:
-        app: modelhost
+        app: mlbuffet_modelhost
     spec:
       containers:
         - name: modelhost
-          image: modelhost
+          image: docker.io/library/mlbuffet_modelhost:arm64
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
-          env:
-            - name: OVERLAY_NETWORK
-              value: "10.0.13.0/24"
           volumeMounts:
             - mountPath: /usr/src/flask_app/models
               name: models
@@ -31,3 +28,21 @@ spec:
         - name: models
           persistentVolumeClaim:
             claimName: modelhostpvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: modelhost
+  namespace: mlbuffet
+spec:
+  selector:
+    app: mlbuffet_modelhost
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
+

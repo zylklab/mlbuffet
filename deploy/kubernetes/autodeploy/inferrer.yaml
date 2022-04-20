@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inferrer
+  namespace: mlbuffet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlbuffet_inferrer
+  template:
+    metadata:
+      labels:
+        app: mlbuffet_inferrer
+    spec:
+      containers:
+        - name: inferrer
+          image: docker.io/library/mlbuffet_inferrer:arm64
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: OVERLAY_NETWORK
+              value: "172.17.0.0/24"
+            
+            - name: ORCHESTRATOR
+              value: "KUBERNETES"
+            
+            - name: MODELHOST_REPLICAS
+              value: "4"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: inferrer
+  namespace: mlbuffet
+spec:
+  selector:
+    app: mlbuffet_inferrer
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: NodePort
+

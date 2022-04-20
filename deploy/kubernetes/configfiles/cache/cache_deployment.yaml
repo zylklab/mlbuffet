@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache
+  namespace: mlbuffet
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlbuffet_cache
+  template:
+    metadata:
+      labels:
+        app: mlbuffet_cache
+    spec:
+      containers:
+        - name: cache
+          image: docker.io/library/mlbuffet_cache:arm64
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 6379

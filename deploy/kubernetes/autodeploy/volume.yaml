@@ -1,0 +1,44 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: localstorage
+  namespace: mlbuffet
+
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: Immediate
+reclaimPolicy: Delete
+allowVolumeExpansion: True
+
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: models
+  namespace: mlbuffet
+  labels:
+    type: local
+spec:
+  storageClassName: localstorage
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /tmp/models/
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: modelhostpvc
+  namespace: mlbuffet
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: localstorage
+

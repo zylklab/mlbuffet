@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: modelhost
+  namespace: mlbuffet
+  labels:
+    app: mlbuffet_modelhost
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: mlbuffet_modelhost
+  template:
+    metadata:
+      labels:
+        app: mlbuffet_modelhost
+    spec:
+      containers:
+        - name: modelhost
+          image: docker.io/library/mlbuffet_modelhost:arm64
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - mountPath: /usr/src/flask_app/models
+              name: models
+      volumes:
+        - name: models
+          persistentVolumeClaim:
+            claimName: modelhostpvc
