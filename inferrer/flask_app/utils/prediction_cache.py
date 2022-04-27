@@ -3,7 +3,7 @@ import json
 import redis
 from utils.container_logger import Logger
 
-redis_host = 'mlbuffet_cache'
+redis_host = 'cache'
 redis_port = 6379
 redis_cli = redis.Redis(host=redis_host, port=redis_port)
 
