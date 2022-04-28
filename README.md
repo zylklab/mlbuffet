@@ -1,3 +1,5 @@
+![](docs/images/MlBuffet_daemon.png)
+
 # MLBuffet
 
 ----
@@ -12,6 +14,7 @@ This project is a Machine Learning Model Server based on containers. MLBuffet co
 | Metrics   | Gathers and manages performance metrics from host system and services.                                                                                                                                                                                                                          |
 | Storage  | Performs version controlling.                                                                                                                                                                                                                          |
 
+If you are new to MLBuffet, please take a look at MLBuffet in a nutshell [document](docs/nutshell.md)
 
 # Service description
 
