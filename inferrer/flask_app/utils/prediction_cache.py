@@ -30,7 +30,7 @@ def get_prediction(hash_code):
         else:
             result = None
         return result
-    except redis.exceptions as re:
+    except redis.exceptions.RedisError as re:
         re_str = str(re)
         logger.info(re_str)
         result = None
