@@ -2,10 +2,16 @@ import hashlib
 import json
 import redis
 from utils.container_logger import Logger
+from os import getenv
 
-redis_host = 'mlbuffet_cache'
-redis_port = 6379
-redis_cli = redis.Redis(host=redis_host, port=redis_port)
+if getenv('ORCHESTRATOR') == 'KUBERNETES':
+    REDIS_HOST = 'cache'
+else:
+    REDIS_HOST = 'mlbuffet_cache'
+
+REDIS_PORT = 6379
+
+redis_cli = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
 
 logger = Logger('inferrer').get_logger('cache')
 
