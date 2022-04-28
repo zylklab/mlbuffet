@@ -31,6 +31,6 @@ spec:
     app: mlbuffet_cache
   ports:
   - protocol: TCP
-    port: 8000
-    targetPort: 8000
+    port: 6379
+    targetPort: 6379
   type: NodePort
