@@ -58,7 +58,8 @@ def _delete(resource):
 
 def upload_new_model(tag, file, file_name, description):
     resource = '/storage/model/' + tag
-    files = [('path', file), ('model_description', description), ('filename', file_name)]
+    files = [('path', file), ('model_description',
+                              description), ('filename', file_name)]
     update_models()
     return _put(resource, files)
 
@@ -99,7 +100,8 @@ def get_tag_information(tag):
 def test_load_balancer(data_array):
     resource = '/storage/api/test'
 
-    jobs = [gevent.spawn(_get, path.join(resource, str(elem))) for elem in data_array]
+    jobs = [gevent.spawn(_get, path.join(resource, str(elem)))
+            for elem in data_array]
     gevent.wait(jobs)
 
     # Print modelhosts responses and check if all HTTP codes are 2XX
@@ -117,11 +119,20 @@ def test_load_balancer(data_array):
 
 def update_models():
     resource = '/modelhost/updatemodels'
+    key = 'ORCHESTRATOR'
+    if getenv(key) == 'KUBERNETES':
+        for i in range(2*int(getenv('MODELHOST_REPLICAS'))):
+            SERVICE = 'modelhost'
+            url = URI_SCHEME + SERVICE + ":8000" + resource
+            gevent.spawn(requests.get, url=url)
 
-    MODELHOST_IP_LIST = IPScan(OVERLAY_NETWORK)
+    else:
 
-    for IP in MODELHOST_IP_LIST:
-        url = URI_SCHEME + IP + ":8000" + resource
-        gevent.spawn(requests.get, url=url)
+        MODELHOST_IP_LIST = IPScan(OVERLAY_NETWORK)
+        for IP in MODELHOST_IP_LIST:
+            print(IP)
+            url = URI_SCHEME + IP + ":8000" + resource
+            print(url)
+            gevent.spawn(requests.get, url=url)
 
     return HttpJsonResponse(200).json()
