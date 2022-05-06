@@ -20,7 +20,7 @@ spec:
           ports:
             - containerPort: 8000 
           volumeMounts:
-            - mountPath: /usr/src/flask_app/models
+            - mountPath: /usr/src/flask_app/modelhostfiles
               name: models
       volumes:
         - name: models
