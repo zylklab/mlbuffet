@@ -1,0 +1,6 @@
+Flask==2.1.2
+gunicorn==20.1.0
+gevent
+Flask-HTTPAuth==4.6.0
+prometheus-client==0.14.1
+linux-metrics==0.1.4
