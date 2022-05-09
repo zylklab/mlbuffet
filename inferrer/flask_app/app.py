@@ -165,8 +165,9 @@ def log_response(response):
         except Exception as e:
             pass
         return response
-    
+
     return response
+
 
 # TODO this should go into utils folder
 def get_file_extension(file_name):
@@ -358,7 +359,7 @@ def train(tag, model_name):
     train_script.filename = 'train.py'
     requirements.filename = 'requirements.txt'
     if get_file_extension(dataset.filename).__eq__(".csv") or get_file_extension(dataset.filename).__eq__(".zip"):
-        dataset.filename = 'dataset'+ get_file_extension(dataset.filename)
+        dataset.filename = 'dataset' + get_file_extension(dataset.filename)
 
     # Start training
     trainer.run_training(train_script, requirements, dataset, model_name, tag)
@@ -370,10 +371,11 @@ def train(tag, model_name):
 def download_buildenv():
     try:
         return send_file('/trainerfiles/environment.zip', attachment_filename='environment.zip')
-    
+
     except Exception as e:
-	    return str(e)
-    
+        return str(e)
+
+
 @server.route(path.join(API_BASE_URL, 'models/<tag>/default'), methods=['POST'])
 def upload_default(tag):
     metric_manager.increment_storage_counter()
