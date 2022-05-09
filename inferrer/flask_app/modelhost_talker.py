@@ -5,7 +5,7 @@ import gevent
 import requests
 
 from utils.inferer_pojos import HttpJsonResponse
-from utils.ipscan import IPScan
+from utils.ipscan import IPScan, KubeIPScan
 
 # Request constants
 OVERLAY_NETWORK = getenv('OVERLAY_NETWORK')
@@ -111,9 +111,10 @@ def update_models():
     resource = '/modelhost/updatemodels'
     key = 'ORCHESTRATOR' 
     if getenv(key) == 'KUBERNETES':
-        for i in range(int(getenv('MODELHOST_REPLICAS'))): 
-            SERVICE = 'modelhost'
-            url = URI_SCHEME + SERVICE + ":8000" + resource
+        MODELHOST_IP_LIST = KubeIPScan()
+        for IP in MODELHOST_IP_LIST:
+            url = URI_SCHEME + IP + ":8000" + resource
+            print(url)
             gevent.spawn(requests.get, url=url)
 
     else:
