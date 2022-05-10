@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: metrics
-        image: $(echo $METRICS)
+        image: METRICS_IMAGE_NAME
         imagePullPolicy: IfNotPresent
         ports: 
         - containerPort: 9090

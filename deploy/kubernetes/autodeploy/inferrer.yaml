@@ -16,7 +16,7 @@ spec:
      serviceAccountName: inferrersa  
      containers:
         - name: inferrer
-          image: $(echo $INFERRER)
+          image: INFERRER_IMAGE_NAME
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

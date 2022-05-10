@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: cache
-          image: $(echo $CACHE)
+          image: CACHE_IMAGE_NAME
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 6379

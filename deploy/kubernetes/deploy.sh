@@ -1,9 +1,3 @@
-export INFERRER=
-export MODELHOST=
-export CACHE=
-export STORAGE=
-export METRICS=
-
 kubectl apply -f ./autodeploy/mlbuffet_namespace.yaml
 kubectl apply -f ./autodeploy/volume.yaml
 kubectl apply -f ./autodeploy/rbac.yaml
