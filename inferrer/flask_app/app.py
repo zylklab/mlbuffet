@@ -60,7 +60,7 @@ def hello_world():
         200,
         http_status_description='Greetings from MLBuffet - Inferrer, the Machine Learning model server. '
                                 'For more information, visit /help'
-    ).json()
+    ).get_response()
 
 
 # Help endpoint
@@ -81,7 +81,7 @@ For more information on the project go to https://github.com/zylklab/mlbuffet/.
 @server.route('/api/test', methods=['GET'])
 def get_test():
     metric_manager.increment_test_counter()
-    return HttpJsonResponse(200).json()
+    return HttpJsonResponse(200).get_response()
 
 
 # Test endpoint to check if the load balancer is working properly
@@ -89,11 +89,11 @@ def get_test():
 def _test_send_to_modelhost():
     # Check that json data was provided
     if not request.json:
-        return HttpJsonResponse(422, http_status_description='No json data provided {data:list}').json()
+        return HttpJsonResponse(422, http_status_description='No json data provided {data:list}').get_response()
 
     # Check that test data was provided
     if 'data' not in request.json:
-        return HttpJsonResponse(422, http_status_description='No test data provided (data:[...])').json()
+        return HttpJsonResponse(422, http_status_description='No test data provided (data:[...])').get_response()
 
     # Get test data
     data_array = request.json['data']
@@ -102,7 +102,7 @@ def _test_send_to_modelhost():
     if not isinstance(data_array, list):
         return HttpJsonResponse(
             422,
-            http_status_description='Test data is not a list enclosed by squared brackets').json()
+            http_status_description='Test data is not a list enclosed by squared brackets').get_response()
 
     return mh_talker.test_load_balancer(data_array)
 
@@ -125,7 +125,7 @@ def handle_exception(exception):
         http_status_code=exception.code,
         http_status_name=exception.name,
         http_status_description=exception.description
-    ).json()
+    ).get_response()
 
 
 @server.before_request
@@ -184,11 +184,13 @@ def get_prediction(tag):
     if not request.files:
         # check that json data was provided
         if not request.json:
-            return Prediction(422, http_status_description='No json data {values:[...]} or file provided').json()
+            return Prediction(
+                422, http_status_description='No json data {values:[...]} or file provided').get_response()
 
         # Check that input values for prediction have been provided
         if 'values' not in request.json:
-            return Prediction(422, http_status_description='No test observation provided (values:[...])').json()
+            return Prediction(
+                422, http_status_description='No test observation provided (values:[...])').get_response()
 
         test_values = request.json['values']
 
@@ -196,7 +198,7 @@ def get_prediction(tag):
         if not isinstance(test_values, list):
             return Prediction(
                 422,
-                http_status_description='New observation is not a list enclosed by squared brackets').json()
+                http_status_description='New observation is not a list enclosed by squared brackets').get_response()
 
         # Check if the same prediction has already been made before
         test_values_hash = prediction_cache.get_hash(
@@ -206,7 +208,7 @@ def get_prediction(tag):
 
         # If the prediction exists in cache, return it
         if cached_prediction is not None:
-            return Prediction(200, values=cached_prediction).json()
+            return Prediction(200, values=cached_prediction).get_response()
 
         # Otherwise, compute it and save it in cache
         result = mh_talker.make_a_prediction(tag, test_values)
@@ -217,7 +219,8 @@ def get_prediction(tag):
 
     else:  # If a file was provided
         if 'path' not in request.files:
-            return HttpJsonResponse(422, http_status_description='The name of the file path must be \'path\'').json()
+            return HttpJsonResponse(
+                422, http_status_description='The name of the file path must be \'path\'').get_response()
 
         test_file = request.files['path']
         file_type = test_file.mimetype
@@ -234,7 +237,7 @@ def get_prediction(tag):
 
             # If the prediction exists in cache, return it
             if cached_prediction is not None:
-                return Prediction(200, values=cached_prediction).json()
+                return Prediction(200, values=cached_prediction).get_response()
 
             # Otherwise, compute it and save it in cache
             flat_image = numpy.frombuffer(to_hash, numpy.uint8)
@@ -248,7 +251,7 @@ def get_prediction(tag):
         else:
             return HttpJsonResponse(
                 422, http_status_description=f'Filetype {file_type} is not currently allowed for predictions. '
-                                             'The model server only supports images so far').json()
+                                             'The model server only supports images so far').get_response()
 
 
 # Display a list of available models in the modelhosts
@@ -284,7 +287,8 @@ def model_handling(tag):
         metric_manager.increment_storage_counter()
         # Check a file path has been provided
         if not request.files or 'path' not in request.files:
-            return HttpJsonResponse(422, http_status_description='No file path (named \'path\') specified').json()
+            return HttpJsonResponse(422,
+                                    http_status_description='No file path (named \'path\') specified').get_response()
 
         # Get model file from the given path
         new_model = request.files['path']
@@ -295,7 +299,7 @@ def model_handling(tag):
             return HttpJsonResponse(
                 415,
                 http_status_description=f'Filename extension not allowed. '
-                                        f'Please use one of these: {ALLOWED_EXTENSIONS}').json()
+                                        f'Please use one of these: {ALLOWED_EXTENSIONS}').get_response()
         if not request.form:
             desc = 'Not description provided'
         else:
@@ -311,17 +315,17 @@ def model_handling(tag):
         if not request.json:
             return HttpJsonResponse(
                 422,
-                http_status_description='No json data provided {model_description:string}').json()
+                http_status_description='No json data provided {model_description:string}').get_response()
 
         # Check that model_description has been provided
         if 'model_description' not in request.json:
-            return HttpJsonResponse(422, http_status_description='No model_description provided').json()
+            return HttpJsonResponse(422, http_status_description='No model_description provided').get_response()
 
         description = request.json['model_description']
 
         # Check that model_description is a string
         if not isinstance(description, str):
-            return HttpJsonResponse(422, http_status_description='model_description must be a string').json()
+            return HttpJsonResponse(422, http_status_description='model_description must be a string').get_response()
 
         return mh_talker.write_model_description(tag, description)
 
@@ -339,16 +343,18 @@ def train(tag, model_name):
 
     # Check that the script was provided
     if not request.files.getlist('script'):
-        return HttpJsonResponse(422, http_status_description='No training script provided with name \'script\'').json()
+        return HttpJsonResponse(
+            422,
+            http_status_description='No training script provided with name \'script\'').get_response()
 
     # Check that requirements.txt was provided
     if not request.files.getlist('requirements'):
         return HttpJsonResponse(
-            422, http_status_description='No requirements provided with name \'requirements\'').json()
+            422, http_status_description='No requirements provided with name \'requirements\'').get_response()
 
     # Check that data was provided
     if not request.files.getlist('dataset'):
-        return HttpJsonResponse(422, http_status_description='No data provided with name \'dataset\'').json()
+        return HttpJsonResponse(422, http_status_description='No data provided with name \'dataset\'').get_response()
 
     # get training script, requirements and data
     train_script = request.files.getlist('script')[0]
@@ -364,7 +370,7 @@ def train(tag, model_name):
     # Start training
     trainer.run_training(train_script, requirements, dataset, model_name, tag)
 
-    return HttpJsonResponse(200, http_status_description='Training container created and running!').json()
+    return HttpJsonResponse(200, http_status_description='Training container created and running!').get_response()
 
 
 @server.route(path.join(API_BASE_URL, 'train/download_buildenv'), methods=['GET'])
@@ -383,17 +389,17 @@ def upload_default(tag):
     if not request.json:
         return HttpJsonResponse(
             422,
-            http_status_description='No json data provided {default:string}').json()
+            http_status_description='No json data provided {default:string}').get_response()
 
     # Check that model_description has been provided
     if 'default' not in request.json:
-        return HttpJsonResponse(422, http_status_description='No default value provided').json()
+        return HttpJsonResponse(422, http_status_description='No default value provided').get_response()
 
     default = request.json['default']
 
     # Check that model_description is a string
     if not isinstance(default, int):
-        return HttpJsonResponse(422, http_status_description='Default value must be an integer').json()
+        return HttpJsonResponse(422, http_status_description='Default value must be an integer').get_response()
 
     return st_talker.set_default_model(tag, str(default))
 

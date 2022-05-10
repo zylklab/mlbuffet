@@ -103,8 +103,10 @@ def test_load_balancer(data_array):
         print(f'Received response: {job.value}')
 
     if all_responses_2xx:
-        return HttpJsonResponse(200).json()
-    return HttpJsonResponse(500, http_status_description='One or more modelhosts returned non 2XX HTTP code').json()
+        return HttpJsonResponse(200).get_response()
+    return HttpJsonResponse(
+        500, http_status_description='One or more modelhosts returned non 2XX HTTP code').get_response()
+
 
 def update_models():
     resource = '/modelhost/updatemodels'
@@ -113,4 +115,4 @@ def update_models():
         url = URI_SCHEME + IP + ":8000" + resource
         print(url)
         gevent.spawn(requests.get, url=url)
-    return HttpJsonResponse(200).json()
+    return HttpJsonResponse(200).get_response()
