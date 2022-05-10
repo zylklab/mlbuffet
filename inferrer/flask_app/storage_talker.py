@@ -7,7 +7,7 @@ import requests
 from flask import send_file
 
 from utils.inferer_pojos import HttpJsonResponse
-from utils.ipscan import IPScan, KubeIPScan
+from utils.ipscan import IPScan
 
 # Request constants
 OVERLAY_NETWORK = getenv('OVERLAY_NETWORK')
@@ -116,22 +116,13 @@ def test_load_balancer(data_array):
         return HttpJsonResponse(200).json()
     return HttpJsonResponse(500, http_status_description='One or more modelhosts returned non 2XX HTTP code').json()
 
+
 def update_models():
     resource = '/modelhost/updatemodels'
-    key = 'ORCHESTRATOR'
-    if getenv(key) == 'KUBERNETES':
-        for i in range(2*int(getenv('MODELHOST_REPLICAS'))):
-            MODELHOST_IP_LIST = KubeIPScan()
-            for IP in MODELHOST_IP_LIST:
-                url = URI_SCHEME + IP + ":8000" + resource
-                print(url)
-                gevent.spawn(requests.get, url=url)
 
-    else:
-
-        MODELHOST_IP_LIST = IPScan(OVERLAY_NETWORK)
-        for IP in MODELHOST_IP_LIST:
-            print(IP)
-            url = URI_SCHEME + IP + ":8000" + resource
-            print(url)
-            gevent.spawn(requests.get, url=url)
+    MODELHOST_IP_LIST = IPScan('modelhost')
+    for IP in MODELHOST_IP_LIST:
+        url = URI_SCHEME + IP + ":8000" + resource
+        print(url)
+        gevent.spawn(requests.get, url=url)
+    return HttpJsonResponse(200).json()
