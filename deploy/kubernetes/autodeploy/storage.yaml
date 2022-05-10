@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: storage
-          image: docker.io/library/mlbuffet_storage:latest
+          image: $(echo $STORAGE)
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000 

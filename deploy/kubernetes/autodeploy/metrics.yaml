@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: metrics
-        image: docker.io/library/mlbuffet_metrics:latest
+        image: $(echo $METRICS)
         imagePullPolicy: IfNotPresent
         ports: 
         - containerPort: 9090

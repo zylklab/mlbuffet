@@ -119,6 +119,7 @@ def test_load_balancer(data_array):
 
 def update_models():
     resource = '/modelhost/updatemodels'
+
     MODELHOST_IP_LIST = IPScan('modelhost')
     for IP in MODELHOST_IP_LIST:
         url = URI_SCHEME + IP + ":8000" + resource

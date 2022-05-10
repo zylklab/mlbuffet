@@ -6,7 +6,7 @@ metadata:
   labels:
     app: mlbuffet_modelhost
 spec:
-  replicas: 4
+  replicas: 1
   selector:
     matchLabels:
       app: mlbuffet_modelhost
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: modelhost
-          image: docker.io/library/mlbuffet_modelhost:latest
+          image: $(echo $MODELHOST)
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
