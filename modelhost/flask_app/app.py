@@ -98,13 +98,13 @@ def hello_world():
         200,
         http_status_description='Greetings from MLBuffet - ModelHost, the Machine Learning model server. '
                                 'Are you supposed to be reading this? Guess not. Go to Inferrer!'
-    ).json()
+    ).get_response()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'api/test'), methods=['GET'])
 def get_test():
     metric_manager.increment_test_counter()
-    return HttpJsonResponse(200).json()
+    return HttpJsonResponse(200).get_response()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'api/test/<data>'), methods=['GET'])
@@ -113,7 +113,7 @@ def get_test_data(data):
     return HttpJsonResponse(
         200,
         http_status_description=f'Received "{data}" from modelhost {MODELHOST_NODE_UNIQ_ID}'
-    ).json()
+    ).get_response()
 
 
 @server.route('/metrics', methods=['GET', 'POST'])
@@ -134,7 +134,7 @@ def handle_exception(exception):
         http_status_code=exception.code,
         http_status_name=exception.name,
         http_status_description=exception.description
-    ).json()
+    ).get_response()
 
 
 @server.before_request
@@ -174,7 +174,7 @@ def predict(tag):
             404,
             http_status_description=f'{tag} does not exist. '
                                     f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
-        ).json()
+        ).get_response()
 
     inference_session = model_sessions[tag]['inference_session']
     input_name = model_sessions[tag]['input_name']
@@ -193,13 +193,13 @@ def predict(tag):
 
             return Prediction(
                 200, http_status_description='Prediction successful', values=prediction
-            ).json()
+            ).get_response()
 
             # Error provided by the model
         except Exception as error:
             return Prediction(
                 500, http_status_description=str(error)
-            ).json()
+            ).get_response()
 
     elif model_dimensions != image_dimensions:
         npimage = numpy.asarray(new_observation)
@@ -217,19 +217,19 @@ def predict(tag):
             except Exception as error:
                 return Prediction(
                     500, http_status_description=str(error)
-                ).json()
+                ).get_response()
 
                 # Correct prediction
             return Prediction(
                 200, http_status_description='Prediction successful', values=prediction
-            ).json()
+            ).get_response()
         else:
             return Prediction(
                 404,
                 http_status_description=f'{tag} does not support this input. {image_dimensions} is '
                                         f'received, but {model_dimensions} is allowed. Please, check it and try '
                                         f'again. '
-            ).json()
+            ).get_response()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, '<tag>/information'), methods=['GET', 'POST'])
@@ -241,7 +241,7 @@ def model_information(tag):
                 404,
                 http_status_description=f'{tag} does not exist. '
                                         f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
-            ).json()
+            ).get_response()
 
         description = model_sessions[tag]
         return ModelInformation(
@@ -250,7 +250,7 @@ def model_information(tag):
             num_inputs=description['dimensions'],
             output_name=description['output_name'],
             description=description['description'],
-            model_type=description['model_type']).json()
+            model_type=description['model_type']).get_response()
 
     elif request.method == 'POST':
         # Check that the model exists
@@ -259,7 +259,7 @@ def model_information(tag):
                 404,
                 http_status_description=f'{tag} does not exist. '
                                         f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
-            ).json()
+            ).get_response()
 
         model_path = path.join(MODEL_FOLDER, tag)
         new_model_description = request.json['model_description']
@@ -268,14 +268,14 @@ def model_information(tag):
         model = onnx.load(model_path)
         model.doc_string = new_model_description
         onnx.save(model, model_path)
-        return HttpJsonResponse(200).json()
+        return HttpJsonResponse(200).get_response()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models'), methods=['GET'])
 def get_model_list():
     return ModelList(
         200, model_list=list(model_sessions.keys())
-    ).json()
+    ).get_response()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/information'), methods=['GET'])
@@ -288,7 +288,7 @@ def get_model_list_information():
                      'description': description['description'], 'model_type': description['model_type']}
         output.append(dict_info)
     logger.info(output)
-    return ModelListInformation(200, list_descriptions=output).json()
+    return ModelListInformation(200, list_descriptions=output).get_response()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>'), methods=['PUT', 'DELETE'])
@@ -299,25 +299,25 @@ def manage_model(model_name):
         # get model and save it
         model = request.files['model']
         model.save(model_path)
-        return HttpJsonResponse(201).json()
+        return HttpJsonResponse(201).get_response()
 
     elif request.method == 'DELETE':
         # if the model exists
         if os.path.isfile(model_path):
             os.remove(model_path)
-            return HttpJsonResponse(204).json()
+            return HttpJsonResponse(204).get_response()
         else:
             return HttpJsonResponse(
                 404,
                 http_status_description=f'{model_name} does not exist. Visit GET {path.join(API_BASE_URL, "models")} '
                                         f'for a list of available models'
-            ).json()
+            ).get_response()
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'updatemodels'), methods=['GET'])
 def update_models():
     update_model_sessions()
-    return HttpJsonResponse(200).json()
+    return HttpJsonResponse(200).get_response()
 
 
 # List with preloaded models to do the inference

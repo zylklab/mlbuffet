@@ -38,7 +38,7 @@ class HttpJsonResponse:
 
         self.data['http_status'] = http_status
 
-    def json(self) -> Tuple[Response, int]:
+    def get_response(self) -> Tuple[Response, int]:
         return jsonify(**self.data), self.data['http_status']['code']
 
 
