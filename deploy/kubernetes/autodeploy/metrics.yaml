@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: metrics
-        image: mlbuffet_metrics
+        image: $(echo $METRICS)
         imagePullPolicy: IfNotPresent
         ports: 
         - containerPort: 9090

@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: modelhost
-          image: mlbuffet_modelhost
+          image: $(echo $MODELHOST)
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000

@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: cache
-          image: mlbuffet_cache
+          image: $(echo $CACHE)
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 6379
