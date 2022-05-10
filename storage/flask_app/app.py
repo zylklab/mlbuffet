@@ -43,13 +43,13 @@ def hello_world():
         200,
         http_status_description='Greetings from MLBuffet - Storage, the Machine Learning model server. '
                                 'Are you supposed to be reading this? Guess not. Go to Inferrer!'
-    ).json()
+    ).get_response()
 
 
 @server.route(path.join(STORAGE_BASE_URL, 'api/test'), methods=['GET'])
 def get_test():
     metric_manager.increment_test_counter()
-    return HttpJsonResponse(200).json()
+    return HttpJsonResponse(200).get_response()
 
 
 @server.errorhandler(HTTPException)
@@ -60,7 +60,7 @@ def handle_exception(exception):
         http_status_code=exception.code,
         http_status_name=exception.name,
         http_status_description=exception.description
-    ).json()
+    ).get_response()
 
 
 @server.route('/metrics', methods=['GET', 'POST'])
@@ -103,7 +103,7 @@ def save(tag):
                   description=desc)
     # return Response(f'File {filename} saved with the tag {tag}\n')
     return HttpJsonResponse(http_status_code=200,
-                            http_status_description=f'File {filename} saved with the tag {tag}').json()
+                            http_status_description=f'File {filename} saved with the tag {tag}').get_response()
 
 
 @server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['DELETE'])
@@ -117,7 +117,7 @@ def remove(tag):
         version = name_split[1]
 
     bvc.remove_file(name=tag, version=version)
-    return HttpJsonResponse(200, http_status_description=f'{tag} removed\n').json()
+    return HttpJsonResponse(200, http_status_description=f'{tag} removed\n').get_response()
 
 
 @server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['GET'])
@@ -144,10 +144,11 @@ def update_default_file(tag):
 def get_info(tag):
     try:
         information = bvc.get_information(tag)
-        return ModelListInformation(200, tag_list=information).json()
+        return ModelListInformation(200, tag_list=information).get_response()
     except FileNotFoundError:
-        return HttpJsonResponse(422,
-                                http_status_description='Tag not found, please check the name introduced').json()
+        return HttpJsonResponse(
+            422,
+            http_status_description='Tag not found, please check the name introduced').get_response()
 
 
 if __name__ == '__main__':

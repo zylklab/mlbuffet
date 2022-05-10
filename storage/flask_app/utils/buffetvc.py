@@ -158,7 +158,8 @@ def download_file(name: str, version: str):
                          as_attachment=True,
                          download_name=file_name)
     except FileNotFoundError:
-        return HttpJsonResponse(422, http_status_description='File not found, please check the name introduced').json()
+        return HttpJsonResponse(
+            422, http_status_description='File not found, please check the name introduced').get_response()
 
 
 def update_default(name: str, version: str):
@@ -170,9 +171,9 @@ def update_default(name: str, version: str):
         try:
             new_default_file = os.listdir(os.path.join(folder_path, version))[0]
         except FileNotFoundError:
-            return HttpJsonResponse(422,
-                                    http_status_description='Version not found, please check the version value '
-                                                            'introduced').json()
+            return HttpJsonResponse(
+                422,
+                http_status_description='Version not found, please check the version value introduced').get_response()
         # Rewrite .default file with the new default tag
         with open(os.path.join(folder_path, DEFAULT), 'w') as lf:
             lf.write(version)
@@ -188,13 +189,14 @@ def update_default(name: str, version: str):
         path_to_default = os.path.join(extern_folder_path, new_default_file)
 
         shutil.copy(new_default_path, path_to_default)
-        response = HttpJsonResponse(200,
-                                    http_status_description=f'The tag {name} with the version {version} has '
-                                                            f'been set as default').json()
+        response = HttpJsonResponse(
+            200,
+            http_status_description=f'The tag {name} with the version {version} has been set as default').get_response()
 
     except FileNotFoundError:
-        response = HttpJsonResponse(422,
-                                    http_status_description='File not found, please check the name introduced').json()
+        response = HttpJsonResponse(
+            422,
+            http_status_description='File not found, please check the name introduced').get_response()
 
     return response
 
