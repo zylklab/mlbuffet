@@ -1,7 +1,7 @@
 import nmap
 from kubernetes import client, config
+from os import getenv
 
-# IPScan for Docker Swarm
 
 def IPScan(service: str):
     """
@@ -9,13 +9,11 @@ def IPScan(service: str):
     deployed on Kubernetes or Docker Swarm.
     """
 
-    listaddr = nm.all_hosts()
-    modelhostlist = []
+    # Key to define the IPScan way.
 
     key = 'ORCHESTRATOR'
 
-        if 'modelhost' in is_host:
-            modelhostlist.append(addr)
+    # If key = 'KUBERNETES', use the Kubernetes way
 
     if getenv(key) == 'KUBERNETES':
         config.load_incluster_config()
@@ -27,6 +25,7 @@ def IPScan(service: str):
             if item.metadata.labels['app'] == service_name:
                 servicelist.append(item.status.pod_ip)
 
+    # For now, we only support Kubernetes and Docker swarm, so this will work in Docker Swarm.
 
     else:
         network = getenv('OVERLAY_NETWORK')
