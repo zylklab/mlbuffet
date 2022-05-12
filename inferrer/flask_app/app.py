@@ -131,11 +131,13 @@ def handle_exception(exception):
 @server.before_request
 def log_call():
     if request.path == '/metrics':  # don't log prometheus' method
-        pass
-    else:
-        client_ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
-        logger.info(
-            f'[{client_ip}] HTTP {request.method} call to {request.path}')
+        return
+
+    # log ip, http method and path
+    client_ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
+    logger.info(f'[{client_ip}] HTTP {request.method} call to {request.path}')
+
+    # measure time until stopwatch.stop() is called in log_response() function
     my_stopwatch.start()
 
 
@@ -143,20 +145,13 @@ def log_call():
 def log_response(response):
     if request.path == '/metrics':  # don't log prometheus' method
         return response
-    elif request.path == '/help':  # don't display the whole help
+
+    if request.path == '/help':  # don't display the whole help
         logger.info('Help displayed')
-    elif request.path == '/api/v1/models':
-        logger.info('Models listed')
-    elif request.path == '/api/v1/models/information':
-        logger.info('Models and descriptions listed')
-    elif 'path' in request.files:
-        logger.info('Model uploaded')
-    elif 'prediction' in request.path:
-        if 'path' in request.files:
-            logger.info('Prediction done')
     elif response and response.get_json():
         logger.info(response.get_json())
 
+    # log elapsed time since the request was made
     my_stopwatch.stop()
 
     if request.path == '/api/v1/train/download_buildenv':
