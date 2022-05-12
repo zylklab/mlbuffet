@@ -1,3 +1,4 @@
+from io import BytesIO
 from os import path
 from secrets import compare_digest
 
@@ -6,12 +7,10 @@ import numpy
 from flask import Flask, request, Response, send_file
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
-from werkzeug.utils import secure_filename
 
 import modelhost_talker as mh_talker
 import storage_talker as st_talker
 import trainer_executor as trainer
-
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
 from utils.inferer_pojos import HttpJsonResponse, Prediction
@@ -153,13 +152,6 @@ def log_response(response):
 
     # log elapsed time since the request was made
     my_stopwatch.stop()
-
-    if request.path == '/api/v1/train/download_buildenv':
-        try:
-            trainer.remove_buildenv()
-        except Exception as e:
-            pass
-        return response
 
     return response
 
@@ -369,12 +361,19 @@ def train(tag, model_name):
 
 
 @server.route(path.join(API_BASE_URL, 'train/download_buildenv'), methods=['GET'])
-def download_buildenv():
-    try:
-        return send_file('/trainerfiles/environment.zip', attachment_filename='environment.zip')
+def download_buildenv():  # TODO with GB order environment.zip it is not feasible to store contents in memory
+    # read file contents
+    with open('/trainerfiles/environment.zip', 'rb') as f:
+        buildenv = f.read()
 
-    except Exception as e:
-        return str(e)
+    # remove training files
+    try:
+        trainer.remove_buildenv()
+    except FileNotFoundError:
+        pass
+
+    # download new file with contents
+    return send_file(path_or_file=BytesIO(buildenv), download_name='environment.zip')
 
 
 @server.route(path.join(API_BASE_URL, 'models/<tag>/default'), methods=['POST'])
