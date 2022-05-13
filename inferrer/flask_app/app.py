@@ -14,11 +14,10 @@ import trainer_executor as trainer
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
 from utils.inferer_pojos import HttpJsonResponse, Prediction
-from utils.utils import get_file_extension
+from utils.utils import get_file_extension, ALLOWED_EXTENSIONS
 
 # Path constants
 API_BASE_URL = '/api/v1/'
-ALLOWED_EXTENSIONS = ['.onnx', '.pb']
 
 # Authorization constants
 # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
