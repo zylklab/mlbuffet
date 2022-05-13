@@ -14,6 +14,7 @@ import trainer_executor as trainer
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
 from utils.inferer_pojos import HttpJsonResponse, Prediction
+from utils.utils import get_file_extension
 
 # Path constants
 API_BASE_URL = '/api/v1/'
@@ -154,11 +155,6 @@ def log_response(response):
     my_stopwatch.stop()
 
     return response
-
-
-# TODO this should go into utils folder
-def get_file_extension(file_name):
-    return path.splitext(file_name)[1]
 
 
 # Prediction method. Given a json with input data, sends it to modelhost for predictions.
