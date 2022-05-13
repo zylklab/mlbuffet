@@ -97,27 +97,9 @@ In **Kubernetes** deployments, the volume for models is `/tmp`. You can change t
 
 Several methods for model handling can be used from the API:
 
-**Get the list of available models**
+**Get the list and descriptions of available models**
 
 `curl -X GET http://localhost:8002/api/v1/models`
-
-```json
-{
-  "http_status": {
-    "code": 200,
-    "description": "OK",
-    "name": "OK"
-  },
-  "model_list": [
-    "diabetes.onnx",
-    "iris.onnx"
-  ]
-}
-```
-
-This method however, only displays a list of models, but a description of the models can be added in case the number of
-models get larger. The complete available information about the models can be accessed
-through `curl -X GET http://localhost:8002/api/v1/models/information`
 
 ```json
 {

@@ -50,13 +50,8 @@ def _delete(resource):
     return response
 
 
-def get_list_of_models():
-    resource = '/modelhost/models'
-    return _get(resource)
-
-
 def get_information_of_all_models():
-    resource = '/modelhost/models/information'
+    resource = '/modelhost/models'
     return _get(resource)
 
 

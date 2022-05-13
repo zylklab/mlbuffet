@@ -272,13 +272,6 @@ def model_information(tag):
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models'), methods=['GET'])
-def get_model_list():
-    return ModelList(
-        200, model_list=list(model_sessions.keys())
-    ).get_response()
-
-
-@server.route(path.join(MODELHOST_BASE_URL, 'models/information'), methods=['GET'])
 def get_model_list_information():
     output = []
     for tag in list(model_sessions.keys()):

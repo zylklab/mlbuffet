@@ -60,20 +60,6 @@ class Prediction(HttpJsonResponse):
         self.data['values'] = values
 
 
-class ModelList(HttpJsonResponse):
-    def __init__(self,
-                 http_status_code: int,
-                 http_status_name: str = None,
-                 http_status_description: str = None,
-                 model_list=None):
-        super().__init__(http_status_code, http_status_name, http_status_description)
-
-        if model_list is None:
-            model_list = []
-
-        self.data['model_list'] = model_list
-
-
 class ModelInformation(HttpJsonResponse):
     def __init__(self,
                  http_status_code: int,

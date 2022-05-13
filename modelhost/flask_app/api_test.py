@@ -20,9 +20,6 @@ def test_modelhost():
     logger.info('FlaskAPI:: get_test() method')
     test_get_test()
 
-    logger.info('FlaskAPI:: model_list method')
-    get_model_list()
-
     logger.info('FlaskAPI:: model_list_information() method')
     get_model_list_information()
 
@@ -58,18 +55,8 @@ def test_get_test():
     assert response.status_code == 200
 
 
-def get_model_list():
-    url = join(MODELHOST_BASE_URL, 'models')
-    response = server.test_client().get(
-        url
-    )
-    assert response.status_code == 200
-    content = json.loads(next(response.response))
-    return content['model_list']
-
-
 def get_model_list_information():
-    url = join(MODELHOST_BASE_URL, 'models/information')
+    url = join(MODELHOST_BASE_URL, 'models')
     response = server.test_client().get(
         url
     )

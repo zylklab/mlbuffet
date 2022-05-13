@@ -241,16 +241,9 @@ def get_prediction(tag):
                                              'The model server only supports images so far').get_response()
 
 
-# Display a list of available models in the modelhosts
-@server.route(path.join(API_BASE_URL, 'models'), methods=['GET'])
-def show_models():
-    metric_manager.increment_model_counter()
-    return mh_talker.get_list_of_models()
-
-
 # Display all the information related to every available model in the modelhosts
-@server.route(path.join(API_BASE_URL, 'models/information'), methods=['GET'])
-def show_model_descriptions():  # TODO new pojo for this? or delete
+@server.route(path.join(API_BASE_URL, 'models'), methods=['GET'])
+def show_model_descriptions():
     metric_manager.increment_model_counter()
     return mh_talker.get_information_of_all_models()
 
