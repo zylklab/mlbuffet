@@ -14,9 +14,11 @@ from secrets import compare_digest
 STORAGE_BASE_URL = '/storage'
 
 # Authorization constants
-auth_token = 'password'  # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
+# TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
+auth_token = 'password'
 auth = HTTPTokenAuth('Bearer')
-auth.auth_error_callback = lambda *args, **kwargs: handle_exception(Unauthorized())
+auth.auth_error_callback = lambda *args, **kwargs: handle_exception(
+    Unauthorized())
 
 # Logger initialization
 logger = Logger('storage').get_logger('storage')
@@ -79,7 +81,8 @@ def log_call():
         pass
     else:
         client_ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
-        logger.info(f'[{client_ip}] HTTP {request.method} call to {request.path}')
+        logger.info(
+            f'[{client_ip}] HTTP {request.method} call to {request.path}')
 
 
 @server.after_request
@@ -95,12 +98,12 @@ def log_response(response):
 def save(tag):
     file = request.files['path']
     filename = request.files['filename'].stream.read().decode("utf-8")
-    # filename = request.files['file_name'].stream.read().decode("utf-8")
-    desc = request.files['model_description'].stream.read().decode("utf-8")
+    description = request.files['model_description'].stream.read().decode(
+        "utf-8")
     bvc.save_file(file=file,
                   tag=tag,
                   file_name=filename,
-                  description=desc)
+                  description=description)
     # return Response(f'File {filename} saved with the tag {tag}\n')
     return HttpJsonResponse(http_status_code=200,
                             http_status_description=f'File {filename} saved with the tag {tag}').get_response()
