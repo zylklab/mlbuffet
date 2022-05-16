@@ -5,12 +5,7 @@ import shutil
 import werkzeug.datastructures as ds
 from flask import Response, send_file
 from utils.storage_pojos import HttpJsonResponse
-
-HISTORY = '.history'
-DEFAULT = '.default'
-
-archivos_folder = "files"
-extern_folder = 'modelhostfiles'
+from utils.utils import HISTORY, DEFAULT, FILES_DIRECTORY, MODELHOST_DIRECTORY
 
 
 def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str):

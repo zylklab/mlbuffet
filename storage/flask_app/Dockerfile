@@ -5,7 +5,6 @@ FROM python:${PYTHON_VERSION}
 WORKDIR usr/src/flask_app
 
 RUN apk add py3-pip
-#RUN apk add --no-cache libffi-dev gcc musl-dev make
 COPY requirements.txt .
 
 RUN pip install --upgrade pip
