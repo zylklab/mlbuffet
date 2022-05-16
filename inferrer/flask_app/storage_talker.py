@@ -60,7 +60,6 @@ def upload_new_model(tag, file, file_name, description):
     resource = '/storage/model/' + tag
     files = [('path', file), ('model_description',
                               description), ('filename', file_name)]
-    update_models()
     return _put(resource, files)
 
 
