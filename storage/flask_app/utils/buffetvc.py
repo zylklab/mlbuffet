@@ -52,7 +52,7 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str):
         fl.write(new_directory_version)
 
 
-def remove_file(name: str, version: str):
+def delete_file(name: str, version: str):
     default_file = os.path.join(FILES_DIRECTORY, name, DEFAULT)
     history_file = os.path.join(FILES_DIRECTORY, name, HISTORY)
 
