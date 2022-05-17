@@ -1,10 +1,11 @@
-ARG PYTHON_VERSION=alpine3.14
+ARG PYTHON_VERSION=3.8
 
 FROM python:${PYTHON_VERSION}
 
 WORKDIR usr/src/flask_app
 
-RUN apk add py3-pip
+RUN apt-get update 
+RUN apt-get install ffmpeg libsm6 libxext6 iputils-ping nmap -y
 COPY requirements.txt .
 
 RUN pip install --upgrade pip
