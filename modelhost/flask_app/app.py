@@ -27,7 +27,7 @@ from secrets import compare_digest
 API_BASE_URL = '/api/v1/'
 MODELHOST_BASE_URL = '/modelhost'
 CACHE_FOLDER = '/root/.cache'
-MODEL_FOLDER = path.join(getcwd(), 'models')
+MODELS_DIR = path.join(getcwd(), 'models')
 
 # Authorization constants
 # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
@@ -50,19 +50,19 @@ logger.info('... Flask API successfully started')
 
 # All the methods supported by the API are described below
 # These methods are not supposed to be exposed to the user, who should communicate
-# with Inferrer instead. These methods shall be called by Inferrer
+# with Inferrer instead. These methods shall be called by Inferrer OR Storage
 
 
 # Call this function every time a model is added, modified or deleted
 def update_model_sessions():
     model_sessions.clear()
-    tags = listdir(MODEL_FOLDER)
+    tags = listdir(MODELS_DIR)
 
     for tag in tags:
         model_name = tags[0]
 
         try:
-            model_path = path.join(MODEL_FOLDER, model_name)
+            model_path = path.join(MODELS_DIR, model_name)
             model = onnx.load(model_path)
 
             # Get model metadata
@@ -265,7 +265,7 @@ def model_information(tag):
                                         f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
             ).get_response()
 
-        model_path = path.join(MODEL_FOLDER, tag)
+        model_path = path.join(MODELS_DIR, tag)
         new_model_description = request.json['model_description']
 
         model_sessions[tag]['description'] = new_model_description
@@ -290,7 +290,7 @@ def get_model_list_information():
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>'), methods=['PUT', 'DELETE'])
 def manage_model(model_name):
-    model_path = path.join(MODEL_FOLDER, model_name)
+    model_path = path.join(MODELS_DIR, model_name)
 
     if request.method == 'PUT':
         # Save the model in local model directory
