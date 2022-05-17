@@ -238,9 +238,9 @@ def get_prediction(tag):
 
 # Display all the information related to every available model in the modelhosts
 @server.route(path.join(API_BASE_URL, 'models'), methods=['GET'])
-def show_model_descriptions():
+def get_model_list():
     metric_manager.increment_model_counter()
-    return mh_talker.get_information_of_all_models()
+    return st_talker.get_model_list()
 
 
 # Update the list of available models on every modelhost node.

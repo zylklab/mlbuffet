@@ -139,6 +139,11 @@ def download(tag):
     return bvc.download_file(name=tag, version=version)
 
 
+@server.route(path.join(STORAGE_BASE_URL, 'models'), methods=['GET'])
+def model_list():
+    return bvc.get_model_list()
+
+
 @server.route(path.join(STORAGE_BASE_URL, 'model/<tag>/default'), methods=['POST'])
 def update_default_file(tag):
     new_default = request.json['default']

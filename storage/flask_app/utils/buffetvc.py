@@ -4,7 +4,7 @@ import json
 import shutil
 import werkzeug.datastructures as ds
 from flask import Response, send_file
-from utils.storage_pojos import HttpJsonResponse
+from utils.storage_pojos import HttpJsonResponse, ModelList
 from utils.utils import HISTORY, DEFAULT, FILES_DIRECTORY
 
 
@@ -165,3 +165,43 @@ def get_information(name: str):
         data = hf.read()
         output = json.loads(data)
         return output
+
+
+def get_model_list():
+
+    # file_tree = os.listdir(FILES_DIRECTORY)
+
+    # for file in file_tree:
+    #     try:
+    #         nested_dirs = os.listfir(file)
+
+    #         for nested_dir in nested_dirs:
+    #             try:
+    #                 os.listdir(nested_dir)
+    #             except:
+    #                 model_list.append(os.listdir(nested_dir)[0])
+    #     except Exception as e:
+    #         print(e)
+    #         model_list.append()
+
+    model_list = []
+
+    for model_directory in os.listdir(FILES_DIRECTORY):
+        print(model_directory)
+
+        with open(os.path.join(FILES_DIRECTORY, model_directory, DEFAULT), 'r') as df:
+            version = df.read()
+            df.close()
+
+        directory_path = os.path.join(
+            FILES_DIRECTORY, model_directory, version)
+
+        file_name = os.listdir(directory_path)[0]
+
+        if file_name is not None:
+            model_list.append(file_name)
+        else:
+            pass
+
+    return ModelList(
+        200, http_status_description='Model list provided', model_list=model_list).get_response()
