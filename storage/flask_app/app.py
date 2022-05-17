@@ -9,6 +9,7 @@ from utils import metric_manager
 from utils.container_logger import Logger
 from utils.storage_pojos import HttpJsonResponse, ModelListInformation
 from secrets import compare_digest
+import modelhost_talker as mh_talker
 
 # Path constants
 STORAGE_BASE_URL = '/storage'
@@ -104,7 +105,9 @@ def save(tag):
                   tag=tag,
                   file_name=filename,
                   description=description)
-    # return Response(f'File {filename} saved with the tag {tag}\n')
+
+    mh_talker.upload_new_model(tag=tag, new_model=file)
+
     return HttpJsonResponse(http_status_code=200,
                             http_status_description=f'File {filename} saved with the tag {tag}').get_response()
 
