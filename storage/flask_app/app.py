@@ -113,7 +113,7 @@ def save(tag):
 
 
 @server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['DELETE'])
-def remove(tag):
+def delete(tag):
     separator = tag.find(':')
     if separator < 0:
         version = 'default'
@@ -122,7 +122,8 @@ def remove(tag):
         tag = name_split[0]
         version = name_split[1]
 
-    bvc.remove_file(name=tag, version=version)
+    bvc.delete_file(name=tag, version=version)
+    mh_talker.delete_model(tag=tag)
     return HttpJsonResponse(200, http_status_description=f'{tag} removed\n').get_response()
 
 
