@@ -59,10 +59,10 @@ def update_model_sessions():
     tags = listdir(MODEL_FOLDER)
 
     for tag in tags:
-        tag_path = path.join(MODEL_FOLDER, tag)
-        model_name = listdir(tag_path)[0]
+        model_name = tags[0]
+
         try:
-            model_path = path.join(tag_path, model_name)
+            model_path = path.join(MODEL_FOLDER, model_name)
             model = onnx.load(model_path)
 
             # Get model metadata
