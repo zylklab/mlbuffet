@@ -12,10 +12,10 @@ RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN mkdir files
-RUN mkdir modelhostfiles
 RUN mkdir logs
 
 COPY app.py .
+COPY modelhost_talker.py .
 COPY utils utils
 
 CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:8000", "app:server"]
