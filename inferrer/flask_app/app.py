@@ -276,7 +276,7 @@ def model_handling(tag):
                 http_status_description=f'Filename extension not allowed. '
                                         f'Please use one of these: {ALLOWED_EXTENSIONS}').get_response()
         if not request.form:
-            desc = 'Not description provided'
+            desc = 'No description provided'
         else:
             desc = request.form['model_description']
 
