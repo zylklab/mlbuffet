@@ -12,7 +12,7 @@ from werkzeug.exceptions import HTTPException, Unauthorized
 
 from utils import metric_manager
 from utils.container_logger import Logger
-from utils.modelhost_pojos import HttpJsonResponse, Prediction, ModelList, ModelInformation, ModelListInformation
+from utils.modelhost_pojos import HttpJsonResponse, Prediction, ModelInformation, ModelListInformation
 import numpy
 from secrets import compare_digest
 
