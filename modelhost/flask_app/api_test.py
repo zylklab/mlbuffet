@@ -91,7 +91,7 @@ def delete_model():
 
 
 def test_get_prediction():
-    url = join(MODELHOST_BASE_URL, 'models/test_iris_model/prediction')
+    url = join(MODELHOST_BASE_URL, 'models/iris.onnx/prediction')
     response = server.test_client().post(
         url,
         data=json.dumps({'values': [7.0, 3.2, 4.7, 1.4]}),
