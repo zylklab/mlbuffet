@@ -1,10 +1,10 @@
 import json
 from os.path import join
 
-from app import server, MODEL_FOLDER, MODELHOST_BASE_URL
+from app import server, MODELS_DIR, MODELHOST_BASE_URL
 from utils.container_logger import Logger
 
-TEST_FOLDER = join(MODEL_FOLDER, '../utils/test_files/')
+TEST_FOLDER = join(MODELS_DIR, '../utils/test_files/')
 
 
 # TODO test uploaded and deleted models
