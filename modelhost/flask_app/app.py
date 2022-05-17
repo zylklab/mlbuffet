@@ -30,9 +30,11 @@ CACHE_FOLDER = '/root/.cache'
 MODEL_FOLDER = path.join(getcwd(), 'models')
 
 # Authorization constants
-auth_token = 'password'  # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
+# TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
+auth_token = 'password'
 auth = HTTPTokenAuth('Bearer')
-auth.auth_error_callback = lambda *args, **kwargs: handle_exception(Unauthorized())
+auth.auth_error_callback = lambda *args, **kwargs: handle_exception(
+    Unauthorized())
 
 # Unique ID for modelhost instances
 MODELHOST_NODE_UNIQ_ID = '{:06d}'.format(random.randint(1, 99999))
@@ -84,7 +86,8 @@ def update_model_sessions():
                                 'description': description}
             model_sessions[tag] = full_description
         except (RuntimeError, InvalidArgument):
-            logger.info(f'{model_name} may not be ONNX format or not ONNX compatible.')
+            logger.info(
+                f'{model_name} may not be ONNX format or not ONNX compatible.')
 
 
 @auth.verify_token
@@ -143,7 +146,8 @@ def log_call():
         pass
     else:
         client_ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
-        logger.info(f'[{client_ip}] HTTP {request.method} call to {request.path}')
+        logger.info(
+            f'[{client_ip}] HTTP {request.method} call to {request.path}')
 
 
 @server.after_request
@@ -289,7 +293,7 @@ def manage_model(model_name):
     model_path = path.join(MODEL_FOLDER, model_name)
 
     if request.method == 'PUT':
-        # get model and save it
+        # Save the model in local model directory
         model = request.files['model']
         model.save(model_path)
         return HttpJsonResponse(201).get_response()
