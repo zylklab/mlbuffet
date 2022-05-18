@@ -44,8 +44,6 @@ def _delete(resource):
     raw_response = requests.delete(_url(resource))
     try:
         response = raw_response.json()
-        if _is_ok(response['http_status']['code']):
-            update_models()
     except JSONDecodeError:
         response = raw_response.text
 
