@@ -13,6 +13,7 @@ spec:
       labels:
         app: mlbuffet_storage
     spec:
+      serviceAccountName: inferrersa
       containers:
         - name: storage
           image: STORAGE_IMAGE_NAME
@@ -22,6 +23,9 @@ spec:
           volumeMounts:
             - mountPath: /usr/src/flask_app/modelhostfiles
               name: models
+          env:
+            - name: ORCHESTRATOR
+              value: "KUBERNETES"
       volumes:
         - name: models
           persistentVolumeClaim:
