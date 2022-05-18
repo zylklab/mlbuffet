@@ -51,9 +51,9 @@ def _delete(resource):
     return response
 
 
-def upload_new_model(tag, new_model):
+def upload_new_model(tag, new_model, filename):
     resource = '/modelhost/models/' + tag
-    return _put(resource, {'model': new_model})
+    return _put(resource, {'model': new_model, 'filename': filename})
 
 
 def delete_model(tag):
