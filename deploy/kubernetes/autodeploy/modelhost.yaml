@@ -17,20 +17,11 @@ spec:
     spec:
       containers:
         - name: modelhost
-          image: MODELHOST_IMAGE_NAME
-          imagePullPolicy: IfNotPresent
+          image: IMAGE_MLBUFFET_MODELHOST
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
-          volumeMounts:
-            - mountPath: /usr/src/flask_app/models
-              name: models
-      volumes:
-        - name: models
-          persistentVolumeClaim:
-            claimName: modelhostpvc
-
 ---
-
 apiVersion: v1
 kind: Service
 metadata:

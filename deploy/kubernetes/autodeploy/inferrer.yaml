@@ -13,10 +13,10 @@ spec:
       labels:
         app: mlbuffet_inferrer
     spec:
-     serviceAccountName: inferrersa  
+     serviceAccountName: pod-scheduler  
      containers:
         - name: inferrer
-          image: INFERRER_IMAGE_NAME
+          image: IMAGE_MLBUFFET_INFERRER
           imagePullPolicy: Always
           ports:
             - containerPort: 8000

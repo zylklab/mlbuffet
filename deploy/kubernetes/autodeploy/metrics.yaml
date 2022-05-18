@@ -15,8 +15,8 @@ spec:
     spec:
       containers:
       - name: metrics
-        image: METRICS_IMAGE_NAME
-        imagePullPolicy: IfNotPresent
+        image: IMAGE_MLBUFFET_METRICS
+        imagePullPolicy: Always
         ports: 
         - containerPort: 9090
 

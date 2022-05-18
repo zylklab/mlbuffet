@@ -21,7 +21,7 @@ metadata:
   namespace: mlbuffet
 subjects:
   - kind: ServiceAccount
-    name: inferrersa
+    name: pod-scheduler
 roleRef:
   kind: Role
   name: modify-pods
@@ -32,5 +32,5 @@ roleRef:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: inferrersa
+  name: pod-scheduler
   namespace: mlbuffet

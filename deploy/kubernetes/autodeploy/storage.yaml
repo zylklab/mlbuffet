@@ -13,24 +13,16 @@ spec:
       labels:
         app: mlbuffet_storage
     spec:
-      serviceAccountName: inferrersa
+      serviceAccountName: pod-scheduler
       containers:
         - name: storage
-          image: STORAGE_IMAGE_NAME
-          imagePullPolicy: IfNotPresent
+          image: IMAGE_MLBUFFET_STORAGE
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000 
-          volumeMounts:
-            - mountPath: /usr/src/flask_app/modelhostfiles
-              name: models
           env:
             - name: ORCHESTRATOR
               value: "KUBERNETES"
-      volumes:
-        - name: models
-          persistentVolumeClaim:
-            claimName: modelhostpvc
-
 ---
 
 apiVersion: v1
