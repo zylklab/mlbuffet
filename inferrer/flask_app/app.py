@@ -236,7 +236,7 @@ def get_prediction(tag):
                                              'The model server only supports images so far').get_response()
 
 
-# Display all the information related to every available model in the modelhosts
+# Get the list of uploaded models in the Storage
 @server.route(path.join(API_BASE_URL, 'models'), methods=['GET'])
 def get_model_list():
     metric_manager.increment_model_counter()
@@ -249,7 +249,7 @@ def update_models():
     return mh_talker.update_models()
 
 
-# This method is in charge of model handling. Performs operations on models and manages models in the server.
+# This resource is used for model management. Performs operations on models and manages models in the server.
 @server.route(path.join(API_BASE_URL, 'models/<tag>'), methods=['GET', 'PUT', 'POST', 'DELETE'])
 def model_handling(tag):
     # For GET requests, display model information
