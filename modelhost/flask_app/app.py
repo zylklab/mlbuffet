@@ -316,7 +316,7 @@ def manage_model(tag):
         else:
             return HttpJsonResponse(
                 404,
-                http_status_description=f'{model_name} does not exist. Visit GET {path.join(API_BASE_URL, "models")} '
+                http_status_description=f'{tag} does not exist. Visit GET {path.join(API_BASE_URL, "models")}'
                                         f'for a list of available models'
             ).get_response()
 
