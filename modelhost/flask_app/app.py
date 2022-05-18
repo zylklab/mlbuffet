@@ -253,9 +253,7 @@ def model_information(tag):
             200,
             input_name=description['input_name'],
             num_inputs=description['dimensions'],
-            output_name=description['output_name'],
-            description=description['description'],
-            model_type=description['model_type']).get_response()
+            output_name=description['output_name']).get_response()
 
     elif request.method == 'POST':
         # Check that the model exists
