@@ -127,6 +127,16 @@ def download_file(name: str, version: str):
             422, http_status_description='File not found, please check the model name is correct!').get_response()
 
 
+def get_directory_file(tag: str):
+    with open(os.path.join(FILES_DIRECTORY, tag, DEFAULT), 'r') as df:
+        version = df.read()
+        df.close()
+    directory_path = os.path.join(FILES_DIRECTORY, tag, version)
+    file_name = os.listdir(directory_path)[0].__str__()
+    path_file = os.path.join(directory_path, file_name)
+    return path_file
+
+
 def update_default(name: str, version: str):
     version = str(version)
     directory_path = os.path.join(FILES_DIRECTORY, name)
@@ -168,7 +178,6 @@ def get_information(name: str):
 
 
 def get_model_list():
-
     model_list = []
 
     for model_directory in os.listdir(FILES_DIRECTORY):
