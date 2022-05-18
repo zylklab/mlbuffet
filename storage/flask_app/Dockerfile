@@ -5,7 +5,7 @@ FROM python:${PYTHON_VERSION}
 WORKDIR usr/src/flask_app
 
 RUN apt-get update 
-RUN apt-get install ffmpeg libsm6 libxext6 iputils-ping nmap -y
+RUN apt-get install iputils-ping nmap -y
 COPY requirements.txt .
 
 RUN pip install --upgrade pip
