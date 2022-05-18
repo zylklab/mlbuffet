@@ -76,7 +76,6 @@ class ModelInformation(HttpJsonResponse):
         self.data['num_inputs'] = num_inputs
         self.data['output_name'] = output_name
         self.data['description'] = description
-        self.data['model_type'] = model_type
 
 
 class ModelListInformation(HttpJsonResponse):
