@@ -263,14 +263,9 @@ def model_information(tag):
                 http_status_description=f'{tag} does not exist. '
                                         f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
             ).get_response()
-
-        model_path = path.join(MODELS_DIR, tag)
         new_model_description = request.json['model_description']
 
         model_sessions[tag]['description'] = new_model_description
-        model = onnx.load(model_path)
-        model.doc_string = new_model_description
-        onnx.save(model, model_path)
         return HttpJsonResponse(200).get_response()
 
 
