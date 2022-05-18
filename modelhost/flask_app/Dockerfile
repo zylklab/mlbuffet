@@ -13,7 +13,6 @@ COPY app.py .
 COPY api_test.py .
 
 COPY utils utils
-COPY models models
 RUN mkdir /home/logs
 
 # Run integration testing
