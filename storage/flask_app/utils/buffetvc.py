@@ -172,7 +172,6 @@ def get_model_list():
     model_list = []
 
     for model_directory in os.listdir(FILES_DIRECTORY):
-        print(model_directory)
 
         with open(os.path.join(FILES_DIRECTORY, model_directory, DEFAULT), 'r') as df:
             version = df.read()
