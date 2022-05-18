@@ -281,22 +281,38 @@ def get_model_list_information():
     output = []
     for tag in list(model_sessions.keys()):
         description = model_sessions[tag]
-        dict_info = {'tag': tag, 'model_file_name': description['model_name'], 'input_name': description['input_name'],
-                     'dimensions': description['dimensions'], 'output_name': description['output_name'],
-                     'description': description['description'], 'model_type': description['model_type']}
+        dict_info = {'tag': tag,
+                     'model_file_name': description['model_name'],
+                     'input_name': description['input_name'],
+                     'dimensions': description['dimensions'],
+                     'output_name': description['output_name']}
         output.append(dict_info)
     logger.info(output)
     return ModelListInformation(200, list_descriptions=output).get_response()
 
 
-@server.route(path.join(MODELHOST_BASE_URL, 'models/<model_name>'), methods=['PUT', 'DELETE'])
-def manage_model(model_name):
-    model_path = path.join(MODELS_DIR, model_name)
+@server.route(path.join(MODELHOST_BASE_URL, 'models/<tag>'), methods=['PUT', 'DELETE'])
+def manage_model(tag):
+    model_path = path.join(MODELS_DIR, tag)
 
     if request.method == 'PUT':
         # Save the model in local model directory
-        model = request.files['model']
-        model.save(model_path)
+        modelo = request.files['model']
+        filename = request.files['filename'].stream.read().decode("utf-8")
+        inference_session = rt.InferenceSession(modelo.stream.read())
+        dimensions = inference_session.get_inputs()[0].shape
+        input_name = inference_session.get_inputs()[0].name
+        output_name = inference_session.get_outputs()[0].name
+        label_name = inference_session.get_outputs()[0].name
+
+        full_description = {'tag': tag,
+                            'model_name': filename,
+                            'inference_session': inference_session,
+                            'dimensions': dimensions,
+                            'input_name': input_name,
+                            'output_name': output_name,
+                            'label_name': label_name}
+        model_sessions[tag] = full_description
         return HttpJsonResponse(201).get_response()
 
     elif request.method == 'DELETE':
