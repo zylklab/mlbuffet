@@ -20,17 +20,17 @@ def test_modelhost():
     logger.info('FlaskAPI:: get_test() method')
     test_get_test()
 
-    logger.info('FlaskAPI:: model_list_information() method')
-    get_model_list_information()
-
     logger.info('FlaskAPI:: upload_model() method')
-    upload_model()
+#    upload_model()
 
-    logger.info('FlaskAPI:: delete_model() method')
-    delete_model()
+    logger.info('FlaskAPI:: model_list_information() method')
+#    get_model_list_information()
 
     logger.info('FlaskAPI:: get_prediction() method')
-    test_get_prediction()
+#    test_get_prediction()
+
+    logger.info('FlaskAPI:: delete_model() method')
+#    delete_model()
 
     logger.info('FlaskAPI:: get_image_prediction() method')
     # test_get_image_prediction()
@@ -66,7 +66,7 @@ def get_model_list_information():
 
 
 def upload_model():
-    new_model_name = 'testmodel.onnx'
+    new_model_name = 'testmodel'
     url = join(MODELHOST_BASE_URL, 'models/' + new_model_name)
 
     model = open(join(TEST_FOLDER, 'clf.onnx'), 'rb')
@@ -80,23 +80,15 @@ def upload_model():
     assert response.status_code == 201
 
 
-def delete_model():
-    model_to_delete = 'testmodel.onnx'
-
-    url = join(MODELHOST_BASE_URL, 'models/' + model_to_delete)
-    response = server.test_client().delete(
-        url
-    )
-    assert response.status_code == 204
-
-
 def test_get_prediction():
-    url = join(MODELHOST_BASE_URL, 'models/iris.onnx/prediction')
+    url = join(MODELHOST_BASE_URL, 'models/testmodel/prediction')
     response = server.test_client().post(
         url,
         data=json.dumps({'values': [7.0, 3.2, 4.7, 1.4]}),
         content_type='application/json'
     )
+    logger = Logger("flask-api-test-logger").get_logger('TEST-API')
+    logger.info(response)
     assert response.status_code == 200
 
     content = json.loads(next(response.response))
@@ -113,6 +105,16 @@ def test_get_image_prediction():
     )
     file.close()
     assert response.status_code == 200
+
+
+def delete_model():
+    model_to_delete = 'testmodel'
+
+    url = join(MODELHOST_BASE_URL, 'models/' + model_to_delete)
+    response = server.test_client().delete(
+        url
+    )
+    assert response.status_code == 204
 
 
 def test_requests_count():
