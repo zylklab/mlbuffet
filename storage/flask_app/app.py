@@ -106,7 +106,9 @@ def save(tag):
                   file_name=filename,
                   description=description)
 
-    mh_talker.upload_new_model(tag=tag, new_model=file)
+    path_file = bvc.get_directory_file(tag=tag)
+
+    mh_talker.upload_new_model(tag=tag, new_model=open(path_file, 'rb'), filename=filename)
 
     return HttpJsonResponse(http_status_code=200,
                             http_status_description=f'File {filename} saved with the tag {tag}').get_response()
