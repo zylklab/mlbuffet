@@ -169,21 +169,6 @@ def get_information(name: str):
 
 def get_model_list():
 
-    # file_tree = os.listdir(FILES_DIRECTORY)
-
-    # for file in file_tree:
-    #     try:
-    #         nested_dirs = os.listfir(file)
-
-    #         for nested_dir in nested_dirs:
-    #             try:
-    #                 os.listdir(nested_dir)
-    #             except:
-    #                 model_list.append(os.listdir(nested_dir)[0])
-    #     except Exception as e:
-    #         print(e)
-    #         model_list.append()
-
     model_list = []
 
     for model_directory in os.listdir(FILES_DIRECTORY):
