@@ -220,7 +220,7 @@ You can also download files with your browser with the above URL.
 
 Once models have been correctly uploaded, the server is ready for inference. Requests must be done with an input in json format. This command will send an HTTP request to the server asking for a prediction on the pre-uploaded Iris model:
 
-`curl -X POST -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 4]}' http://localhost:8002/api/v1/models/iris.onnx/prediction`
+`curl -X POST -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 4]}' http://localhost:8002/api/v1/models/iris_model/prediction`
 
 ```json
 {
@@ -242,7 +242,7 @@ predictions!
 You can predict objects with more complex models. For now, the server only is enabled to predict with images, but other
 types could be allowed in the future. For that predictions, the command to send the HTTP request is the following:
 
-`curl -X GET -F "file=@dog_resized.jpeg" http://localhost:8002/api/v1/models/dog_model.onnx/prediction | jq`
+`curl -X GET -F "file=@dog_resized.jpeg" http://localhost:8002/api/v1/models/dog_model/prediction | jq`
 
 ```json
 {
