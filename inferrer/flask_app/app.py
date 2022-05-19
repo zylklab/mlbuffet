@@ -14,7 +14,7 @@ import trainer_executor as trainer
 from utils import metric_manager, stopwatch, prediction_cache
 from utils.container_logger import Logger
 from utils.inferer_pojos import HttpJsonResponse, Prediction
-from utils.utils import get_file_extension, ALLOWED_EXTENSIONS
+from utils.utils import get_file_extension, ALLOWED_EXTENSIONS, is_ok
 
 # Path constants
 API_BASE_URL = '/api/v1/'
@@ -190,12 +190,16 @@ def get_prediction(tag):
 
         # If the prediction exists in cache, return it
         if cached_prediction is not None:
-            return Prediction(200, values=cached_prediction).get_response()
+            return Prediction(200,
+                              values=cached_prediction,
+                              http_status_description='Prediction successful').get_response()
 
         # Otherwise, compute it and save it in cache
         result = mh_talker.make_a_prediction(tag, test_values)
-        prediction_cache.put_prediction_in_cache(
-            hash_code=test_values_hash, prediction=result['values'])
+        if is_ok(result['http_status']['code']):
+            prediction_cache.put_prediction_in_cache(
+                hash_code=test_values_hash,
+                prediction=result['values'])
 
         return result
 
@@ -219,15 +223,20 @@ def get_prediction(tag):
 
             # If the prediction exists in cache, return it
             if cached_prediction is not None:
-                return Prediction(200, values=cached_prediction).get_response()
+                return Prediction(200,
+                                  values=cached_prediction,
+                                  http_status_description='Prediction successful').get_response()
 
             # Otherwise, compute it and save it in cache
             flat_image = numpy.frombuffer(to_hash, numpy.uint8)
             img_bgr = cv2.imdecode(flat_image, cv2.IMREAD_COLOR)
             img = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
             result = mh_talker.make_a_prediction(tag, img.tolist())
-            prediction_cache.put_prediction_in_cache(
-                hash_code=test_values_hash, prediction=result['values'])
+
+            if is_ok(result['http_status']['code']):
+                prediction_cache.put_prediction_in_cache(
+                    hash_code=test_values_hash,
+                    prediction=result['values'])
 
             return result
         else:
