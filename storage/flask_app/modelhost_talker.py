@@ -3,10 +3,10 @@ from os import path, getenv
 
 import gevent
 import requests
+from deprecated.classic import deprecated
 
 from utils.storage_pojos import HttpJsonResponse
 from utils.ipscan import IPScan
-
 
 # Request constants
 OVERLAY_NETWORK = getenv('OVERLAY_NETWORK')
@@ -31,11 +31,26 @@ def _post(resource, json_data):
     return response
 
 
+@deprecated
 def _put(resource, files):
     response = requests.put(_url(resource), files=files).json()
     if _is_ok(response['http_status']['code']):
         update_models()
     return response
+
+
+def _put2(resource, files):
+    MODELHOST_IP_LIST = IPScan('modelhost')
+
+    for IP in MODELHOST_IP_LIST:
+        url = URI_SCHEME + IP + ':8000' + resource
+        response = requests.put(url, files=files).json()
+
+        if not _is_ok(response['http_status']['code']):
+            return HttpJsonResponse(
+                500, http_status_description='One or more modelhosts returned non 2XX HTTP code').get_response()
+    return HttpJsonResponse(
+        200, http_status_description='OK').get_response()
 
 
 def _delete(resource):
@@ -53,7 +68,7 @@ def _delete(resource):
 
 def upload_new_model(tag, new_model, filename):
     resource = '/modelhost/models/' + tag
-    return _put(resource, {'model': new_model, 'filename': filename})
+    return _put2(resource, {'model': new_model, 'filename': filename})
 
 
 def delete_model(tag):
