@@ -7,3 +7,4 @@ prometheus-client==0.14.1
 linux-metrics==0.1.4
 kubernetes==23.6.0
 python-nmap==0.7.1
+Python-Deprecated
