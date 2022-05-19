@@ -150,7 +150,12 @@ def model_list():
 def update_default_file(tag):
     new_default = request.json['default']
     response = bvc.update_default(name=tag, version=new_default)
-    # HttpJsonResponse(http_status_code=200, http_status_description=response).json()
+    return response
+
+
+@server.route(path.join(STORAGE_BASE_URL, 'updatemodels'), methods=['GET'])
+def update_models():
+    response = bvc.update_models()
     return response
 
 
