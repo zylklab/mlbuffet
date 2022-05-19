@@ -1,11 +1,8 @@
 import os
 import random
 from os import getcwd, path
-from os import listdir
 
-import onnx
 import onnxruntime as rt
-from onnxruntime.capi.onnxruntime_pybind11_state import InvalidArgument
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
@@ -51,44 +48,6 @@ logger.info('... Flask API successfully started')
 # All the methods supported by the API are described below
 # These methods are not supposed to be exposed to the user, who should communicate
 # with Inferrer instead. These methods shall be called by Inferrer OR Storage
-
-
-# Call this function every time a model is added, modified or deleted.
-# HIGHLY DEPRECATED
-# def update_model_sessions():
-#     model_sessions.clear()
-#     tags = listdir(MODELS_DIR)
-#
-#     for tag in tags:
-#         model_name = tags[0]
-#
-#         try:
-#             model_path = path.join(MODELS_DIR, model_name)
-#             model = onnx.load(model_path)
-#
-#             # Get model metadata
-#             inference_session = rt.InferenceSession(model_path)
-#             model_type = model.graph.node[0].name
-#             dimensions = inference_session.get_inputs()[0].shape
-#             input_name = inference_session.get_inputs()[0].name
-#             output_name = inference_session.get_outputs()[0].name
-#             label_name = inference_session.get_outputs()[0].name
-#             description = model.doc_string
-#
-#             full_description = {'tag': tag,
-#                                 'model': model,
-#                                 'model_name': model_name,
-#                                 'inference_session': inference_session,
-#                                 'model_type': model_type,
-#                                 'dimensions': dimensions,
-#                                 'input_name': input_name,
-#                                 'output_name': output_name,
-#                                 'label_name': label_name,
-#                                 'description': description}
-#             model_sessions[tag] = full_description
-#         except (RuntimeError, InvalidArgument):
-#             logger.info(
-#                 f'{model_name} may not be ONNX format or not ONNX compatible.')
 
 
 @auth.verify_token
@@ -289,8 +248,8 @@ def manage_model(tag):
     model_path = path.join(MODELS_DIR, tag)
 
     if request.method == 'PUT':
-        # Save the model in local model directory
         modelo = request.files['model']
+        # Take the model parameters
         filename = request.files['filename'].stream.read().decode("utf-8")
         inference_session = rt.InferenceSession(modelo.stream.read())
         dimensions = inference_session.get_inputs()[0].shape
