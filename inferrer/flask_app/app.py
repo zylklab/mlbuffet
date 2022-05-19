@@ -246,7 +246,7 @@ def get_model_list():
 # Update the list of available models on every modelhost node.
 @server.route(path.join(API_BASE_URL, 'updatemodels'), methods=['GET'])
 def update_models():
-    return mh_talker.update_models()
+    return st_talker.update_models()
 
 
 # This resource is used for model management. Performs operations on models and manages models in the server.
