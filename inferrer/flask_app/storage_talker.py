@@ -1,12 +1,9 @@
 import io
 from json import JSONDecodeError
-from os import path, getenv
-
-import gevent
+from os import getenv
 import requests
 from flask import send_file
 
-from utils.inferer_pojos import HttpJsonResponse
 
 # Request constants
 OVERLAY_NETWORK = getenv('OVERLAY_NETWORK')
