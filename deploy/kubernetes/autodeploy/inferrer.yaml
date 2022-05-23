@@ -13,19 +13,16 @@ spec:
       labels:
         app: mlbuffet_inferrer
     spec:
-      containers:
+     serviceAccountName: pod-scheduler  
+     containers:
         - name: inferrer
-          image: docker.io/library/mlbuffet_inferrer:latest
-          imagePullPolicy: IfNotPresent
+          image: IMAGE_MLBUFFET_INFERRER
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:
-            - name: OVERLAY_NETWORK
-              value: "172.17.0.0/24"
-            
             - name: ORCHESTRATOR
               value: "KUBERNETES"
-            
             - name: MODELHOST_REPLICAS
               value: "4"
 

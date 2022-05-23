@@ -19,8 +19,8 @@ services:
       - mlbuffet_overlay
     ports:
       - "8004:8000"
-    volumes:
-      - ../../modelhost/flask_app/models:/usr/src/flask_app/models
+#   volumes:
+#     - ../../modelhost/flask_app/models:/usr/src/flask_app/models
 
   prometheus:
     image: mlbuffet_prometheus
@@ -38,14 +38,12 @@ services:
   storage:
     image: mlbuffet_storage
     hostname: "{{.Service.Name}}_{{.Task.Slot}}"
+    environment: 
+        OVERLAY_NETWORK: '10.0.13.0/24'
     networks:
       - mlbuffet_overlay
     ports:
       - "8006:8000"
-    volumes:
-      - ../../modelhost/flask_app/models:/usr/src/flask_app/modelhostfiles
-
-
 
 networks:
   mlbuffet_overlay:

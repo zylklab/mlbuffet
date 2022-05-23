@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.6.7
+ARG PYTHON_VERSION=3.8
 
 FROM python:${PYTHON_VERSION}
 
@@ -13,7 +13,6 @@ COPY app.py .
 COPY api_test.py .
 
 COPY utils utils
-COPY models models
 RUN mkdir /home/logs
 
 # Run integration testing

@@ -10,19 +10,18 @@ def upload_path(file):
 
 
 def save_files(train_script, requirements, dataset):
-
     files = [train_script, requirements, dataset]
 
     with ZipFile(upload_path('environment.zip'), 'w') as zipfile:
-        
         zipfile.write(upload_path('find.py'))
 
         for file in files:
             # Save the file in /trainerfiles/filename path
             file.save(upload_path(file.filename))
 
-            #Add file to environment.zip
+            # Add file to environment.zip
             zipfile.write(upload_path(file.filename))
+
 
 def remove_buildenv():
     remove(upload_path("Dockerfile"))
@@ -48,13 +47,14 @@ def create_dockerfile(model_name, tag):
         'WORKDIR /home/trainer\n' +
         'RUN pip install requests\n' +
         'RUN curl 172.17.0.1:8002/api/v1/train/download_buildenv --output environment.zip\n'
-        'RUN unzip environment.zip\n' + 
+        'RUN unzip environment.zip\n' +
         'WORKDIR /home/trainer/trainerfiles\n' +
         'RUN pip install -r requirements.txt\n' +
         f'ENTRYPOINT python3 train.py && python3 find.py {model_name} {tag}\n'
     )
 
     dockerfile.close()
+
 
 def create_client():
     # Configure the Docker Client to connect to the external machine
@@ -67,6 +67,7 @@ def build_image(client):
     # Build the images sending the context to the external Docker daemon
     client.images.build(path=UPLOADS_DIR, rm=True,
                         pull=True, tag='trainer')
+
 
 def run_training(train_script, requirements, dataset, model_name, tag):
     save_files(train_script, requirements, dataset)

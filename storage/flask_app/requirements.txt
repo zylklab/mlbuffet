@@ -1,0 +1,10 @@
+Flask==2.1.2
+gunicorn==20.1.0
+gevent
+requests==2.27.1
+Flask-HTTPAuth==4.6.0
+prometheus-client==0.14.1
+linux-metrics==0.1.4
+kubernetes==23.6.0
+python-nmap==0.7.1
+Deprecated
