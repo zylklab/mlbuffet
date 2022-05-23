@@ -259,15 +259,16 @@ def update_models():
 
 
 # This resource is used for model management. Performs operations on models and manages models in the server.
-@server.route(path.join(API_BASE_URL, 'models/<tag>'), methods=['GET', 'PUT', 'POST', 'DELETE'])
+@server.route(path.join(API_BASE_URL, 'models/<tag>'), methods=['GET', 'POST', 'DELETE'])
 def model_handling(tag):
-    # For GET requests, display model information
+    # Download model
     if request.method == 'GET':
-        metric_manager.increment_model_counter()
-        return mh_talker.get_information_of_a_model(tag)
+        metric_manager.increment_storage_counter()
 
-    # For PUT requests, upload the given model file to the modelhost server
-    if request.method == 'PUT':
+        return st_talker.download_model(tag=tag)
+
+    # Upload the given model file to the modelhost server
+    if request.method == 'POST':
         metric_manager.increment_storage_counter()
         # Check a file path has been provided
         if not request.files or 'path' not in request.files:
@@ -290,28 +291,6 @@ def model_handling(tag):
             desc = request.form['model_description']
 
         return st_talker.upload_new_model(tag=tag, file=new_model, file_name=model_name, description=desc)
-
-    # For POST requests, update the information of a given model
-    if request.method == 'POST':
-        metric_manager.increment_model_counter()
-
-        # Check that any json data has been provided
-        if not request.json:
-            return HttpJsonResponse(
-                422,
-                http_status_description='No json data provided {model_description:string}').get_response()
-
-        # Check that model_description has been provided
-        if 'model_description' not in request.json:
-            return HttpJsonResponse(422, http_status_description='No model_description provided').get_response()
-
-        description = request.json['model_description']
-
-        # Check that model_description is a string
-        if not isinstance(description, str):
-            return HttpJsonResponse(422, http_status_description='model_description must be a string').get_response()
-
-        return mh_talker.write_model_description(tag, description)
 
     # For DELETE requests, delete a given tag from the storage
     if request.method == 'DELETE':
@@ -395,21 +374,37 @@ def upload_default(tag):
     return st_talker.set_default_model(tag, str(default))
 
 
-@server.route(path.join(API_BASE_URL, 'models/<tag>/download'), methods=['GET'])
-def download_model(tag):
-    metric_manager.increment_storage_counter()
+@server.route(path.join(API_BASE_URL, 'models/<tag>/information'), methods=['GET', 'PUT'])
+def model_information_handling(tag):
+    """ GET model information and PUT (update) model information """
 
-    # Download the model
-    response = st_talker.download_model(tag=tag)
-    return response
+    # Get information of the model tag
+    if request.method == 'GET':
+        metric_manager.increment_storage_counter()
 
+        return st_talker.get_tag_information(tag)
 
-@server.route(path.join(API_BASE_URL, 'models/<tag>/information'), methods=['GET'])
-def get_info(tag):
-    metric_manager.increment_storage_counter()
+    # Update the information of the model tag
+    if request.method == 'PUT':
+        metric_manager.increment_model_counter()
 
-    # Get information of the tag
-    return st_talker.get_tag_information(tag)
+        # Check that any json data has been provided
+        if not request.json:
+            return HttpJsonResponse(
+                422,
+                http_status_description='No json data provided {model_description:string}').get_response()
+
+        # Check that model_description has been provided
+        if 'model_description' not in request.json:
+            return HttpJsonResponse(422, http_status_description='No model_description provided').get_response()
+
+        description = request.json['model_description']
+
+        # Check that model_description is a string
+        if not isinstance(description, str):
+            return HttpJsonResponse(422, http_status_description='model_description must be a string').get_response()
+
+        return mh_talker.write_model_description(tag, description)
 
 
 if __name__ == '__main__':

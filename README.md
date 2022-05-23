@@ -121,34 +121,7 @@ Several methods for model handling can be used from the API:
 }
 ```
 
-**Get model information**
-
-The specific information of any model can also be requested with GET /api/v1/models/<model_name> method:
-
-`curl -X GET http://localhost:8002/api/v1/models/iris_model`
-
-**Update model information**
-
-A model may have incomplete information, wrong information or no information at all. You can update the description of a
-model using POST method:
-
-`curl -X POST -H "Content-Type: application/json" --data '{"model_description":"This model classifies a 4 element array input between different species of Iris flowers."}' http://localhost:8002/api/v1/models/iris_model`
-
-**Upload a new model**
-
-You can upload your own models to the server using PUT method:
-
-`curl -X PUT -F "path=@/path/to/local/model" http://localhost:8002/api/v1/models/<tag>`
-
-You can also give some information of the version changes:
-
-`curl -X PUT -F "path=@/path/to/local/model" -F "model_description=version description of the file" http://localhost:8002/api/v1/models/<tag>`
-
-> This description will not be able to changes, and will not be read with the modelhost service.
-
-When a new version is uploaded, that will be associated as the default model, and read by the modelhosts.
-
-**Get tag information**
+**Get model tag information**
 
 You can read the relevant information of the models associated with a tag:
 
@@ -179,9 +152,45 @@ You can read the relevant information of the models associated with a tag:
 
 ```
 
+**Update model information**
+
+A model may have incomplete information, wrong information or no information at all. You can update the description of a
+model using PUT method:
+
+`curl -X PUT -H "Content-Type: application/json" --data '{"model_description":"This model classifies a 4 element array input between different species of Iris flowers."}' http://localhost:8002/api/v1/models/iris_model/information`
+
+**Upload a new model**
+
+You can upload your own models to MLBuffet using POST method:
+
+`curl -X POST -F "path=@/path/to/local/model" http://localhost:8002/api/v1/models/<tag>`
+
+You can also give some information of the version changes:
+
+`curl -X POST -F "path=@/path/to/local/model" -F "model_description=version description of the file" http://localhost:8002/api/v1/models/<tag>`
+
+> Note: you will not be able to change this version description.
+
+When a new version is uploaded, that will be associated as the default model, and read by the modelhosts.
+
+**Download model**
+
+You can download any version of any model tag located in the storage module.
+You can specify the version you want give from the storage in three ways:
+
+* `<tag>`
+* `<tag>:default`
+* `<tag>:<version>`
+
+The first two methods download the file set as default, and the last one downloads the specified version.
+
+`wget http://localhost:8002/api/v1/models/<tag>/download --content-disposition`
+
+You can also download files with your browser with the above URL.
+
 **Delete a model**
 
-Delete models you do not need anymore with DELETE method. You can specify the version you want remove of the storage in
+You can delete models you do not need anymore with DELETE method. You can specify the version you want remove of the storage in
 three ways:
 
 * `<tag>`
@@ -198,21 +207,6 @@ You can put any version stored into the storage service as the default version:
 
 `curl -X POST -H "Content-Type: application/json" --data '{"default": <new default version>}'
 http://localhost:8002/api/v1/models/<tag>/default`
-
-**Download version**
-
-You can download any version of any tag located into the storage module.
-You can specify the version you want give from the storage in three ways:
-
-* `<tag>`
-* `<tag>:default`
-* `<tag>:<version>`
-
-The first two methods download the file set as default, and the last one downloads the specified version.
-
-`wget http://localhost:8002/api/v1/models/<tag>/download --content-disposition`
-
-You can also download files with your browser with the above URL.
 
 ## Model Predictions
 
