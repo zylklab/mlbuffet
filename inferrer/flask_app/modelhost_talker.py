@@ -60,7 +60,7 @@ def get_information_of_a_model(tag):
     return _get(resource)
 
 
-def make_a_prediction(tag, new_observation):  # TODO: for example here update wouldn't be necessary WHERE TO CALL
+def make_a_prediction(tag, new_observation):
     resource = f'/modelhost/models/{tag}/prediction'
     return _post(resource, {'values': new_observation})
 
