@@ -166,7 +166,7 @@ def run_training(train_script, requirements, dataset, model_name, tag):
             name=NAME, namespace=NAMESPACE)
 
         # Create Pod body
-        V1Pod = kclient.V1Pod(api_version='apps/v1', kind='Pod',
+        V1Pod = kclient.V1Pod(api_version='v1', kind='Pod',
                               metadata=V1ObjectMeta, spec=V1PodSpec)  # V1Pod |
 
         # str | fieldValidation determines how the server should respond to unknown/duplicate fields in the object in the request.
