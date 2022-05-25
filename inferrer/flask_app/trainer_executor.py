@@ -106,8 +106,6 @@ def run_training(train_script, requirements, dataset, model_name, tag):
         # >> CHECK CONTAINER header_length
 
     else:
-        pass
-
         config.load_incluster_config()
         v1 = kclient.CoreV1Api()
 
