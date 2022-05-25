@@ -2,6 +2,9 @@ from zipfile import ZipFile
 from os import environ, path, remove
 import docker
 from os import getenv
+from kubernetes import config
+from kubernetes import client as kclient
+
 
 UPLOADS_DIR = '/trainerfiles/'
 
@@ -103,6 +106,26 @@ def run_training(train_script, requirements, dataset, model_name, tag):
 
     else:
         pass
+
+        config.load_incluster_config()
+        v1 = kclient.CoreV1Api()
+
+        NAMESPACE = 'mlbuffet'
+
+        body = kclient.V1Pod()  # V1Pod |
+
+        # str | fieldValidation determines how the server should respond to unknown/duplicate fields in the object in the request. Introduced as alpha in 1.23, older servers or servers with the `ServerSideFieldValidation` feature disabled will discard valid values specified in  this param and not perform any server side field validation. Valid values are: - Ignore: ignores unknown/duplicate fields. - Warn: responds with a warning for each unknown/duplicate field, but successfully serves the request. - Strict: fails the request on unknown/duplicate fields. (optional)
+        field_validation = 'Ignore'
+
+        try:
+            api_response = v1.create_namespaced_pod(
+                NAMESPACE, body, field_validation=field_validation)
+            print(api_response)
+        except Exception as e:
+            print("Exception when calling CoreV1Api->create_namespaced_pod: %s\n" % e)
+
+        # trainerPod.
+
         # STEPS TO FOLLOW:
         # 1.- Create Pod from trainer image
         # 2.- Get download_buildenv call
