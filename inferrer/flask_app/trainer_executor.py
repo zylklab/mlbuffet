@@ -1,3 +1,4 @@
+from lib2to3.pgen2.token import NAME
 from zipfile import ZipFile
 from os import environ, path, remove
 import docker
@@ -110,16 +111,77 @@ def run_training(train_script, requirements, dataset, model_name, tag):
         config.load_incluster_config()
         v1 = kclient.CoreV1Api()
 
+        # apiVersion: apps/v1
+        # kind: Pod
+        # metadata:
+        #   name: trainer
+        #   namespace: mlbuffet
+        # spec:
+        #   replicas: 1
+        #   selector:
+        #     matchLabels:
+        #       app: mlbuffet_trainer
+        #   template:
+        #     metadata:
+        #       labels:
+        #         app: mlbuffet_trainer
+        #     spec:
+        #      serviceAccountName: pod-scheduler
+        #      containers:
+        #         - name: trainer
+        #           image: localhost:5000/mlbuffet_trainer
+        #           imagePullPolicy: Always
+        #           env:
+        #             - name: ORCHESTRATOR
+        #               value: "KUBERNETES"
+        #             - name: MODEL_NAME
+        #               value: "model_name"
+        #             - name: TAG
+        #               value: "tag"
+        # All this must be parsed into Python objects
+
         NAMESPACE = 'mlbuffet'
+        NAME = 'trainer'
+        IMAGE = 'localhost:5000/mlbuffet_trainer'
 
-        body = kclient.V1Pod()  # V1Pod |
+        # Fill the environment variables list
+        ENV_LIST = []
+        ENV1 = kclient.V1EnvVar(name='ORCHESTRATOR', value='Kubernetes')
+        ENV2 = kclient.V1EnvVar(name='MODEL_NAME', value=model_name)
+        ENV2 = kclient.V1EnvVar(name='TAG', value=tag)
+        ENV_LIST.append(ENV1)
+        ENV_LIST.append(ENV2)
+        ENV_LIST.append(ENV3)
 
-        # str | fieldValidation determines how the server should respond to unknown/duplicate fields in the object in the request. Introduced as alpha in 1.23, older servers or servers with the `ServerSideFieldValidation` feature disabled will discard valid values specified in  this param and not perform any server side field validation. Valid values are: - Ignore: ignores unknown/duplicate fields. - Warn: responds with a warning for each unknown/duplicate field, but successfully serves the request. - Strict: fails the request on unknown/duplicate fields. (optional)
+        # Fill the container list
+        CONTAINER_LIST = []
+        trainer_container = kclient.V1Container(
+            name=NAME, image=IMAGE, image_pull_policy='Always', env=ENV_LIST)
+        CONTAINER_LIST.append(trainer_container)
+
+        # Create the Pod Spec
+        V1PodSpec = kclient.V1PodSpec(
+            replicas='1', service_account_name='pod-scheduler', containers=CONTAINER_LIST)
+
+        # Create the Metadata of the Pod
+        V1ObjectMeta = kclient.V1ObjectMeta(
+            name=NAME, namespace=NAMESPACE)
+
+        # Create Pod body
+        V1Pod = kclient.V1Pod(api_version='apps/v1', kind='Pod',
+                              metadata=V1ObjectMeta, spec=V1PodSpec)  # V1Pod |
+
+        # str | fieldValidation determines how the server should respond to unknown/duplicate fields in the object in the request.
+        # Introduced as alpha in 1.23, older servers or servers with the `ServerSideFieldValidation` feature disabled will discard
+        # valid values specified in  this param and not perform any server side field validation. Valid values are:
+        # - Ignore: ignores unknown/duplicate fields.
+        # - Warn: responds with a warning for each unknown/duplicate field, but successfully serves the request.
+        # - Strict: fails the request on unknown/duplicate fields. (optional)
         field_validation = 'Ignore'
 
         try:
             api_response = v1.create_namespaced_pod(
-                NAMESPACE, body, field_validation=field_validation)
+                NAMESPACE, body=V1Pod, field_validation=field_validation)
             print(api_response)
         except Exception as e:
             print("Exception when calling CoreV1Api->create_namespaced_pod: %s\n" % e)
