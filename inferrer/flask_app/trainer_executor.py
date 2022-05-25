@@ -146,7 +146,7 @@ def run_training(train_script, requirements, dataset, model_name, tag):
         ENV_LIST = []
         ENV1 = kclient.V1EnvVar(name='ORCHESTRATOR', value='Kubernetes')
         ENV2 = kclient.V1EnvVar(name='MODEL_NAME', value=model_name)
-        ENV2 = kclient.V1EnvVar(name='TAG', value=tag)
+        ENV3 = kclient.V1EnvVar(name='TAG', value=tag)
         ENV_LIST.append(ENV1)
         ENV_LIST.append(ENV2)
         ENV_LIST.append(ENV3)
@@ -159,7 +159,7 @@ def run_training(train_script, requirements, dataset, model_name, tag):
 
         # Create the Pod Spec
         V1PodSpec = kclient.V1PodSpec(
-            replicas='1', service_account_name='pod-scheduler', containers=CONTAINER_LIST)
+            service_account_name='pod-scheduler', containers=CONTAINER_LIST)
 
         # Create the Metadata of the Pod
         V1ObjectMeta = kclient.V1ObjectMeta(
@@ -179,7 +179,7 @@ def run_training(train_script, requirements, dataset, model_name, tag):
 
         try:
             api_response = v1.create_namespaced_pod(
-                NAMESPACE, body=V1Pod, field_validation=field_validation)
+                NAMESPACE, body=V1Pod)
             print(api_response)
         except Exception as e:
             print("Exception when calling CoreV1Api->create_namespaced_pod: %s\n" % e)
