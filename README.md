@@ -40,7 +40,7 @@ Images must be built from source with the provided build.sh script.
 For orchestrated deployments (Docker Swarm or Kubernetes), all images must be available for every
 node on the cluster, otherwise nodes will not be able to deploy containers.
 
-#### Docker
+### Docker
 
 For **Docker Swarm** deployments, there is a deploy.sh script provided which will deploy automatically and configure your cluster. There are two restrictions:
 
@@ -49,7 +49,13 @@ For **Docker Swarm** deployments, there is a deploy.sh script provided which wil
 - The mlbuffet_overlay network is used by nodes to communicate. The
 preferred subnet is 10.0.13.0/24.
 
-#### Kubernetes
+**Reported issue:** Sometimes after installing docker-compose, the docker-compose tool is unable to access the docker socket
+due to permission issues. To solve
+this problem, include docker your user in the docker group with `sudo usermod -aG docker $USER`. Then, give
+docker-compose permission to access the docker.socket file, by running `sudo chmod 666 /var/run/docker.sock`.
+
+
+### Kubernetes
 
 For **Kubernetes** deployments, there is also a script provided, deploy.sh, however all the config files are provided so the user can deploy with custom configuration if desired.
 To change the name of the corresponding service, please, modify the `deploy/kubernetes/autodeploy/kustomization.yaml` file, replacing each image name by his correct name at the parameter `-newName`:
@@ -69,10 +75,17 @@ But your modelhost image name is `docker.io/library/modelhost:latest`, so the `k
     newTag: latest
 ```
 
-**Reported issue:** Sometimes after installing docker-compose, the docker-compose tool is unable to access the docker socket
-due to permission issues. To solve
-this problem, include docker your user in the docker group with `sudo usermod -aG docker $USER`. Then, give
-docker-compose permission to access the docker.socket file, by running `sudo chmod 666 /var/run/docker.sock`.
+#### Helm Chart
+
+For an easier deployment, a Helm Chart is provided. To install it with helm charts, build the chart with a release name:
+
+```commandline
+helm install my-release deploy/kubernetes/mlbuffet-chart/
+```
+
+**Configure the Chart**
+
+To configure the Chart, edit the values from `deploy/kubernetes/mlbuffet-chart/Values.yaml`, or set via `--set` flag during the installation.
 
 ## Test the API and welcome
 
