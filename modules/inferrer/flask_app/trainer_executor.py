@@ -64,7 +64,7 @@ def create_dockerfile(model_name, tag):
     dockerfile.close()
 
 
-def create_client():
+def create_docker_client():
     # Configure the Docker Client to connect to the external machine
     tlsconfig = docker.TLSConfig(client_cert=("./utils/client/cert.pem", "./utils/client/key.pem"),
                                  ca_cert="./utils/client/ca.pem")
@@ -84,7 +84,7 @@ def run_training(train_script, requirements, dataset, model_name, tag):
     if not getenv('ORCHESTRATOR') == 'KUBERNETES':
         create_dockerfile(model_name, tag)
 
-        client = create_client()
+        client = create_docker_client()
         # Build the image
         build_image(client)
 
