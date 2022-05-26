@@ -133,7 +133,7 @@ def run_training(train_script, requirements, dataset, model_name, tag):
 
         # Fill the environment variables list
         ENV_LIST = []
-        ENV1 = kclient.V1EnvVar(name='ORCHESTRATOR', value='Kubernetes')
+        ENV1 = kclient.V1EnvVar(name='ORCHESTRATOR', value='KUBERNETES')
         ENV2 = kclient.V1EnvVar(name='MODEL_NAME', value=model_name)
         ENV3 = kclient.V1EnvVar(name='TAG', value=tag)
         ENV_LIST.append(ENV1)
