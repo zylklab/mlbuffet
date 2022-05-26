@@ -4,6 +4,7 @@ import redis
 from utils.container_logger import Logger
 from os import getenv
 
+
 if getenv('ORCHESTRATOR') == 'KUBERNETES':
     REDIS_HOST = 'cache'
 else:
@@ -12,6 +13,7 @@ else:
 REDIS_PORT = 6379
 
 redis_cli = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
+
 
 logger = Logger('inferrer').get_logger('cache')
 
@@ -42,6 +44,6 @@ def put_prediction_in_cache(hash_code, prediction):
     j_prediction = json.dumps(prediction)
     try:
         redis_cli.set(hash_code, j_prediction)
-    except redis.exceptions as re:
+    except redis.exceptions.RedisError as re:
         re_str = str(re)
         logger.info(re_str)
