@@ -1,6 +1,5 @@
-from lib2to3.pgen2.token import NAME
 from zipfile import ZipFile
-from os import environ, path, remove
+from os import path, remove
 import docker
 from os import getenv
 from kubernetes import config
@@ -156,15 +155,7 @@ def run_training(train_script, requirements, dataset, model_name, tag):
 
         # Create Pod body
         V1Pod = kclient.V1Pod(api_version='v1', kind='Pod',
-                              metadata=V1ObjectMeta, spec=V1PodSpec)  # V1Pod |
-
-        # str | fieldValidation determines how the server should respond to unknown/duplicate fields in the object in the request.
-        # Introduced as alpha in 1.23, older servers or servers with the `ServerSideFieldValidation` feature disabled will discard
-        # valid values specified in  this param and not perform any server side field validation. Valid values are:
-        # - Ignore: ignores unknown/duplicate fields.
-        # - Warn: responds with a warning for each unknown/duplicate field, but successfully serves the request.
-        # - Strict: fails the request on unknown/duplicate fields. (optional)
-        field_validation = 'Ignore'
+                              metadata=V1ObjectMeta, spec=V1PodSpec)
 
         try:
             api_response = v1.create_namespaced_pod(
@@ -172,15 +163,3 @@ def run_training(train_script, requirements, dataset, model_name, tag):
             print(api_response)
         except Exception as e:
             print("Exception when calling CoreV1Api->create_namespaced_pod: %s\n" % e)
-
-        # trainerPod.
-
-        # STEPS TO FOLLOW:
-        # 1.- Create Pod from trainer image
-        # 2.- Get download_buildenv call
-        # 3.- Execute train.py
-        # 4.- Execute find.py
-        # 5.- Receive the model back
-        #
-
-# TODO: def check_logs():
