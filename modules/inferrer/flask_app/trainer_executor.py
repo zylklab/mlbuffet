@@ -17,14 +17,6 @@ def upload_path(file):
 def save_files(train_script, requirements, dataset, model_name, tag):
     files = [train_script, requirements, dataset]
 
-    if getenv('ORCHESTRATOR') == 'KUBERNETES':
-        environment_script = open(upload_path('environment.sh'), 'w')
-        environment_script.write(
-            f'MODEL_NAME ={model_name}\n' +
-            f'TAG={tag}'
-        )
-        environment_script.close()
-
     with ZipFile(upload_path('environment.zip'), 'w') as zipfile:
         zipfile.write(upload_path('find.py'))
 
