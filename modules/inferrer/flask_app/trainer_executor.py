@@ -148,7 +148,7 @@ def run_training(train_script, requirements, dataset, model_name, tag):
 
         # Create the Pod Spec
         V1PodSpec = kclient.V1PodSpec(
-            service_account_name='pod-scheduler', containers=CONTAINER_LIST)
+            service_account_name='pod-scheduler', containers=CONTAINER_LIST, restart_policy='OnFailure')
 
         # Create the Metadata of the Pod
         V1ObjectMeta = kclient.V1ObjectMeta(
