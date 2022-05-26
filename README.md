@@ -40,6 +40,8 @@ Images must be built from source with the provided build.sh script.
 For orchestrated deployments (Docker Swarm or Kubernetes), all images must be available for every
 node on the cluster, otherwise nodes will not be able to deploy containers.
 
+#### Docker
+
 For **Docker Swarm** deployments, there is a deploy.sh script provided which will deploy automatically and configure your cluster. There are two restrictions:
 
 - Stack name must be set as
@@ -47,9 +49,25 @@ For **Docker Swarm** deployments, there is a deploy.sh script provided which wil
 - The mlbuffet_overlay network is used by nodes to communicate. The
 preferred subnet is 10.0.13.0/24.
 
+#### Kubernetes
+
 For **Kubernetes** deployments, there is also a script provided, deploy.sh, however all the config files are provided so the user can deploy with custom configuration if desired.
-
-
+To change the name of the corresponding service, please, modify the `deploy/kubernetes/autodeploy/kustomization.yaml` file, replacing each image name by his correct name at the parameter `-newName`:
+For instance, if your modelhost image name is `docker.io/library/modelhost:latest`, the image default image resource is:
+For instance, the default image name of the modelhost is:
+```yaml
+  # Modelhost image name
+  - name: IMAGE_MLBUFFET_MODELHOST
+    newName: IMAGE_MLBUFFET_MODELHOST
+    newTag: latest
+```
+But your modelhost image name is `docker.io/library/modelhost:latest`, so the `kustomization.yaml` file should be displayed as:
+ ```yaml
+  # Modelhost image name
+  - name: IMAGE_MLBUFFET_MODELHOST
+    newName: docker.io/library/modelhost
+    newTag: latest
+```
 
 **Reported issue:** Sometimes after installing docker-compose, the docker-compose tool is unable to access the docker socket
 due to permission issues. To solve

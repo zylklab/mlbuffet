@@ -22,9 +22,11 @@ def IPScan(service: str):
         service_name = 'mlbuffet_' + service
         ret = v1.list_namespaced_pod('mlbuffet')
         for item in ret.items:
-            if item.metadata.labels['app'] == service_name:
-                servicelist.append(item.status.pod_ip)
-
+            try:
+                if item.metadata.labels['app'] == service_name:
+                    servicelist.append(item.status.pod_ip)
+            except:
+                pass
     # For now, we only support Kubernetes and Docker swarm, so this will work in Docker Swarm.
 
     else:
