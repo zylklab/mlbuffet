@@ -6,7 +6,7 @@ config.load_incluster_config()
 v1 = kclient.CoreV1Api()
 
 try:
-    api_response = v1.connect_delete_namespaced_pod_proxy(
+    api_response = v1.delete_namespaced_pod(
         name='trainer', namespace='mlbuffet')
     print(api_response)
 except Exception as e:
