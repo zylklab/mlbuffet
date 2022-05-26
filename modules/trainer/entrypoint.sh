@@ -12,4 +12,4 @@ cd trainerfiles
 pip install -r requirements.txt;
 python3 train.py;
 python3 find.py;
-python3 apoptosis.py;
+python3 ../apoptosis.py;
