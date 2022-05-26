@@ -17,7 +17,7 @@ TAG = getenv('TAG')
 for file in glob.glob(f'/home/trainer/**/{FILENAME}', recursive=True):
     if file is not None and get_file_extension(file) in ALLOWED_EXTENSIONS:
 
-        if getenv('ORCHESTRATOR') == 'KUBERENTES':
+        if getenv('ORCHESTRATOR') == 'KUBERNETES':
             response = requests.put(
                 f'http://inferrer:8000/api/v1/models/{TAG}', files={"path": open(file, 'rb')})
         else:
