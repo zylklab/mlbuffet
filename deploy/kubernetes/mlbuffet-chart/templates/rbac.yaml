@@ -1,0 +1,36 @@
+apiVersion: {{ .Values.apiVersion.role }}
+kind: Role
+metadata:
+  name: {{ .Values.role.name}}
+  namespace: {{ .Values.namespace.name }}
+rules:
+  - apiGroups: [""]
+    resources: {{- range .Values.role.resources }}
+    - {{ . | title | lower}}
+    {{- end}}
+    verbs: {{- range .Values.role.verbs}}
+    - {{ . | title | lower }}
+    {{- end}}
+
+---
+
+apiVersion: {{ .Values.apiVersion.roleBinding}}
+kind: RoleBinding
+metadata:
+  name: {{ .Values.roleBinding.name}}
+  namespace: {{ .Values.namespace.name }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.serviceAccount.name}}
+roleRef:
+  kind: Role
+  name: {{ .Values.role.name}}
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
+apiVersion: {{ .Values.apiVersion.serviceAccount}}
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.serviceAccount.name}}
+  namespace: {{ .Values.namespace.name }}

@@ -1,0 +1,85 @@
+namespace:
+  name: mlbuffet
+
+images:
+  inferrer: MLBUFFET-IMAGE-INFERRER
+  modelhost: MLBUFFET-IMAGE-MODELHOST
+  storage: MLBUFFET-IMAGE-STORAGE
+  metrics: MLBUFFET-IMAGE-METRICS
+  cache:  MLBUFFET-IMAGE-CACHE
+  imagePullPolicy: Always
+
+apiVersion:
+  deployment: apps/v1
+  service: v1
+  role: rbac.authorization.k8s.io/v1
+  serviceAccount: v1
+  roleBinding: rbac.authorization.k8s.io/v1
+
+role:
+  name: modify-pods
+  resources:
+    - pods
+  verbs:
+    - list
+    - get
+    - delete
+
+serviceAccount:
+  name: pod-scheduler
+
+roleBinding:
+  name: modify-pods-to-sa
+  apiGroup: rbac.authorization.k8s.io
+
+orchestratorType: "KUBERNETES"
+
+cache:
+  name: cache
+  service:
+    ports:
+      protocol: TCP
+      port: 6379
+      targetPort: 6379
+  deployment:
+    replicas: 1
+
+inferrer:
+  name: inferrer
+  service:
+    ports:
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+  deployment: 
+    replicas: 1
+
+modelhost:
+  name: modelhost
+  service:
+    ports:
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+  deployment: 
+    replicas: 1
+
+storage:
+  name: storage
+  service:
+    ports:
+      protocol: TCP
+      port: 8000
+      targetPort: 8000
+  deployment: 
+    replicas: 1
+
+metrics:
+  name: metrics
+  service:
+    ports:
+      protocol: TCP
+      port: 9090
+      targetPort: 9090
+  deployment: 
+    replicas: 1

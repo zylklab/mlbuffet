@@ -1,0 +1,48 @@
+apiVersion: {{ .Values.apiVersion.deployment }}
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-{{ .Values.inferrer.name}}
+  namespace: {{ .Values.namespace.name }}
+spec:
+  replicas: {{ .Values.inferrer.deployment.replicas}}
+  selector:
+    matchLabels:
+      app: {{ .Values.inferrer.name}}
+      chart: "{{ .Chart.Name}}_{{ .Chart.Version}}"
+      release: {{ .Release.Name | quote }}
+      heritage: {{ .Release.Service | quote }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.inferrer.name }}
+        chart: "{{ .Chart.Name}}_{{ .Chart.Version}}"
+        release: {{ .Release.Name | quote }}
+        heritage: {{ .Release.Service | quote }}
+    spec:
+     serviceAccountName: {{ .Values.serviceAccount.name }}
+     containers:
+        - name: {{ .Values.inferrer.name}}
+          image: {{ .Values.images.inferrer}}
+          imagePullPolicy: {{ .Values.images.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.inferrer.service.ports.port}}
+          env:
+            - name: ORCHESTRATOR
+              value: {{ .Values.orchestratorType | quote}}
+
+---
+
+apiVersion: {{ .Values.apiVersion.service }}
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-{{ .Values.inferrer.name}}
+  namespace: {{ .Values.namespace.name }}
+spec:
+  selector:
+    app: {{ .Values.inferrer.name}}
+  ports:
+  - protocol: {{ .Values.inferrer.service.ports.protocol}}
+    port: {{ .Values.inferrer.service.ports.port}}
+    targetPort: {{ .Values.inferrer.service.ports.targetPort}}
+  type: NodePort
+
