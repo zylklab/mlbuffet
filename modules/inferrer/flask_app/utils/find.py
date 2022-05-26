@@ -1,6 +1,6 @@
 import glob
 from sys import argv
-from os import getenv
+from os import getenv, path
 import requests
 
 ALLOWED_EXTENSIONS = [".h5", ".onnx", ".pkl",
