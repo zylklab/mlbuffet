@@ -30,7 +30,7 @@ spec:
 apiVersion: {{ .Values.apiVersion.service }}
 kind: Service
 metadata:
-  name: {{ .Chart.Name }}-{{ .Values.cache.name}}
+  name: {{ .Values.cache.name}}
   namespace: {{ .Values.namespace.name }}
 spec:
   selector:

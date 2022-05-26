@@ -7,7 +7,7 @@ images:
   storage: MLBUFFET-IMAGE-STORAGE
   metrics: MLBUFFET-IMAGE-METRICS
   cache:  MLBUFFET-IMAGE-CACHE
-  imagePullPolicy: Always
+  imagePullPolicy: IfNotPresent
 
 apiVersion:
   deployment: apps/v1
