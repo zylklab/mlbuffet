@@ -52,13 +52,15 @@ def create_dockerfile(model_name, tag):
         'RUN mkdir /home/trainer\n' +
         'RUN chown -R trainer:trainer /home/trainer\n' +
         'USER trainer\n' +
+        f'ENV MODEL_NAME={model_name}\n' +
+        f'ENV TAG={tag}\n' +
         'WORKDIR /home/trainer\n' +
         'RUN pip install requests\n' +
         'RUN curl 172.17.0.1:8002/api/v1/train/download_buildenv --output environment.zip\n'
         'RUN unzip environment.zip\n' +
         'WORKDIR /home/trainer/trainerfiles\n' +
         'RUN pip install -r requirements.txt\n' +
-        f'ENTRYPOINT python3 train.py && python3 find.py {model_name} {tag}\n'
+        f'ENTRYPOINT python3 train.py && python3 find.py\n'
     )
 
     dockerfile.close()
