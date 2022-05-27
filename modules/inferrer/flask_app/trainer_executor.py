@@ -125,7 +125,7 @@ def run_training(train_script, requirements, dataset, model_name, tag):
 
         NAMESPACE = 'mlbuffet'
         NAME = 'trainer'
-        IMAGE = 'localhost:5000/mlbuffet_trainer'
+        IMAGE = getenv('IMAGE_MLBUFFET_TRAINER')
 
         # Fill the environment variables list
         ENV_LIST = []
