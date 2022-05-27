@@ -82,23 +82,23 @@ def build_image(client):
 def run_training(train_script, requirements, dataset, model_name, tag):
     save_files(train_script, requirements, dataset, model_name, tag)
 
-    # Create Dockerfile with the files in it
     if not getenv('ORCHESTRATOR') == 'KUBERNETES':
+        # Create Dockerfile
         create_dockerfile(model_name, tag)
 
         client = create_docker_client()
         # Build the image
         build_image(client)
 
-        # TODO: Do this in a thread so the user gets back the control of his terminal
         # Run the image
         container = client.containers.run(image="trainer", detach=True)
-        # >> CHECK CONTAINER header_length
 
     else:
+        # When in K8S environments
         config.load_incluster_config()
         v1 = kclient.CoreV1Api()
 
+        #####################################################
         # apiVersion: apps/v1
         # kind: Pod
         # metadata:
@@ -106,13 +106,7 @@ def run_training(train_script, requirements, dataset, model_name, tag):
         #   namespace: mlbuffet
         # spec:
         #   replicas: 1
-        #   selector:
-        #     matchLabels:
-        #       app: mlbuffet_trainer
         #   template:
-        #     metadata:
-        #       labels:
-        #         app: mlbuffet_trainer
         #     spec:
         #      serviceAccountName: pod-scheduler
         #      containers:
@@ -126,7 +120,8 @@ def run_training(train_script, requirements, dataset, model_name, tag):
         #               value: "model_name"
         #             - name: TAG
         #               value: "tag"
-        # All this must be parsed into Python objects
+        # This YAML must be parsed into Python objects
+        #####################################################
 
         NAMESPACE = 'mlbuffet'
         NAME = 'trainer'
@@ -162,6 +157,6 @@ def run_training(train_script, requirements, dataset, model_name, tag):
         try:
             api_response = v1.create_namespaced_pod(
                 NAMESPACE, body=V1Pod)
-            print(api_response)
+
         except Exception as e:
             print("Exception when calling CoreV1Api->create_namespaced_pod: %s\n" % e)
