@@ -15,20 +15,18 @@ images:
   # Modelhost image name
   - name: IMAGE_MLBUFFET_MODELHOST
     newName: IMAGE_MLBUFFET_MODELHOST
-    newTag: latest
   # Inferrer image name
   - name: IMAGE_MLBUFFET_INFERRER
     newName: IMAGE_MLBUFFET_INFERRER
-    newTag: latest
   # Cache image name
   - name: IMAGE_MLBUFFET_CACHE
     newName: IMAGE_MLBUFFET_CACHE
-    newTag: latest
   # Metrics image name
   - name: IMAGE_MLBUFFET_METRICS
     newName: IMAGE_MLBUFFET_METRICS
-    newTag: latest
   # Storage image name
   - name: IMAGE_MLBUFFET_STORAGE
     newName: IMAGE_MLBUFFET_STORAGE
-    newTag: latest
+  # Trainer image name into inferrer.yaml
+  - name: IMAGE_MLBUFFET_TRAINER_NAME
+    newName: IMAGE_MLBUFFET_TRAINER

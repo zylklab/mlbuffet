@@ -25,6 +25,8 @@ spec:
               value: "KUBERNETES"
             - name: MODELHOST_REPLICAS
               value: "4"
+            - name: IMAGE_MLBUFFET_TRAINER
+              value: IMAGE_MLBUFFET_TRAINER_NAME
 
 ---
 
