@@ -2,6 +2,13 @@ import glob
 from sys import argv
 from os import getenv, path
 import requests
+from zipfile import ZipFile
+import shutil
+
+#######################################################################
+# The ALLOWED EXTENSIONS and get_file_extension function should not be
+# extracted to /utils, because find.py is thought to be executed in
+# secondary trainer containers/Pods which don't have the utils dir
 
 ALLOWED_EXTENSIONS = [".h5", ".onnx", ".pkl",
                       ".pt", ".pmml", ".pb", ".zip", ".mlmodel"]
