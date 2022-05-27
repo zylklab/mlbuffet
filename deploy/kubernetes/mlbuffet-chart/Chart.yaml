@@ -1,0 +1,24 @@
+apiVersion: v2
+name: mlbuffet
+description: MLBuffet is a model-server for deployed by Zylk.net
+
+home: https://github.com/zylklab/mlbuffet
+
+type: application
+
+version: 0.1.0
+
+appVersion: "0.1.0"
+
+icon: https://raw.githubusercontent.com/zylklab/mlbuffet/master/docs/images/MlBuffet_daemon.png
+
+source: 
+  - https://github.com/zylklab/mlbuffet
+
+maintainers:
+  - name: LaManoServida
+    url: https://github.com/LaManoServida
+  - name: AlfonsoGonz
+    url: https://github.com/AlfonsoGonz
+  - name: sergiomhmh
+    url: https://github.com/sergiomhmh

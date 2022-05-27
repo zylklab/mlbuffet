@@ -14,21 +14,16 @@ resources:
 images:
   # Modelhost image name
   - name: IMAGE_MLBUFFET_MODELHOST
-    newName: IMAGE_MLBUFFET_MODELHOST
-    newTag: latest
+    newName: localhost:5000/mlbuffet_modelhost
   # Inferrer image name
   - name: IMAGE_MLBUFFET_INFERRER
-    newName: IMAGE_MLBUFFET_INFERRER
-    newTag: latest
+    newName: localhost:5000/mlbuffet_inferrer
   # Cache image name
   - name: IMAGE_MLBUFFET_CACHE
-    newName: IMAGE_MLBUFFET_CACHE
-    newTag: latest
+    newName: localhost:5000/mlbuffet_cache
   # Metrics image name
   - name: IMAGE_MLBUFFET_METRICS
-    newName: IMAGE_MLBUFFET_METRICS
-    newTag: latest
+    newName: localhost:5000/mlbuffet_metrics
   # Storage image name
   - name: IMAGE_MLBUFFET_STORAGE
-    newName: IMAGE_MLBUFFET_STORAGE
-    newTag: latest
+    newName: localhost:5000/mlbuffet_storage

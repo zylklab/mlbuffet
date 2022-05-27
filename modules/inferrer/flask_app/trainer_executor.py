@@ -1,6 +1,5 @@
-from lib2to3.pgen2.token import NAME
 from zipfile import ZipFile
-from os import environ, path, remove
+from os import path, remove
 import docker
 from os import getenv
 from kubernetes import config
@@ -53,19 +52,21 @@ def create_dockerfile(model_name, tag):
         'RUN mkdir /home/trainer\n' +
         'RUN chown -R trainer:trainer /home/trainer\n' +
         'USER trainer\n' +
+        f'ENV MODEL_NAME={model_name}\n' +
+        f'ENV TAG={tag}\n' +
         'WORKDIR /home/trainer\n' +
         'RUN pip install requests\n' +
         'RUN curl 172.17.0.1:8002/api/v1/train/download_buildenv --output environment.zip\n'
         'RUN unzip environment.zip\n' +
         'WORKDIR /home/trainer/trainerfiles\n' +
         'RUN pip install -r requirements.txt\n' +
-        f'ENTRYPOINT python3 train.py && python3 find.py {model_name} {tag}\n'
+        f'ENTRYPOINT python3 train.py && python3 find.py\n'
     )
 
     dockerfile.close()
 
 
-def create_client():
+def create_docker_client():
     # Configure the Docker Client to connect to the external machine
     tlsconfig = docker.TLSConfig(client_cert=("./utils/client/cert.pem", "./utils/client/key.pem"),
                                  ca_cert="./utils/client/ca.pem")
@@ -81,23 +82,23 @@ def build_image(client):
 def run_training(train_script, requirements, dataset, model_name, tag):
     save_files(train_script, requirements, dataset, model_name, tag)
 
-    # Create Dockerfile with the files in it
     if not getenv('ORCHESTRATOR') == 'KUBERNETES':
+        # Create Dockerfile
         create_dockerfile(model_name, tag)
 
-        client = create_client()
+        client = create_docker_client()
         # Build the image
         build_image(client)
 
-        # TODO: Do this in a thread so the user gets back the control of his terminal
         # Run the image
         container = client.containers.run(image="trainer", detach=True)
-        # >> CHECK CONTAINER header_length
 
     else:
+        # When in K8S environments
         config.load_incluster_config()
         v1 = kclient.CoreV1Api()
 
+        #####################################################
         # apiVersion: apps/v1
         # kind: Pod
         # metadata:
@@ -105,13 +106,7 @@ def run_training(train_script, requirements, dataset, model_name, tag):
         #   namespace: mlbuffet
         # spec:
         #   replicas: 1
-        #   selector:
-        #     matchLabels:
-        #       app: mlbuffet_trainer
         #   template:
-        #     metadata:
-        #       labels:
-        #         app: mlbuffet_trainer
         #     spec:
         #      serviceAccountName: pod-scheduler
         #      containers:
@@ -125,11 +120,12 @@ def run_training(train_script, requirements, dataset, model_name, tag):
         #               value: "model_name"
         #             - name: TAG
         #               value: "tag"
-        # All this must be parsed into Python objects
+        # This YAML must be parsed into Python objects
+        #####################################################
 
         NAMESPACE = 'mlbuffet'
         NAME = 'trainer'
-        IMAGE = 'localhost:5000/mlbuffet_trainer'
+        IMAGE = getenv('IMAGE_MLBUFFET_TRAINER')
 
         # Fill the environment variables list
         ENV_LIST = []
@@ -156,31 +152,11 @@ def run_training(train_script, requirements, dataset, model_name, tag):
 
         # Create Pod body
         V1Pod = kclient.V1Pod(api_version='v1', kind='Pod',
-                              metadata=V1ObjectMeta, spec=V1PodSpec)  # V1Pod |
-
-        # str | fieldValidation determines how the server should respond to unknown/duplicate fields in the object in the request.
-        # Introduced as alpha in 1.23, older servers or servers with the `ServerSideFieldValidation` feature disabled will discard
-        # valid values specified in  this param and not perform any server side field validation. Valid values are:
-        # - Ignore: ignores unknown/duplicate fields.
-        # - Warn: responds with a warning for each unknown/duplicate field, but successfully serves the request.
-        # - Strict: fails the request on unknown/duplicate fields. (optional)
-        field_validation = 'Ignore'
+                              metadata=V1ObjectMeta, spec=V1PodSpec)
 
         try:
             api_response = v1.create_namespaced_pod(
                 NAMESPACE, body=V1Pod)
-            print(api_response)
+
         except Exception as e:
             print("Exception when calling CoreV1Api->create_namespaced_pod: %s\n" % e)
-
-        # trainerPod.
-
-        # STEPS TO FOLLOW:
-        # 1.- Create Pod from trainer image
-        # 2.- Get download_buildenv call
-        # 3.- Execute train.py
-        # 4.- Execute find.py
-        # 5.- Receive the model back
-        #
-
-# TODO: def check_logs():

@@ -1,0 +1,49 @@
+apiVersion: {{ .Values.apiVersion.deployment }}
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-{{ .Values.storage.name}}
+  namespace: {{ .Values.namespace.name }}
+spec:
+  replicas: {{ .Values.storage.deployment.replicas}}
+  selector:
+    matchLabels:
+      app: {{ .Values.storage.name}}
+      chart: "{{ .Chart.Name}}_{{ .Chart.Version}}"
+      release: {{ .Release.Name | quote }}
+      heritage: {{ .Release.Service | quote }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.storage.name }}
+        chart: "{{ .Chart.Name}}_{{ .Chart.Version}}"
+        release: {{ .Release.Name | quote }}
+        heritage: {{ .Release.Service | quote }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+        - name: {{ .Values.storage.name}}
+          image: {{ .Values.images.storage }}
+          imagePullPolicy: {{ .Values.images.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.storage.service.ports.port}} 
+          env:
+            - name: ORCHESTRATOR
+              value: {{ .Values.orchestratorType | quote}}
+
+              
+---
+
+apiVersion: {{ .Values.apiVersion.service }}
+kind: Service
+metadata:
+  name: {{ .Values.storage.name}}
+  namespace: {{ .Values.namespace.name }}
+spec:
+  selector:
+    app: {{ .Values.storage.name}}
+  ports:
+  - protocol: {{ .Values.storage.service.ports.protocol}}
+    port: {{ .Values.storage.service.ports.port}}
+    targetPort: {{ .Values.storage.service.ports.targetPort}}
+  type: NodePort
+
