@@ -24,6 +24,7 @@ role:
     - list
     - get
     - delete
+    - create
 
 serviceAccount:
   name: pod-scheduler
