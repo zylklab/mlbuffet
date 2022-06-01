@@ -1,19 +1,35 @@
 apiVersion: {{ .Values.apiVersion.role }}
 kind: Role
 metadata:
-  name: {{ .Values.role.name}}
+  name: {{ .Values.rolePod.name}}
   namespace: {{ .Values.namespace.name }}
 rules:
   - apiGroups: [""]
-    resources: {{- range .Values.role.resources }}
+    resources: {{- range .Values.rolePod.resources }}
     - {{ . | title | lower}}
     {{- end}}
-    verbs: {{- range .Values.role.verbs}}
+    verbs: {{- range .Values.rolePod.verbs}}
     - {{ . | title | lower }}
     {{- end}}
 
----
 
+---
+apiVersion: {{ .Values.apiVersion.role }}
+kind: Role
+metadata:
+  name: {{ .Values.roleDeployment.name}}
+  namespace: {{ .Values.namespace.name }}
+rules:
+  - apiGroups: ["apps"]
+    resources: {{- range .Values.roleDeployment.resources }}
+    - {{ . | title | lower}}
+    {{- end}}
+    verbs: {{- range .Values.roleDeployment.verbs}}
+    - {{ . | title | lower }}
+    {{- end}}
+
+
+---
 apiVersion: {{ .Values.apiVersion.roleBinding}}
 kind: RoleBinding
 metadata:
@@ -24,7 +40,21 @@ subjects:
     name: {{ .Values.serviceAccount.name}}
 roleRef:
   kind: Role
-  name: {{ .Values.role.name}}
+  name: {{ .Values.rolePod.name}}
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: {{ .Values.apiVersion.roleBinding}}
+kind: RoleBinding
+metadata:
+  name: {{ .Values.roleBinding.name2}}
+  namespace: {{ .Values.namespace.name }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.serviceAccount.name}}
+roleRef:
+  kind: Role
+  name: {{ .Values.roleDeployment.name}}
   apiGroup: rbac.authorization.k8s.io
 
 ---

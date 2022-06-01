@@ -1,20 +1,20 @@
 apiVersion: {{ .Values.apiVersion.deployment }}
 kind: Deployment
 metadata:
-  name: {{ .Chart.Name }}-{{ .Values.metrics.name}}
+  name: {{ .Values.metrics.name}}
   namespace: {{ .Values.namespace.name }}
 spec:
   replicas: {{ .Values.metrics.deployment.replicas}}
   selector:
     matchLabels:
-      app: {{ .Values.metrics.name}}
+      app: {{.Values.namespace.name}}_{{ .Values.metrics.name}}
       chart: "{{ .Chart.Name}}_{{ .Chart.Version}}"
       release: {{ .Release.Name | quote }}
       heritage: {{ .Release.Service | quote }}
   template:
     metadata:
       labels:
-        app: {{ .Values.metrics.name}}
+        app: {{.Values.namespace.name}}_{{ .Values.metrics.name}}
         chart: "{{ .Chart.Name}}_{{ .Chart.Version}}"
         release: {{ .Release.Name | quote }}
         heritage: {{ .Release.Service | quote }}
@@ -35,7 +35,7 @@ metadata:
   namespace: {{ .Values.namespace.name }}
 spec:
   selector:
-    app: {{ .Values.metrics.name}}
+    app: {{.Values.namespace.name}}_{{ .Values.metrics.name}}
   ports:
   - protocol: {{ .Values.metrics.service.ports.protocol}}
     port: {{ .Values.metrics.service.ports.port}}

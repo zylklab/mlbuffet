@@ -28,16 +28,24 @@ def save_files(train_script, requirements, dataset, model_name, tag):
 
 
 def remove_buildenv():
-    remove(upload_path('Dockerfile'))
+
+    if not getenv('ORCHESTRATOR') == 'KUBERNETES':
+        remove(upload_path('Dockerfile'))
+
     remove(upload_path('requirements.txt'))
     remove(upload_path('train.py'))
+
     if getenv('ORCHESTRATOR') == 'KUBERNETES':
         remove(upload_path('environment.sh'))
     try:
         remove(upload_path("dataset.csv"))
     except Exception as e:
         print(e)
+
+    try:
         remove(upload_path("dataset.zip"))
+    except Exception as e:
+        print(e)
 
     if getenv('ORCHESTRATOR') == 'KUBERNETES':
         remove(upload_path("environment.zip"))
