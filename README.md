@@ -91,7 +91,7 @@ To configure the Chart, edit the values from `deploy/kubernetes/mlbuffet-chart/V
 
 The module for the user to communicate via HTTP requests is the Inferrer.
 
-To test the API, use `curl http://localhost:8002/` in Docker Swarm or standalone deployments.
+To test the API, use `curl http://<INFERRER-IP>:8000/` in Docker Swarm or standalone deployments.
 
 In Kubernetes, use `kubectl get endpoints inferrer` to check where the API is hosted.
 
@@ -109,7 +109,7 @@ The welcome message should be displayed.
 
 Or you can try asking for some help:
 
-`curl http://localhost:8002/help`
+`curl http://<INFERRER-IP>:8000/help`
 
 
 ## Model Handling
@@ -130,7 +130,7 @@ Several methods for model handling can be used from the API:
 
 **Get the list and descriptions of available models**
 
-`curl -X GET http://localhost:8002/api/v1/models`
+`curl -X GET http://<INFERRER-IP>:8000/api/v1/models`
 
 ```json
 {
@@ -156,7 +156,7 @@ Several methods for model handling can be used from the API:
 
 You can read the relevant information of the models associated with a tag:
 
-`curl -X GET http://localhost:8002/api/v1/models/iris_model/information`
+`curl -X GET http://<INFERRER-IP>:8000/api/v1/models/iris_model/information`
 
 ```json
 {
@@ -188,17 +188,17 @@ You can read the relevant information of the models associated with a tag:
 A model may have incomplete information, wrong information or no information at all. You can update the description of a
 model using PUT method:
 
-`curl -X PUT -H "Content-Type: application/json" --data '{"model_description":"This model classifies a 4 element array input between different species of Iris flowers."}' http://localhost:8002/api/v1/models/iris_model/information`
+`curl -X PUT -H "Content-Type: application/json" --data '{"model_description":"This model classifies a 4 element array input between different species of Iris flowers."}' http://<INFERRER-IP>:8000/api/v1/models/iris_model/information`
 
 **Upload a new model**
 
 You can upload your own models to MLBuffet using POST method:
 
-`curl -X POST -F "path=@/path/to/local/model" http://localhost:8002/api/v1/models/<tag>`
+`curl -X POST -F "path=@/path/to/local/model" http://<INFERRER-IP>:8000/api/v1/models/<tag>`
 
 You can also give some information of the version changes:
 
-`curl -X POST -F "path=@/path/to/local/model" -F "model_description=version description of the file" http://localhost:8002/api/v1/models/<tag>`
+`curl -X POST -F "path=@/path/to/local/model" -F "model_description=version description of the file" http://<INFERRER-IP>:8000/api/v1/models/<tag>`
 
 > Note: you will not be able to change this version description.
 
@@ -215,7 +215,7 @@ You can specify the version you want give from the storage in three ways:
 
 The first two methods download the file set as default, and the last one downloads the specified version.
 
-`wget http://localhost:8002/api/v1/models/<tag>/download --content-disposition`
+`wget http://<INFERRER-IP>:8000/api/v1/models/<tag>/download --content-disposition`
 
 You can also download files with your browser with the above URL.
 
@@ -230,14 +230,14 @@ three ways:
 
 The first two methods remove the file set as default, and the last one removes the specified version.
 
-`curl -X DELETE http://localhost:8002/api/v1/models/<tag>`
+`curl -X DELETE http://<INFERRER-IP>:8000/api/v1/models/<tag>`
 
 **Set model as default**
 
 You can put any version stored into the storage service as the default version:
 
 `curl -X POST -H "Content-Type: application/json" --data '{"default": <new default version>}'
-http://localhost:8002/api/v1/models/<tag>/default`
+http://<INFERRER-IP>:8000/api/v1/models/<tag>/default`
 
 ## Model Predictions
 
@@ -245,7 +245,7 @@ http://localhost:8002/api/v1/models/<tag>/default`
 
 Once models have been correctly uploaded, the server is ready for inference. Requests must be done with an input in json format. This command will send an HTTP request to the server asking for a prediction on the pre-uploaded Iris model:
 
-`curl -X POST -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 4]}' http://localhost:8002/api/v1/models/iris_model/prediction`
+`curl -X POST -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 4]}' http://<INFERRER-IP>:8000/api/v1/models/iris_model/prediction`
 
 ```json
 {
@@ -267,7 +267,7 @@ predictions!
 You can predict objects with more complex models. For now, the server only is enabled to predict with images, but other
 types could be allowed in the future. For that predictions, the command to send the HTTP request is the following:
 
-`curl -X GET -F "file=@dog_resized.jpeg" http://localhost:8002/api/v1/models/dog_model/prediction | jq`
+`curl -X GET -F "file=@dog_resized.jpeg" http://<INFERRER-IP>:8000/api/v1/models/dog_model/prediction | jq`
 
 ```json
 {
@@ -311,7 +311,7 @@ supported format.
 
 Example `curl` request:
 
-```curl -X POST localhost:8002/api/v1/train/<tag>/<model_name> -F "dataset=@/path/to/dataset.csv" -F "script=@/path/to/train.py" -F "requirements=@/path/to/requirements.txt"```
+```curl -X POST <INFERRER-IP>:8000/api/v1/train/<tag>/<model_name> -F "dataset=@/path/to/dataset.csv" -F "script=@/path/to/train.py" -F "requirements=@/path/to/requirements.txt"```
 
 Take into account that these code will be executed inside a containerized environment and the resulting model must be
 able to be located by the Trainer container to auto-upload it into the system. The tag associated to the model must be
