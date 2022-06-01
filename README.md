@@ -4,78 +4,51 @@
 
 ----
 
-This project is a Machine Learning Model Server based on containers. MLBuffet consists of several modules described in the table below:
+This project is a Machine Learning Model Server based on containers. MLBuffet consists of several modules:
 
 | Module    | Description                                                                                                                                                                                                                                                                                     |
 |-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Deploy    | Contains the necessary files to deploy the project, in docker-compose, Docker Swarm or Kubernetes.                                                                                                                                                                                                                 |
-| Inferrer  | REST API that receives HTTP requests and balances the workload between Modelhosts.                                                                                                                                                                                                                     |
-| Modelhost | Workers for model deployment, inference and model management. There should be multiple instances of this module, each being aware of all the models stored. |
+| Deploy    | Contains the necessary files to install the project, Docker Swarm or Kubernetes.                                                                                                                                                                                                                 |
+| Inferrer  | The main REST API. Users or clients may communicate with this API to access the app resources.                                                                                                                                                                                                                     |
+| Modelhost | Workers for model deployments and inference. There might be multiple instances of this module, each being aware of all the models stored. |
 | Metrics   | Gathers and manages performance metrics from host system and services.                                                                                                                                                                                                                          |
 | Storage  | Performs version controlling.                                                                                                                                                                                                                          |
 
+Every MLBuffet module exposes a REST API built on Flask for intercommunication. The Inferrer will handle external
+requests, (i.e., uploading a model, performing inference) and will asynchronouslu deliver the requests to the corresponding service.
+
 If you are new to MLBuffet, please take a look at MLBuffet in a nutshell [document](docs/nutshell.md)
 
-# Service description
-
-The Inferrer and Modelhost modules expose REST APIs built on Flask for intercommunication. The Inferrer will handle user
-requests made to the available models, i.e., uploading a model, asking for a prediction... And will send them as jobs to
-any of the Modelhosts, which will perform them in the background asynchronously.
-
-When a prediction is requested, the Modelhost will pass the HTTP request as an input to the ONNX session running in the background, and the answer is sent
-back to the user through Inferrer.
-
 ----
-
 # Quickstart
 
-## Build & Deploy the services
+## Installation
 
-TCP ports 80, 8001, 8002 and 9091 must be available before deploying in Docker Swarm or docker-compose. For Kubernetes deployments, check the YAML files to configure port forwarding and exposing.
-
-### Recommended build
-
-Images must be built from source with the provided build.sh script.
+Images must be built from source with the provided build.sh script in /mlbuffet/deploy/swarm.
 
 For orchestrated deployments (Docker Swarm or Kubernetes), all images must be available for every
 node on the cluster, otherwise nodes will not be able to deploy containers.
 
-### Docker
-
-For **Docker Swarm** deployments, there is a deploy.sh script provided which will deploy automatically and configure your cluster. There are two restrictions:
-
-- Stack name must be set as
- (this is a reserved name for container intracommunication).
-- The mlbuffet_overlay network is used by nodes to communicate. The
-preferred subnet is 10.0.13.0/24.
-
-**Reported issue:** Sometimes after installing docker-compose, the docker-compose tool is unable to access the docker socket
-due to permission issues. To solve
-this problem, include docker your user in the docker group with `sudo usermod -aG docker $USER`. Then, give
-docker-compose permission to access the docker.socket file, by running `sudo chmod 666 /var/run/docker.sock`.
-
-
 ### Kubernetes
 
-For **Kubernetes** deployments, there is also a script provided, deploy.sh, however all the config files are provided so the user can deploy with custom configuration if desired.
-To change the name of the corresponding service, please, modify the `deploy/kubernetes/autodeploy/kustomization.yaml` file, replacing each image name by his correct name at the parameter `-newName`:
-For instance, if your modelhost image name is `docker.io/library/modelhost:latest`, the image default image resource is:
-For instance, the default image name of the modelhost is:
-```yaml
-  # Modelhost image name
-  - name: IMAGE_MLBUFFET_MODELHOST
-    newName: IMAGE_MLBUFFET_MODELHOST
-    newTag: latest
-```
-But your modelhost image name is `docker.io/library/modelhost:latest`, so the `kustomization.yaml` file should be displayed as:
+For **Kubernetes** deployments, all the configuration and YAML files are provided in the deploy/kubernetes directory. Custom configurations can be made, but may some functionalities result broken.
+
+Make sure the image names correspond to the images your have built and pushed to your image repository. This can be done easily with the `deploy/kubernetes/autodeploy/kustomization.yaml` file, by replacing image names with their corresponding repo names in `-newName` field.
+
+For example:
+
  ```yaml
   # Modelhost image name
   - name: IMAGE_MLBUFFET_MODELHOST
-    newName: docker.io/library/modelhost
+    newName: <repo_name>/<modelhost_image_name>:<version>
     newTag: latest
 ```
 
+Finally, execute the `deploy/kubernetes/autodeploy/deploy.sh` script to automatically deploy MLBuffet on Kubernetes.
+
 #### Helm Chart
+
+Note: Functionality under construction. Please follow the installation guide through yaml files.
 
 For an easier deployment, a Helm Chart is provided. To install it with helm charts, build the chart with a release name:
 
@@ -87,13 +60,26 @@ helm install my-release deploy/kubernetes/mlbuffet-chart/
 
 To configure the Chart, edit the values from `deploy/kubernetes/mlbuffet-chart/Values.yaml`, or set via `--set` flag during the installation.
 
+### Docker
+
+For **Docker Swarm** deployments, there is a deploy.sh script provided which will deploy automatically and configure your cluster. There are two restrictions:
+
+- Stack name must be set as mlbuffet
+ (this is a reserved name for container intracommunication).
+- The mlbuffet_overlay network is used by nodes to communicate. The
+preferred subnet is 10.0.13.0/24.
+
+**Reported issue:** Sometimes after installing docker-compose, the docker-compose tool is unable to access the docker socket
+due to permission issues. To solve
+this problem, include your user in the docker group with `sudo usermod -aG docker $USER`.
+
 ## Test the API and welcome
 
-The module for the user to communicate via HTTP requests is the Inferrer.
+The service for the user or clients to communicate with via HTTP requests is the Inferrer.
 
-To test the API, use `curl http://<INFERRER-IP>:8000/` in Docker Swarm or standalone deployments.
+To test the API, use `curl http://<INFERRER-IP>:8000/` .
 
-In Kubernetes, use `kubectl get endpoints inferrer` to check where the API is hosted.
+Note: In Kubernetes, use `kubectl get endpoints inferrer -n mlbuffet` to get the Inferrer's endpoint.
 
 The welcome message should be displayed.
 
@@ -114,17 +100,15 @@ Or you can try asking for some help:
 
 ## Model Handling
 
-Some pre-trained models are already uploaded and can be updated manually through the `probe_models/` directory.
-However, new model uploading is supported by MLBuffet. All Modelhost servers can access the directory of models, so they
-share a pool of common models.
+Some pre-trained models are available to be uploaded in the `probe_models/` directory.
 
-Every model must be associated with a tag, which will always be located in the path.
+All Modelhost servers get an updated model list from the Storage service.
+
+Every model must be named by a tag, and the Storage service will take this tag as the reference for that model.
 
 For instance, we can have some versions of the iris model as `irisv1.onnx`, `irisv2.onnx` or `iris_final_version.onnx`, but all of them are several versions of the same model, tagged as `iris_model`.
 
 You can upload new versions of a tag model, and they will be stored into the storage module of MLBuffet, only the default versions of each tag will be exposed into the path `modelhost/models/`.
-
-In **Kubernetes** deployments, the volume for models is `/tmp`. You can change this directory for the models not being ephemeral in the pv.yaml file that is provided in the deploy directory.
 
 Several methods for model handling can be used from the API:
 
@@ -207,7 +191,7 @@ When a new version is uploaded, that will be associated as the default model, an
 **Download model**
 
 You can download any version of any model tag located in the storage module.
-You can specify the version you want give from the storage in three ways:
+You can specify the version you want to get from the storage in three ways:
 
 * `<tag>`
 * `<tag>:default`
@@ -234,7 +218,7 @@ The first two methods remove the file set as default, and the last one removes t
 
 **Set model as default**
 
-You can put any version stored into the storage service as the default version:
+You can set any version stored into the storage service as the default version:
 
 `curl -X POST -H "Content-Type: application/json" --data '{"default": <new default version>}'
 http://<INFERRER-IP>:8000/api/v1/models/<tag>/default`
@@ -291,23 +275,31 @@ types could be allowed in the future. For that predictions, the command to send 
 **Prepare your trining scripts**
 
 MLBuffet is able to train your own models and automatically upload them for inference or model management.
-For this capability to be available it is necessary to expose your Docker daemon in the Docker host's machine
-at port :2376, and security is enforced by TLS by default. This settings might not be changed to --unsecure,
-as exposing your docker daemon insecurely is a high risk practice and can lead to security issues.
-Your client cert, key and ca-certs must be located at `inferrer/flask_app/utils/certs`.
 
-MLBuffet supports training using any Python-based library, but some interaction and configuration is required from the
-user. You will need 3 files to perform training on a virtualized container environment, which are your custom
+There are two ways to perform trainings depending on your installation method. Both work fundamentally the same way, but the recommended one is the Kubernetes Trainer, as it does not require external configuration and works out of the box:
+
+### MLBuffet Kubernetes Trainer
+
+The MLBuffet Kubernetes Trainer is not a module itself, but an operation performed by Inferrer. Provided the training files through a POST request, the Inferrer will spin a Pod called `trainer` which will execute the training script sequentally. Then, the Pod will be scanned looking for the name of the output model, provided in the URL resource, and this model will be sent back to the Inferrer to be loaded as a new model.
+
+```
+curl -X POST <INFERRER-IP>:8000/api/v1/train/<tag>/<model_name> -F "dataset=@/path/to/dataset.csv" -F "script=@/path/to/train.py" -F "requirements=@/path/to/requirements.txt"
+```
+Where `<tag>` is the model tag you want to upload to the MLBuffet server, and `<model_name>` is the exact name of the file that will be the result of the traning (or directory, like `model.pb` or `iris.onnx`).
+
+MLBuffet supports training using any Python-based library. You will need 3 files to perform training on a virtualized container environment, which are your custom
 `train.py` script, `requirements.txt` with all the libraries and tools to be imported during training, and `dataset.csv`
 or any other data file which must be read during runtime by the training script to make operations over the dataset and
 perform the training.
 
-The way MLBuffet knows which file that has been uploaded corresponds to each of the above is via form names. "script" is
-for the training script, "requirements" for `requirements.txt` and "dataset" for the dataset.
+### MLBuffet Docker Trainer
 
-The output models will be sent to a local directory via a Docker bind mount volume. You can make this directory coincide
-with the Modelhost mounting point for the models to be trained also being used for inference, if trained with ONNX
-supported format.
+For this capability to be available it is necessary to expose your Docker daemon in the Docker host's machine
+at port :2376, and security is enforced by TLS by default. This settings might not be changed to --unsecure,
+as exposing your docker daemon insecurely is a high risk practice and can lead to security issues.
+Your client cert, key and ca-certs must be located at `inferrer/flask_app/utils/client`.
+
+---
 
 Example `curl` request:
 
