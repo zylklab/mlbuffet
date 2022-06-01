@@ -1,9 +1,7 @@
 from zipfile import ZipFile
-from os import path, remove
 import docker
-from os import getenv
-from kubernetes import config
-from kubernetes import client as kclient
+from os import getenv, listdir, path, remove
+from kubernetes import client as kclient, config
 
 
 UPLOADS_DIR = '/trainerfiles/'
