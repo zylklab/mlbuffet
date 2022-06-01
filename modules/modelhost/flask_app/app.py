@@ -121,7 +121,7 @@ def log_response(response):
     elif request.path == '/modelhost/models/information':
         logger.info('Models & description list provided')
     elif 'prediction' in request.path:
-        logger.info('Prediction done')
+        logger.info('Prediction tried')
     elif response:
         logger.info(response.get_json())
 
@@ -154,13 +154,14 @@ def predict(tag):
                 [output_name],
                 {input_name: [new_observation]}
             )[0]
-
+            logger.info('Prediction done')
             return Prediction(
                 200, http_status_description='Prediction successful', values=prediction
             ).get_response()
 
             # Error provided by the model
         except Exception as error:
+            logger.info("Prediction failed")
             return Prediction(
                 500, http_status_description=str(error)
             ).get_response()
