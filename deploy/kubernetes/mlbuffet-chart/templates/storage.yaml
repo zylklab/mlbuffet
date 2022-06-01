@@ -1,20 +1,20 @@
 apiVersion: {{ .Values.apiVersion.deployment }}
 kind: Deployment
 metadata:
-  name: {{ .Chart.Name }}-{{ .Values.storage.name}}
+  name: {{ .Values.storage.name}}
   namespace: {{ .Values.namespace.name }}
 spec:
   replicas: {{ .Values.storage.deployment.replicas}}
   selector:
     matchLabels:
-      app: {{ .Values.storage.name}}
+      app: {{.Values.namespace.name}}_{{ .Values.storage.name}}
       chart: "{{ .Chart.Name}}_{{ .Chart.Version}}"
       release: {{ .Release.Name | quote }}
       heritage: {{ .Release.Service | quote }}
   template:
     metadata:
       labels:
-        app: {{ .Values.storage.name }}
+        app: {{.Values.namespace.name}}_{{ .Values.storage.name }}
         chart: "{{ .Chart.Name}}_{{ .Chart.Version}}"
         release: {{ .Release.Name | quote }}
         heritage: {{ .Release.Service | quote }}
@@ -40,7 +40,7 @@ metadata:
   namespace: {{ .Values.namespace.name }}
 spec:
   selector:
-    app: {{ .Values.storage.name}}
+    app: {{.Values.namespace.name}}_{{ .Values.storage.name}}
   ports:
   - protocol: {{ .Values.storage.service.ports.protocol}}
     port: {{ .Values.storage.service.ports.port}}

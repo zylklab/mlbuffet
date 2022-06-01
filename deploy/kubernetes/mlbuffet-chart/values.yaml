@@ -2,11 +2,11 @@ namespace:
   name: mlbuffet
 
 images:
-  inferrer: MLBUFFET-IMAGE-INFERRER
-  modelhost: MLBUFFET-IMAGE-MODELHOST
-  storage: MLBUFFET-IMAGE-STORAGE
-  metrics: MLBUFFET-IMAGE-METRICS
-  cache:  MLBUFFET-IMAGE-CACHE
+  inferrer: mlbuffet-inferrer
+  modelhost: mlbuffet-modelhost
+  storage: mlbuffet-storage
+  metrics: mlbuffet-metrics
+  cache:  mlbuffet-cache
   imagePullPolicy: IfNotPresent
 
 apiVersion:
@@ -16,10 +16,20 @@ apiVersion:
   serviceAccount: v1
   roleBinding: rbac.authorization.k8s.io/v1
 
-role:
+rolePod:
   name: modify-pods
   resources:
     - pods
+  verbs:
+    - list
+    - get
+    - delete
+    - create
+
+roleDeployment:
+  name: modify-deployments
+  resources:
+    - deployments
   verbs:
     - list
     - get
@@ -31,6 +41,7 @@ serviceAccount:
 
 roleBinding:
   name: modify-pods-to-sa
+  name2: modify-deployments
   apiGroup: rbac.authorization.k8s.io
 
 orchestratorType: "KUBERNETES"
