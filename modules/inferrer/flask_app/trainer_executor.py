@@ -1,9 +1,7 @@
 from zipfile import ZipFile
-from os import path, remove
 import docker
-from os import getenv
-from kubernetes import config
-from kubernetes import client as kclient
+from os import getenv, listdir, path, remove
+from kubernetes import client as kclient, config
 
 
 UPLOADS_DIR = '/trainerfiles/'
@@ -29,26 +27,9 @@ def save_files(train_script, requirements, dataset, model_name, tag):
 
 def remove_buildenv():
 
-    if not getenv('ORCHESTRATOR') == 'KUBERNETES':
-        remove(upload_path('Dockerfile'))
-
-    remove(upload_path('requirements.txt'))
-    remove(upload_path('train.py'))
-
-    if getenv('ORCHESTRATOR') == 'KUBERNETES':
-        remove(upload_path('environment.sh'))
-    try:
-        remove(upload_path("dataset.csv"))
-    except Exception as e:
-        print(e)
-
-    try:
-        remove(upload_path("dataset.zip"))
-    except Exception as e:
-        print(e)
-
-    if getenv('ORCHESTRATOR') == 'KUBERNETES':
-        remove(upload_path("environment.zip"))
+    for file in listdir(UPLOADS_DIR):
+        if file != 'find.py':
+            remove(upload_path(file))
 
 
 def create_dockerfile(model_name, tag):
