@@ -1,8 +1,5 @@
-import os
-import random
 import requests
 from os import getcwd, path, getenv
-from xml.dom import NotSupportedErr
 
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
