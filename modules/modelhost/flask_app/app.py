@@ -35,9 +35,6 @@ auth = HTTPTokenAuth('Bearer')
 auth.auth_error_callback = lambda *args, **kwargs: handle_exception(
     Unauthorized())
 
-# Unique ID for modelhost instances
-MODELHOST_NODE_UNIQ_ID = '{:06d}'.format(random.randint(1, 99999))
-
 # Logger initialization
 logger = Logger('modelhost').get_logger('modelhost')
 logger.info('Starting Flask API...')
