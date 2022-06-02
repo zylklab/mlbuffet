@@ -6,5 +6,6 @@ linux-metrics==0.1.4
 python-dotenv==0.20.0
 onnx==1.11.0
 onnxruntime==1.11.1
+tensorflow
 prometheus-client==0.14.1
 Werkzeug==2.1.2
