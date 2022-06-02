@@ -154,102 +154,52 @@ def log_response(response):
 def predict(tag):
     metric_manager.increment_model_counter()
 
-    # Check that the model exists
-    if tag not in model_sessions.keys():
-        return Prediction(
-            404,
-            http_status_description=f'{tag} does not exist. '
-                                    f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
-        ).get_response()
+    model_input = request.json['values']
 
-    inference_session = model_sessions[tag]['inference_session']
-    input_name = model_sessions[tag]['input_name']
-    output_name = model_sessions[tag]['output_name']
+    ML_LIBRARY = get_model_library(tag)
 
-    new_observation = request.json['values']
-    model_dimensions = model_sessions[tag]['dimensions'][1:]
-    image_dimensions = list(numpy.shape(new_observation))
+    if ML_LIBRARY == 'onnx':
 
-    if model_dimensions == image_dimensions:
-        try:
-            prediction = inference_session.run(
-                [output_name],
-                {input_name: [new_observation]}
-            )[0]
-            logger.info('Prediction done')
-            return Prediction(
-                200, http_status_description='Prediction successful', values=prediction
-            ).get_response()
-
-            # Error provided by the model
-        except Exception as error:
-            logger.info("Prediction failed")
-            return Prediction(
-                500, http_status_description=str(error)
-            ).get_response()
-
-    elif model_dimensions != image_dimensions:
-        npimage = numpy.asarray(new_observation)
-        new_observation2 = numpy.rollaxis(npimage, 2, 0).tolist()
-        image2_dimensions = list(numpy.shape(new_observation2))
-
-        if image2_dimensions == model_dimensions:
+        if serve_onnx.check_model_exists(tag, model_input):
             try:
-                prediction = inference_session.run(
-                    [output_name],
-                    {input_name: [new_observation2]}
-                )[0]
+                prediction = serve_onnx.perform_inference(model_input)
 
-                # Error provided by the model
+                return Prediction(
+                    200, http_status_description='Prediction successful', values=prediction
+                ).get_response()
+
+            except NotImplementedError as error:
+                return Prediction(404, http_status_description=error).get_response()
+
             except Exception as error:
+                logger.info("Prediction failed")
                 return Prediction(
                     500, http_status_description=str(error)
                 ).get_response()
 
-                # Correct prediction
-            return Prediction(
-                200, http_status_description='Prediction successful', values=prediction
-            ).get_response()
         else:
             return Prediction(
                 404,
-                http_status_description=f'{tag} does not support this input. {image_dimensions} is '
-                                        f'received, but {model_dimensions} is allowed. Please, check it and try '
-                                        f'again. '
-            ).get_response()
-
-
-@server.route(path.join(MODELHOST_BASE_URL, '<tag>/information'), methods=['GET', 'POST'])
-def model_information(tag):
-    if request.method == 'GET':
-        # Check that the model exists
-        if tag not in model_sessions.keys():
-            return ModelInformation(
-                404,
                 http_status_description=f'{tag} does not exist. '
                                         f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
             ).get_response()
 
-        description = model_sessions[tag]
-        return ModelInformation(
-            200,
-            input_name=description['input_name'],
-            num_inputs=description['dimensions'],
-            output_name=description['output_name']).get_response()
+    elif ML_LIBRARY == 'tf':
 
-    elif request.method == 'POST':
-        # Check that the model exists
-        if tag not in model_sessions.keys():
-            return HttpJsonResponse(
-                404,
-                http_status_description=f'{tag} does not exist. '
-                                        f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
-            ).get_response()
-        new_model_description = request.json['model_description']
+        if serve_tf.check_model_exists(tag):
+            try:
+                prediction = serve_tf.perform_inference(model_input)
 
-        model_sessions[tag]['description'] = new_model_description
-        return HttpJsonResponse(200).get_response()
+            except Exception as error:
+                logger.info("Prediction failed")
+                return Prediction(
+                    500, http_status_description=str(error)
+                ).get_response()
 
+    else:
+        error = 'Unsupported library'
+        return Prediction(500, http_status_description=str(error)
+                          ).get_response()
 
 @server.route(path.join(MODELHOST_BASE_URL, 'models'), methods=['GET'])
 def get_model_list_information():
