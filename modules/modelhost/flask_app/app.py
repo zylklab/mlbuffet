@@ -201,60 +201,17 @@ def predict(tag):
         return Prediction(500, http_status_description=str(error)
                           ).get_response()
 
-@server.route(path.join(MODELHOST_BASE_URL, 'models'), methods=['GET'])
-def get_model_list_information():
-    output = []
-    for tag in list(model_sessions.keys()):
-        description = model_sessions[tag]
-        dict_info = {'tag': tag,
-                     'model_file_name': description['model_name'],
-                     'input_name': description['input_name'],
-                     'dimensions': description['dimensions'],
-                     'output_name': description['output_name']}
-        output.append(dict_info)
-    logger.info(output)
-    return ModelListInformation(200, list_descriptions=output).get_response()
+    logger.info('Prediction done')
+    return Prediction(
+        200, http_status_description='Prediction successful', values=prediction
+    ).get_response()
 
 
-@server.route(path.join(MODELHOST_BASE_URL, 'models/<tag>'), methods=['PUT', 'DELETE'])
+@server.route(path.join(MODELHOST_BASE_URL, 'models/<tag>'), methods=['DELETE'])
 def manage_model(tag):
-    model_path = path.join(MODELS_DIR, tag)
+    # TODO Consider doing this from inferrer or apoptosys
+    return HttpJsonResponse(204).get_response()
 
-    if request.method == 'PUT':
-        modelo = request.files['model']
-        # Take the model parameters
-        filename = request.files['filename'].stream.read().decode("utf-8")
-        inference_session = rt.InferenceSession(modelo.stream.read())
-        dimensions = inference_session.get_inputs()[0].shape
-        input_name = inference_session.get_inputs()[0].name
-        output_name = inference_session.get_outputs()[0].name
-        label_name = inference_session.get_outputs()[0].name
-
-        full_description = {'tag': tag,
-                            'model_name': filename,
-                            'inference_session': inference_session,
-                            'dimensions': dimensions,
-                            'input_name': input_name,
-                            'output_name': output_name,
-                            'label_name': label_name}
-        model_sessions[tag] = full_description
-        return HttpJsonResponse(201).get_response()
-
-    elif request.method == 'DELETE':
-        # if the model exists
-        if os.path.isfile(model_path):
-            os.remove(model_path)
-            return HttpJsonResponse(204).get_response()
-        else:
-            return HttpJsonResponse(
-                404,
-                http_status_description=f'{tag} does not exist. Visit GET {path.join(API_BASE_URL, "models")}'
-                                        f'for a list of available models'
-            ).get_response()
-
-
-# List with preloaded models to do the inference
-model_sessions = {}
 
 if __name__ == '__main__':
     pass
