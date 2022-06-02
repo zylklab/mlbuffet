@@ -54,6 +54,28 @@ def verify_token(token):
     return compare_digest(token, auth_token)
 
 
+@server.before_first_request
+def model_setup():
+
+    tag = getenv('TAG')
+    model_version = getenv('MODEL_VERSION')
+
+    # Asumed to be on K8S, no longer required to do
+    response = requests.get(
+        f'http://storage:8000/api/v1/models/{tag}/{model_version}')
+    logger.info(response.content)
+
+    # model_name = response.content.filename ¿?¿?¿
+
+    ML_LIBRARY = get_model_library(model_name)
+
+    if ML_LIBRARY == 'onnx':
+        serve_onnx.load_new_model(tag, model_name)
+
+    elif ML_LIBRARY == 'tf':
+        serve_tf.load_new_model(tag, model_name)
+
+
 @server.route(MODELHOST_BASE_URL, methods=['GET'])
 def hello_world():
     return HttpJsonResponse(
