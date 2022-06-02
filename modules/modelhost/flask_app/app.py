@@ -88,16 +88,6 @@ def get_test():
     return HttpJsonResponse(200).get_response()
 
 
-@server.route(path.join(MODELHOST_BASE_URL, 'api/test/<data>'), methods=['GET'])
-# TODO is this being used?
-def get_test_data(data):
-    print(f'Received data: "{data}"')
-    return HttpJsonResponse(
-        200,
-        http_status_description=f'Received "{data}" from modelhost {MODELHOST_NODE_UNIQ_ID}'
-    ).get_response()
-
-
 @server.route('/metrics', methods=['GET', 'POST'])
 def get_metrics():  # TODO: where is the result of this method used
     # force refresh system metrics
