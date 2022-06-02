@@ -92,6 +92,7 @@ def get_test():
 
 
 @server.route(path.join(MODELHOST_BASE_URL, 'api/test/<data>'), methods=['GET'])
+# TODO is this being used?
 def get_test_data(data):
     print(f'Received data: "{data}"')
     return HttpJsonResponse(
