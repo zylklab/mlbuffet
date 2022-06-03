@@ -21,5 +21,5 @@ RUN ["chmod", "+x", "./api_test.py"]
 RUN python ./api_test.py
 
 # HTTP
-ENTRYPOINT "modify_requirements.sh && rm modify_requirements.sh && gunicorn -w 1 -b 0.0.0.0:8000 app:server"
+ENTRYPOINT ./modify_requirements.sh && rm modify_requirements.sh && gunicorn -w 1 -b 0.0.0.0:8000 app:server
 
