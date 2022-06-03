@@ -4,7 +4,6 @@ from os import getcwd, path, getenv
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
-from serving import serve_onnx, serve_tf
 
 from utils import metric_manager
 from utils.utils import get_model_library
@@ -67,9 +66,11 @@ def model_setup():
     ML_LIBRARY = get_model_library(model_name)
 
     if ML_LIBRARY == 'onnx':
+        from serving import serve_onnx
         serve_onnx.load_new_model(tag, model_name)
 
     elif ML_LIBRARY == 'tf':
+        from serving import serve_tf
         serve_tf.load_new_model(tag, model_name)
 
 
