@@ -58,10 +58,10 @@ def model_setup():
 
     # Asumed to be on K8S, no longer required to do
     response = requests.get(
-        f'http://storage:8000/api/v1/models/{tag}/{model_version}')
+        f'http://storage:8000/storage/models/{tag}')
     logger.info(response.content)
 
-    # model_name = response.content.filename ¿?¿?¿
+    model_name = response.content.filename
 
     ML_LIBRARY = get_model_library(model_name)
 
