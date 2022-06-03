@@ -5,7 +5,7 @@ FROM python:${PYTHON_VERSION}
 WORKDIR usr/src/flask_app
 
 COPY requirements.txt .
-COPY modify_requirements.sh .
+COPY install_ml_library.sh .
 
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
@@ -21,5 +21,5 @@ RUN ["chmod", "+x", "./api_test.py"]
 RUN python ./api_test.py
 
 # HTTP
-ENTRYPOINT ./modify_requirements.sh && rm modify_requirements.sh && gunicorn -w 1 -b 0.0.0.0:8000 app:server
+ENTRYPOINT . install_ml_library.sh && gunicorn -w 1 -b 0.0.0.0:8000 app:server
 
