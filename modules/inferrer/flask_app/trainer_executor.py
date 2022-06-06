@@ -71,19 +71,8 @@ def build_image(client):
 def run_training(train_script, requirements, dataset, model_name, tag):
     save_files(train_script, requirements, dataset, model_name, tag)
 
-    if not getenv('ORCHESTRATOR') == 'KUBERNETES':
-        # Create Dockerfile
-        create_dockerfile(model_name, tag)
-
-        client = create_docker_client()
-        # Build the image
-        build_image(client)
-
-        # Run the image
-        container = client.containers.run(image="trainer", detach=True)
-
-    else:
-        # When in K8S environments
+    if getenv('TRAINER_MANAGER') == 'KUBERNETES':
+        # Train in K8S environments
         config.load_incluster_config()
         v1 = kclient.CoreV1Api()
 
@@ -149,3 +138,15 @@ def run_training(train_script, requirements, dataset, model_name, tag):
 
         except Exception as e:
             print("Exception when calling CoreV1Api->create_namespaced_pod: %s\n" % e)
+
+    else:
+        # Train in Docker environments
+        # Create Dockerfile
+        create_dockerfile(model_name, tag)
+
+        client = create_docker_client()
+        # Build the image
+        build_image(client)
+
+        # Run the image
+        container = client.containers.run(image="trainer", detach=True)

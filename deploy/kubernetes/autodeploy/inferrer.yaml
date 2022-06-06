@@ -21,6 +21,8 @@ spec:
           ports:
             - containerPort: 8000
           env:
+            - name: TRAINER_MANAGER
+              value: KUBERNETES
             - name: IMAGE_MLBUFFET_TRAINER
               value: IMAGE_MLBUFFET_TRAINER
             - name: IMAGE_MLBUFFET_MODELHOST
