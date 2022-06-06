@@ -39,6 +39,38 @@ logger.info('Starting Flask API...')
 server = Flask(__name__)
 logger.info('... Flask API successfully started')
 
+######## This is executed at server startup. ########
+######## Downloads the model from Storage.   ########
+# Read ENV variables for the model
+tag = getenv('TAG')
+model_version = getenv('MODEL_VERSION')
+
+try:
+    response = requests.get(
+        f'http://storage:8000/storage/models/{tag}')
+
+    logger.info(response.content)
+
+    model_name = response.content.filename
+
+    # Check the model library format
+    ML_LIBRARY = get_model_library(model_name)
+
+    # Import the corresponding library
+    if ML_LIBRARY == 'onnx':
+        from serving import serve_onnx
+        serve_onnx.load_new_model(tag, model_name)
+
+    elif ML_LIBRARY == 'tf':
+        from serving import serve_tf
+        serve_tf.load_new_model(tag, model_name)
+
+except Exception as e:
+    print(e)
+    from serving import serve_onnx, serve_tf
+###################################################
+###################################################
+
 
 # All the methods supported by the API are described below
 # These methods are not supposed to be exposed to the user, who should communicate
@@ -48,30 +80,6 @@ logger.info('... Flask API successfully started')
 @auth.verify_token
 def verify_token(token):
     return compare_digest(token, auth_token)
-
-
-@server.before_first_request
-def model_setup():
-
-    tag = getenv('TAG')
-    model_version = getenv('MODEL_VERSION')
-
-    # Asumed to be on K8S, no longer required to do
-    response = requests.get(
-        f'http://storage:8000/storage/models/{tag}')
-    logger.info(response.content)
-
-    model_name = response.content.filename
-
-    ML_LIBRARY = get_model_library(model_name)
-
-    if ML_LIBRARY == 'onnx':
-        from serving import serve_onnx
-        serve_onnx.load_new_model(tag, model_name)
-
-    elif ML_LIBRARY == 'tf':
-        from serving import serve_tf
-        serve_tf.load_new_model(tag, model_name)
 
 
 @server.route(MODELHOST_BASE_URL, methods=['GET'])
