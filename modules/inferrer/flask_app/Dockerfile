@@ -25,7 +25,7 @@ RUN mv utils/find.py /trainerfiles/find.py
 
 #run integration testing
 RUN ["chmod", "+x", "./api_test.py"]
-RUN python ./api_test.py
+#RUN python ./api_test.py
 
 #http
 CMD ["gunicorn", "-w", "1", "-k", "gevent", "--worker-connections", "1000", "-b", "0.0.0.0:8000", "app:server"]
