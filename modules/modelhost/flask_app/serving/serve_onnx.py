@@ -1,4 +1,3 @@
-from xml.dom import NotSupportedErr
 import onnxruntime as rt
 import numpy
 
