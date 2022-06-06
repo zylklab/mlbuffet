@@ -16,16 +16,15 @@ spec:
      serviceAccountName: pod-scheduler  
      containers:
         - name: inferrer
-          image: IMAGE_MLBUFFET_INFERRER
+          image: IMAGE_MLBUFFET_INFERRER 
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:
-            - name: ORCHESTRATOR
-              value: "KUBERNETES"
             - name: IMAGE_MLBUFFET_TRAINER
-              value: IMAGE_MLBUFFET_TRAINER_NAME
-
+              value: IMAGE_MLBUFFET_TRAINER
+            - name: IMAGE_MLBUFFET_MODELHOST
+              value: IMAGE_MLBUFFET_MODELHOST
 ---
 
 apiVersion: v1
