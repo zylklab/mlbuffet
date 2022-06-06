@@ -230,6 +230,7 @@ def get_model_list():
 
 
 # Update the list of available models on every modelhost node.
+
 @server.route(path.join(API_BASE_URL, 'updatemodels'), methods=['GET'])
 def update_models():
     return st_talker.update_models()
@@ -252,9 +253,14 @@ def model_handling(tag):
             return HttpJsonResponse(422,
                                     http_status_description='No file path (named \'path\') specified').get_response()
 
+        if not request.files or 'path' not in request.files:
+            return HttpJsonResponse(422,
+                                    http_status_description='No model library provided. Please provide \'ml_library\' (e.g. tensorflow==2.7.0).').get_response()
+
         # Get model file from the given path
         new_model = request.files['path']
         model_name = new_model.filename
+        ML_LIBRARY = request.data['ml_library']
 
         # Check that the extension is allowed (.onnx supported)
         if get_file_extension(model_name) not in ALLOWED_EXTENSIONS:
@@ -267,6 +273,9 @@ def model_handling(tag):
         else:
             desc = request.form['model_description']
 
+        #### CREATE MODELHOST POD ####
+        mh_talker.create_modelhost(tag=tag, ml_library=ML_LIBRARY)
+
         return st_talker.upload_new_model(tag=tag, file=new_model, file_name=model_name, description=desc)
 
     # For DELETE requests, delete a given tag from the storage
@@ -275,58 +284,7 @@ def model_handling(tag):
         # Send the tag as HTTP delete request
         return st_talker.delete_model(tag)
 
-
-# Start a new training session.
-@server.route(path.join(API_BASE_URL, 'train/<tag>/<model_name>'), methods=['POST'])
-def train(tag, model_name):
-    metric_manager.increment_train_counter()
-
-    # Check that the script was provided
-    if not request.files.getlist('script'):
-        return HttpJsonResponse(
-            422,
-            http_status_description='No training script provided with name \'script\'').get_response()
-
-    # Check that requirements.txt was provided
-    if not request.files.getlist('requirements'):
-        return HttpJsonResponse(
-            422, http_status_description='No requirements provided with name \'requirements\'').get_response()
-
-    # Check that data was provided
-    if not request.files.getlist('dataset'):
-        return HttpJsonResponse(422, http_status_description='No data provided with name \'dataset\'').get_response()
-
-    # get training script, requirements and data
-    train_script = request.files.getlist('script')[0]
-    requirements = request.files.getlist('requirements')[0]
-    dataset = request.files.getlist('dataset')[0]
-
-    # Change filenames to match expected ones TODO preserve original names
-    train_script.filename = 'train.py'
-    requirements.filename = 'requirements.txt'
-    if get_file_extension(dataset.filename).__eq__(".csv") or get_file_extension(dataset.filename).__eq__(".zip"):
-        dataset.filename = 'dataset' + get_file_extension(dataset.filename)
-
-    # Start training
-    trainer.run_training(train_script, requirements, dataset, model_name, tag)
-
-    return HttpJsonResponse(200, http_status_description='Training container created and running!').get_response()
-
-
-@server.route(path.join(API_BASE_URL, 'train/download_buildenv'), methods=['GET'])
-def download_buildenv():  # TODO with GB order environment.zip it is not feasible to store contents in memory
-    # read file contents
-    with open('/trainerfiles/environment.zip', 'rb') as f:
-        buildenv = f.read()
-
-    # remove training files
-    try:
-        trainer.remove_buildenv()
-    except FileNotFoundError:
-        pass
-
-    # download new file with contents
-    return send_file(path_or_file=BytesIO(buildenv), download_name='environment.zip')
+        #### DELETE MODELHOST POD  ####
 
 
 @server.route(path.join(API_BASE_URL, 'models/<tag>/default'), methods=['POST'])
@@ -382,6 +340,60 @@ def model_information_handling(tag):
             return HttpJsonResponse(422, http_status_description='model_description must be a string').get_response()
 
         return mh_talker.write_model_description(tag, description)
+
+
+@server.route(path.join(API_BASE_URL, 'train/<tag>/<model_name>'), methods=['POST'])
+# Start a new training session.
+def train(tag, model_name):
+    metric_manager.increment_train_counter()
+
+    # Check that the script was provided
+    if not request.files.getlist('script'):
+        return HttpJsonResponse(
+            422,
+            http_status_description='No training script provided with name \'script\'').get_response()
+
+    # Check that requirements.txt was provided
+    if not request.files.getlist('requirements'):
+        return HttpJsonResponse(
+            422, http_status_description='No requirements provided with name \'requirements\'').get_response()
+
+    # Check that data was provided
+    if not request.files.getlist('dataset'):
+        return HttpJsonResponse(422, http_status_description='No data provided with name \'dataset\'').get_response()
+
+    # get training script, requirements and data
+    train_script = request.files.getlist('script')[0]
+    requirements = request.files.getlist('requirements')[0]
+    dataset = request.files.getlist('dataset')[0]
+
+    # Change filenames to match expected ones TODO preserve original names
+    train_script.filename = 'train.py'
+    requirements.filename = 'requirements.txt'
+    if get_file_extension(dataset.filename).__eq__(".csv") or get_file_extension(dataset.filename).__eq__(".zip"):
+        dataset.filename = 'dataset' + get_file_extension(dataset.filename)
+
+    # Start training
+    trainer.run_training(train_script, requirements, dataset, model_name, tag)
+
+    return HttpJsonResponse(200, http_status_description='Training container created and running!').get_response()
+
+
+@server.route(path.join(API_BASE_URL, 'train/download_buildenv'), methods=['GET'])
+# This resource is called from Trainer Pod to download the data.
+def download_buildenv():  # TODO with GB order environment.zip it is not feasible to store contents in memory
+    # read file contents
+    with open('/trainerfiles/environment.zip', 'rb') as f:
+        buildenv = f.read()
+
+    # remove training files
+    try:
+        trainer.remove_buildenv()
+    except FileNotFoundError:
+        pass
+
+    # download new file with contents
+    return send_file(path_or_file=BytesIO(buildenv), download_name='environment.zip')
 
 
 if __name__ == '__main__':
