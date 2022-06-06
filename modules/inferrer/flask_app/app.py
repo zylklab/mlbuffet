@@ -8,7 +8,7 @@ from flask import Flask, request, Response, send_file
 from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
 
-import modelhost_talker as mh_talker
+import modelhost_manager as mh_talker
 import storage_talker as st_talker
 import trainer_executor as trainer
 from utils import metric_manager, stopwatch, prediction_cache
