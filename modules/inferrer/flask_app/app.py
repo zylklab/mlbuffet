@@ -83,29 +83,6 @@ def get_test():
     return HttpJsonResponse(200).get_response()
 
 
-# Test endpoint to check if the load balancer is working properly
-@server.route('/api/test/sendtomodelhost', methods=['POST'])
-def _test_send_to_modelhost():
-    # Check that json data was provided
-    if not request.json:
-        return HttpJsonResponse(422, http_status_description='No json data provided {data:list}').get_response()
-
-    # Check that test data was provided
-    if 'data' not in request.json:
-        return HttpJsonResponse(422, http_status_description='No test data provided (data:[...])').get_response()
-
-    # Get test data
-    data_array = request.json['data']
-
-    # Validate test data
-    if not isinstance(data_array, list):
-        return HttpJsonResponse(
-            422,
-            http_status_description='Test data is not a list enclosed by squared brackets').get_response()
-
-    return mh_talker.test_load_balancer(data_array)
-
-
 # This endpoint is used by Prometheus and metrics are exposed here
 # TODO: needs to be authorized
 @server.route('/metrics', methods=['GET', 'POST'])
