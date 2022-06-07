@@ -239,7 +239,7 @@ def model_handling(tag):
 
         return st_talker.download_model(tag=tag)
 
-    # Upload the given model file to the modelhost server
+    # Create a modelhost_tag Pod
     if request.method == 'POST':
         metric_manager.increment_storage_counter()
         # Check a file path has been provided
@@ -247,14 +247,14 @@ def model_handling(tag):
             return HttpJsonResponse(422,
                                     http_status_description='No file path (named \'path\') specified').get_response()
 
-        if not request.files or 'path' not in request.files:
+        if not request.files or 'mllib' not in request.files:
             return HttpJsonResponse(422,
-                                    http_status_description='No model library provided. Please provide \'ml_library\' (e.g. tensorflow==2.7.0).').get_response()
+                                    http_status_description='No model library provided. Please provide \'mllib\' (e.g. tensorflow==2.7.0).').get_response()
 
         # Get model file from the given path
         new_model = request.files['path']
         model_name = new_model.filename
-        ML_LIBRARY = request.data['ml_library']
+        ML_LIBRARY = request.data['mllib']
 
         # Check that the extension is allowed (.onnx supported)
         if get_file_extension(model_name) not in ALLOWED_EXTENSIONS:
