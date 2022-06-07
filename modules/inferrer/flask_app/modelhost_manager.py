@@ -44,9 +44,10 @@ def delete_modelhost(tag):
 
 
 def create_modelhost(tag, ml_library):
-    # Train in K8S environments
+    # Load K8S Cluster config
     config.load_incluster_config()
     v1 = kclient.CoreV1Api()
+    api_instance = kclient.AppsV1Api()
 
 
 #####################################################
@@ -99,33 +100,41 @@ def create_modelhost(tag, ml_library):
     # Fill the environment variables list
     ENV_LIST = []
     ENV1 = kclient.V1EnvVar(name='ML_LIBRARY', value=f'{ml_library}')
-    ENV2 = kclient.V1EnvVar(name='MODEL_NAME', value=model_name)
-    ENV3 = kclient.V1EnvVar(name='TAG', value=tag)
+    ENV2 = kclient.V1EnvVar(name='TAG', value=tag)
     ENV_LIST.append(ENV1)
     ENV_LIST.append(ENV2)
-    ENV_LIST.append(ENV3)
 
-    # Fill the container list
+    ################# Fill the container list that goes into V1PodSpec #############################
     CONTAINER_LIST = []
-    trainer_container = kclient.V1Container(
+    mlbuffet_container = kclient.V1Container(
         name=NAME, image=IMAGE, image_pull_policy='Always', env=ENV_LIST)
-    CONTAINER_LIST.append(trainer_container)
-
-    # Create the Pod Spec
-    V1PodSpec = kclient.V1PodSpec(
-        service_account_name='pod-scheduler', containers=CONTAINER_LIST, restart_policy='Never')
-
-    # Create the Metadata of the Pod
-    V1ObjectMeta = kclient.V1ObjectMeta(
-        name=NAME, namespace=NAMESPACE)
-
-    # Create Pod body
-    V1Pod = kclient.V1Pod(api_version='v1', kind='Pod',
-                          metadata=V1ObjectMeta, spec=V1PodSpec)
-
+    CONTAINER_LIST.append(mlbuffet_container)
+    ################################################################################################
+    # |
+    # V
+    ################# Create the Pod Spec which goes into V1ObjectMeta #############################
+    V1PodSpec = kclient.V1PodSpec(containers=CONTAINER_LIST)
+    ################################################################################################
+    # |
+    # V
+    ################ These two go into V1Deployment ################################################
+    # Create the Metadata of the Deployment
+    V1ObjectMeta = kclient.V1ObjectMeta(name=NAME, namespace=NAMESPACE)
+    # Create the Deployment Spec
+    V1DeploymentSpec = kclient.V1DeploymentSpec(template=V1PodSpec)
+    ################################################################################################
+    # |
+    # V
+    ################ This one goes into create_namespaced_deployment ###############################
+    # Create Deployment body
+    V1Deployment = kclient.V1Deployment(
+        api_version='v1', kind='Deployment', metadata=V1ObjectMeta, spec=V1DeploymentSpec)
+    ################################################################################################
+    # |
+    # V
     try:
-        api_response = v1.create_namespaced_pod(
-            NAMESPACE, body=V1Pod)
+        api_response = api_instance.create_namespaced_deployment(
+            namespace=NAMESPACE, body=V1Deployment)
 
     except Exception as e:
-        print("Exception when calling CoreV1Api->create_namespaced_pod: %s\n" % e)
+        print("Exception when calling CoreV1Api->create_namespaced_deployment: %s\n" % e)
