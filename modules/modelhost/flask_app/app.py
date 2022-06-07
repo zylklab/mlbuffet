@@ -58,16 +58,16 @@ try:
 
     # Import the corresponding library
     if ML_LIBRARY == 'onnx':
-        from serving import serve_onnx
+        from serving import serve_onnx as serve
         serve_onnx.load_new_model(tag, model_name)
 
     elif ML_LIBRARY == 'tf':
-        from serving import serve_tf
+        from serving import serve_tf as serve
         serve_tf.load_new_model(tag, model_name)
 
 except Exception as e:
     print(e)
-    from serving import serve_onnx, serve_tf
+
 ###################################################
 ###################################################
 
@@ -156,9 +156,9 @@ def predict(tag):
 
     if ML_LIBRARY == 'onnx':
 
-        if serve_onnx.check_model_exists(tag, model_input):
+        if serve.check_model_exists(tag, model_input):
             try:
-                prediction = serve_onnx.perform_inference(model_input)
+                prediction = serve.perform_inference(model_input)
 
                 return Prediction(
                     200, http_status_description='Prediction successful', values=prediction
@@ -182,9 +182,9 @@ def predict(tag):
 
     elif ML_LIBRARY == 'tf':
 
-        if serve_tf.check_model_exists(tag):
+        if serve.check_model_exists(tag):
             try:
-                prediction = serve_tf.perform_inference(model_input)
+                prediction = serve.perform_inference(model_input)
 
             except Exception as error:
                 logger.info("Prediction failed")
