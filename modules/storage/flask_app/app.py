@@ -9,7 +9,6 @@ from utils import metric_manager
 from utils.container_logger import Logger
 from utils.storage_pojos import HttpJsonResponse, ModelListInformation
 from secrets import compare_digest
-import modelhost_talker as mh_talker
 
 # Path constants
 STORAGE_BASE_URL = '/storage'
@@ -106,11 +105,7 @@ def save(tag):
                   file_name=filename,
                   description=description)
 
-    path_file = bvc.get_directory_file(tag=tag)
-
-    mh_talker.upload_new_model(tag=tag, new_model=open(path_file, 'rb'), filename=filename)
-
-    return HttpJsonResponse(http_status_code=200,
+    return HttpJsonResponse(http_status_code=201,
                             http_status_description=f'File {filename} saved with the tag {tag}').get_response()
 
 
@@ -125,7 +120,6 @@ def delete(tag):
         version = name_split[1]
 
     bvc.delete_file(name=tag, version=version)
-    mh_talker.delete_model(tag=tag)
     return HttpJsonResponse(200, http_status_description=f'{tag} removed\n').get_response()
 
 
@@ -150,12 +144,6 @@ def model_list():
 def update_default_file(tag):
     new_default = request.json['default']
     response = bvc.update_default(name=tag, version=new_default)
-    return response
-
-
-@server.route(path.join(STORAGE_BASE_URL, 'updatemodels'), methods=['GET'])
-def update_models():
-    response = bvc.update_models()
     return response
 
 

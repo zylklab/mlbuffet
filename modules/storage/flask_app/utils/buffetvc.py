@@ -6,7 +6,6 @@ import werkzeug.datastructures as ds
 from flask import Response, send_file
 from utils.storage_pojos import HttpJsonResponse, ModelList
 from utils.utils import HISTORY, DEFAULT, FILES_DIRECTORY
-import modelhost_talker as mh_talker
 
 
 def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str):
@@ -210,7 +209,6 @@ def update_models():
         path_file = os.path.join(FILES_DIRECTORY, tag, version)
         filename = os.listdir(path_file)[0]
         filedirectory = os.path.join(path_file, filename)
-        mh_talker.upload_new_model(tag=tag, new_model=open(filedirectory, 'rb'), filename=filename)
 
     response = HttpJsonResponse(
         200,
