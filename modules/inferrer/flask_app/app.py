@@ -2,7 +2,6 @@ from io import BytesIO
 from os import path
 from secrets import compare_digest
 
-import cv2
 import numpy
 from flask import Flask, request, Response, send_file
 from flask_httpauth import HTTPTokenAuth
@@ -35,13 +34,9 @@ my_stopwatch = stopwatch.Stopwatch(logger.info)
 server = Flask(__name__)
 logger.info('... MLBuffet - INFERRER API succesfully started')
 
-
-# TODO: comments
-# TODO: not os.getenv, constants
 # TODO: endpoint information models... :/
-# TODO: loadbalancer endpoint no --> ip y url method no --> endpoint
-# TODO: hueco para federated learning
-# TODO: reorder methods
+# TODO: Federated Learning module
+
 
 # Authorization verification
 @auth.verify_token
@@ -50,7 +45,6 @@ def verify_token(token):
 
 
 # All endpoints supported by the API are defined below
-
 
 # Welcome endpoint
 @server.route('/', methods=['GET'])
