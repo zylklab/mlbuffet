@@ -47,7 +47,7 @@ model_version = getenv('MODEL_VERSION')
 
 try:
     response = requests.get(
-        f'http://storage:8000/storage/models/{tag}')
+        f'http://storage:8000/storage/model/{tag}')
 
     logger.info(response.content)
 
