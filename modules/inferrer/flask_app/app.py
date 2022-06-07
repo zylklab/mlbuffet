@@ -143,21 +143,21 @@ def get_prediction(tag):
         # Check that input values for prediction have been provided
         if 'values' not in request.json:
             return Prediction(
-                422, http_status_description='No test observation provided (values:[...])').get_response()
+                422, http_status_description='No input for the model provided as (values:[...])').get_response()
 
-        test_values = request.json['values']
+        model_input = request.json['values']
 
         # Check that the input is a list
-        if not isinstance(test_values, list):
+        if not isinstance(model_input, list):
             return Prediction(
                 422,
                 http_status_description='New observation is not a list enclosed by squared brackets').get_response()
 
         # Check if the same prediction has already been made before
-        test_values_hash = prediction_cache.get_hash(
-            model_name=tag, inputs=test_values)
+        model_input_hash = prediction_cache.get_hash(
+            model_name=tag, inputs=model_input)
         cached_prediction = prediction_cache.get_prediction(
-            hash_code=test_values_hash)
+            hash_code=model_input_hash)
 
         # If the prediction exists in cache, return it
         if cached_prediction is not None:
@@ -166,10 +166,10 @@ def get_prediction(tag):
                               http_status_description='Prediction successful').get_response()
 
         # Otherwise, compute it and save it in cache
-        result = mh_talker.make_a_prediction(tag, test_values)
+        result = mh_talker.make_a_prediction(tag, model_input)
         if is_ok(result['http_status']['code']):
             prediction_cache.put_prediction_in_cache(
-                hash_code=test_values_hash,
+                hash_code=model_input_hash,
                 prediction=result['values'])
 
         return result
