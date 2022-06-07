@@ -13,7 +13,6 @@ spec:
       labels:
         app: mlbuffet_storage
     spec:
-      serviceAccountName: pod-scheduler
       containers:
         - name: storage
           image: IMAGE_MLBUFFET_STORAGE
