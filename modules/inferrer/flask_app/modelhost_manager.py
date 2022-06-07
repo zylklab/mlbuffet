@@ -1,3 +1,5 @@
+from asyncio import selector_events
+from cProfile import label
 from os import path, getenv
 from tkinter import E
 from kubernetes import client as kclient, config
@@ -94,7 +96,7 @@ def create_modelhost(tag, ml_library):
 #####################################################
 
     NAMESPACE = 'mlbuffet'
-    NAME = f'modelhost_{tag}'
+    NAME = f'modelhost-{tag}'
     IMAGE = getenv('IMAGE_MLBUFFET_MODELHOST')
 
     # Fill the environment variables list
@@ -119,16 +121,18 @@ def create_modelhost(tag, ml_library):
     # V
     ################ These two go into V1Deployment ################################################
     # Create the Metadata of the Deployment
-    V1ObjectMeta = kclient.V1ObjectMeta(name=NAME, namespace=NAMESPACE)
+    V1ObjectMeta = kclient.V1ObjectMeta(name=NAME, namespace=NAMESPACE, labels={
+                                        "app": "mlbuffet_modelhost"})
     # Create the Deployment Spec
-    V1DeploymentSpec = kclient.V1DeploymentSpec(template=V1PodSpec)
+    V1DeploymentSpec = kclient.V1DeploymentSpec(
+        template=V1PodSpec, selector=kclient.V1LabelSelector(match_labels={"app": "mlbuffet_modelhost"}))
     ################################################################################################
     # |
     # V
     ################ This one goes into create_namespaced_deployment ###############################
     # Create Deployment body
     V1Deployment = kclient.V1Deployment(
-        api_version='v1', kind='Deployment', metadata=V1ObjectMeta, spec=V1DeploymentSpec)
+        api_version='apps/v1', kind='Deployment', metadata=V1ObjectMeta, spec=V1DeploymentSpec)
     ################################################################################################
     # |
     # V
