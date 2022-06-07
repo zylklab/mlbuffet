@@ -13,7 +13,7 @@ RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
-COPY modelhost_talker.py .
+COPY modelhost_manager.py .
 COPY trainer_executor.py .
 COPY storage_talker.py .
 COPY api_test.py .
