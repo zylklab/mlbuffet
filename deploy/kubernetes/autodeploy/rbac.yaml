@@ -4,9 +4,8 @@ metadata:
   name: modify-pods
   namespace: mlbuffet
 rules:
-  - apiGroups: [""]
-    resources:
-      - pods
+  - apiGroups: ["apps"]
+    resources: ["pods","deployments"]
     verbs:
       - get
       - list
