@@ -59,11 +59,11 @@ try:
     # Import the corresponding library
     if ML_LIBRARY == 'onnx':
         from serving import serve_onnx as serve
-        serve_onnx.load_new_model(tag, model_name)
+        serve.load_new_model(tag, model_name)
 
     elif ML_LIBRARY == 'tf':
         from serving import serve_tf as serve
-        serve_tf.load_new_model(tag, model_name)
+        serve.load_new_model(tag, model_name)
 
 except Exception as e:
     print(e)
