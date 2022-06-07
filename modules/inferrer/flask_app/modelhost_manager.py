@@ -1,6 +1,7 @@
 from asyncio import selector_events
 from cProfile import label
 from os import path, getenv
+from re import template
 from tkinter import E
 from kubernetes import client as kclient, config
 import requests
@@ -109,23 +110,29 @@ def create_modelhost(tag, ml_library):
     ################# Fill the container list that goes into V1PodSpec #############################
     CONTAINER_LIST = []
     mlbuffet_container = kclient.V1Container(
-        name=NAME, image=IMAGE, image_pull_policy='Always', env=ENV_LIST)
+        name=NAME, image=IMAGE, image_pull_policy='Always', env=ENV_LIST, ports=[kclient.V1ContainerPort(container_port=8000)])
+
     CONTAINER_LIST.append(mlbuffet_container)
     ################################################################################################
     # |
     # V
-    ################# Create the Pod Spec which goes into V1ObjectMeta #############################
+    ################# Create the Pod Spec which goes into V1PodTemplateSpec ########################
     V1PodSpec = kclient.V1PodSpec(containers=CONTAINER_LIST)
     ################################################################################################
     # |
     # V
     ################ These two go into V1Deployment ################################################
-    # Create the Metadata of the Deployment
+    # Create the Metadata of the Deployment and Pod
     V1ObjectMeta = kclient.V1ObjectMeta(name=NAME, namespace=NAMESPACE, labels={
                                         "app": "mlbuffet_modelhost"})
+
+    # Create the Pod Template Spec
+    V1PodTemplateSpec = kclient.V1PodTemplateSpec(
+        metadata=kclient.V1ObjectMeta(labels={"app": "mlbuffet_modelhost"}), spec=V1PodSpec)
+
     # Create the Deployment Spec
     V1DeploymentSpec = kclient.V1DeploymentSpec(
-        template=V1PodSpec, selector=kclient.V1LabelSelector(match_labels={"app": "mlbuffet_modelhost"}))
+        replicas=1, template=V1PodTemplateSpec, selector=kclient.V1LabelSelector(match_labels={"app": "mlbuffet_modelhost"}))
     ################################################################################################
     # |
     # V
