@@ -247,14 +247,17 @@ def model_handling(tag):
             return HttpJsonResponse(422,
                                     http_status_description='No file path (named \'path\') specified').get_response()
 
-        if 'mllib' not in request.form:
+        logger.info(request.form)
+        logger.info(request.files)
+
+        if 'library_version' not in request.form:
             return HttpJsonResponse(422,
-                                    http_status_description='No model library provided. Please provide \'mllib\' (e.g. tensorflow==2.7.0).').get_response()
+                                    http_status_description='No model library provided. Please provide \'library_version\' (e.g. tensorflow==2.7.0).').get_response()
 
         # Get model file from the given path
         new_model = request.files['path']
         model_name = new_model.filename
-        ML_LIBRARY = request.form['mllib']
+        ML_LIBRARY = request.form['library_version']
 
         # Check that the extension is allowed (.onnx supported)
         if get_file_extension(model_name) not in ALLOWED_EXTENSIONS:
@@ -262,7 +265,8 @@ def model_handling(tag):
                 415,
                 http_status_description=f'Filename extension not allowed. '
                                         f'Please use one of these: {ALLOWED_EXTENSIONS}').get_response()
-        if not request.form:
+
+        if 'model_description' not in request.form:
             desc = 'No description provided'
         else:
             desc = request.form['model_description']
