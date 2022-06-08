@@ -49,8 +49,6 @@ try:
     response = requests.get(
         f'http://storage:8000/storage/model/{tag}')
 
-    logger.info(response.content)
-
     model_name = response.content.filename
 
     # Check the model library format
