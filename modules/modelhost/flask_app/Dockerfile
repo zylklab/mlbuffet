@@ -14,6 +14,7 @@ COPY app.py .
 COPY api_test.py .
 
 COPY utils utils
+COPY serving serving
 RUN mkdir /home/logs
 
 # Run integration testing
