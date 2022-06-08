@@ -89,8 +89,3 @@ def get_tag_information(tag):
 def get_model_list():
     resource = '/storage/models'
     return _get(resource)
-
-
-def update_models():
-    resource = '/storage/updatemodels'
-    return _get(resource)

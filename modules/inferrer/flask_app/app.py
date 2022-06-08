@@ -222,15 +222,9 @@ def get_model_list():
     metric_manager.increment_model_counter()
     return st_talker.get_model_list()
 
-
-# Update the list of available models on every modelhost node.
-
-@server.route(path.join(API_BASE_URL, 'updatemodels'), methods=['GET'])
-def update_models():
-    return st_talker.update_models()
-
-
 # This resource is used for model management. Performs operations on models and manages models in the server.
+
+
 @server.route(path.join(API_BASE_URL, 'models/<tag>'), methods=['GET', 'POST', 'DELETE'])
 def model_handling(tag):
     # Download model
