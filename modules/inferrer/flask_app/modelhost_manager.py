@@ -1,8 +1,4 @@
-from asyncio import selector_events
-from cProfile import label
 from os import path, getenv
-from re import template
-from tkinter import E
 from kubernetes import client as kclient, config
 import requests
 
@@ -52,8 +48,6 @@ def create_modelhost(tag, ml_library):
     v1 = kclient.CoreV1Api()
     api_instance = kclient.AppsV1Api()
 
-
-#####################################################
 #####################################################
 # apiVersion: apps/v1
 # kind: Deployment
@@ -78,22 +72,6 @@ def create_modelhost(tag, ml_library):
 #           imagePullPolicy: Always
 #           ports:
 #             - containerPort: 8000
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: modelhost
-#   namespace: mlbuffet
-# spec:
-#   selector:
-#     app: mlbuffet_modelhost
-#   ports:
-#   - protocol: TCP
-#     port: 8000
-#     targetPort: 8000
-#   type: ClusterIP
-#   internalTrafficPolicy: Cluster
-#####################################################
 #####################################################
 
     NAMESPACE = 'mlbuffet'
