@@ -13,7 +13,7 @@ spec:
       labels:
         app: mlbuffet_inferrer
     spec:
-     serviceAccountName: pod-scheduler  
+     serviceAccountName: modelhost-creator  
      containers:
         - name: inferrer
           image: IMAGE_MLBUFFET_INFERRER 
