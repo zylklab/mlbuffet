@@ -120,8 +120,7 @@ def download_file(name: str, version: str):
         file = os.path.join(directory_path, file_name)
         return send_file(path_or_file=file,
                          mimetype='application/octet-stream',
-                         as_attachment=True,
-                         download_name=file_name)
+                         as_attachment=True)
     except FileNotFoundError:
         return HttpJsonResponse(
             422, http_status_description='File not found, please check the model name is correct!').get_response()
