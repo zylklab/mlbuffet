@@ -41,6 +41,7 @@ logger.info('... Flask API successfully started')
 
 ######## This is executed at server startup. ########
 ######## Downloads the model from Storage.   ########
+
 # Read ENV variables for the model
 tag = getenv('TAG')
 model_version = getenv('MODEL_VERSION')
@@ -57,18 +58,18 @@ try:
     # Import the corresponding library
     if ML_LIBRARY == 'onnx':
         from serving import serve_onnx as serve
-        serve.load_new_model(tag, model_name)
-
     elif ML_LIBRARY == 'tf':
         from serving import serve_tf as serve
-        serve.load_new_model(tag, model_name)
+
+    serve.load_new_model(tag, model_name)
+    logger.info(f'Model successfully loaded in {ML_LIBRARY} format')
 
 except Exception as e:
-    print(e)
+    logger.error(
+        f'Something went wrong while trying to download the model. Reason: {e}')
 
 ###################################################
 ###################################################
-
 
 # All the methods supported by the API are described below
 # These methods are not supposed to be exposed to the user, who should communicate
