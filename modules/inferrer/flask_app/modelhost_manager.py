@@ -169,7 +169,7 @@ def create_modelhost(tag, ml_library):
     ################ This goes in Service Spec ######################################################
     # Create Service Ports
     servicePorts = [kclient.V1ServicePort(
-        protocol='TCP', port='8000', target_port='8000')]
+        protocol='TCP', port=8000, target_port=8000)]
     #################################################################################################
     # |
     # V
