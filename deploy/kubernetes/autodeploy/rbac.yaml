@@ -4,7 +4,7 @@ metadata:
   name: schedule-modelhosts
   namespace: mlbuffet
 rules:
-  - apiGroups: ["apps"]
+  - apiGroups: ["apps",""]
     resources: ["pods","deployments","services"]
     verbs:
       - get
