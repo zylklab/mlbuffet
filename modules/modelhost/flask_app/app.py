@@ -50,7 +50,11 @@ try:
     response = requests.get(
         f'http://storage:8000/storage/model/{tag}')
 
-    model_name = response.content.filename
+    # Take the model name after the filename in the Content-Disposition section of headers.
+    model_name = response.headers['Content-Disposition'].split('filename=')[1]
+
+    with open(f'{model_name}', 'wb') as downloaded_model:
+        downloaded_model.write(response.content)
 
     # Check the model library format
     ML_LIBRARY = get_model_library(model_name)
