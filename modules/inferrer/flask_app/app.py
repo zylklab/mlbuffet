@@ -274,13 +274,21 @@ def model_handling(tag):
 
         return st_talker.upload_new_model(tag=tag, file=new_model, file_name=model_name, description=desc)
 
-    # For DELETE requests, delete a given tag from the storage
+    # For DELETE requests, delete a given tag from the storage and delete the modelhost Pod
     if request.method == 'DELETE':
         metric_manager.increment_storage_counter()
+
+        try:
+            #### DELETE MODELHOST POD  ####
+            mh_talker.delete_modelhost(tag=tag)
+            logger.info('Modelhost deleted successfully!')
+
+        except Exception as e:
+            logger.error(
+                f'modelhost-{tag} could not be deleted. ' + 'Reason: ' + e)
+
         # Send the tag as HTTP delete request
         return st_talker.delete_model(tag)
-
-        #### DELETE MODELHOST POD  ####
 
 
 @server.route(path.join(API_BASE_URL, 'models/<tag>/default'), methods=['POST'])

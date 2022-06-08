@@ -37,9 +37,19 @@ def make_a_prediction(tag, model_input):
 
 
 def delete_modelhost(tag):
-    # DELETE POD FROM K8S API
+    # Delete Modelhost Deployment from the K8S cluster
 
-    return 'MODELHOST DELETED'
+    # Load K8S Cluster config
+    config.load_incluster_config()
+    appsv1 = kclient.AppsV1Api()
+
+    # Make the API request
+    try:
+        api_response = appsv1.delete_namespaced_deployment(
+            name=f'modelhost-{tag}', namespace='mlbuffet')
+
+    except Exception as e:
+        print("Exception when calling AppsV1Api->connect_delete_namespaced_deployment: %s\n" % e)
 
 
 def create_modelhost(tag, ml_library):
