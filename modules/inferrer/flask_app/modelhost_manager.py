@@ -8,32 +8,32 @@ from utils.inferer_pojos import HttpJsonResponse
 URI_SCHEME = 'http://'
 
 
-def _url(resource):
+def _url(tag, resource):
     #    return URI_SCHEME + LOAD_BALANCER_ENDPOINT + resource
-    return URI_SCHEME + 'modelhost:8000' + resource
+    return URI_SCHEME + f'modelhost-{tag}:8000' + resource
 
 
 def _is_ok(code):
     return str(code).startswith('2')
 
 
-def _get(resource):
-    return requests.get(_url(resource)).json()
+def _get(tag, resource):
+    return requests.get(_url(tag, resource)).json()
 
 
-def _post(resource, json_data):
-    response = requests.post(_url(resource), json=json_data).json()
+def _post(tag, resource, json_data):
+    response = requests.post(_url(tag, resource), json=json_data).json()
     return response
 
 
-def _put(resource, files):
-    response = requests.put(_url(resource), files=files).json()
+def _put(tag, resource, files):
+    response = requests.put(_url(tag, resource), files=files).json()
     return response
 
 
 def make_a_prediction(tag, model_input):
-    resource = f'/modelhost/models/{tag}/prediction'
-    return _post(resource, {'values': model_input})
+    resource = f'/modelhost/prediction'
+    return _post(tag, resource, {'values': model_input})
 
 
 def delete_modelhost(tag):
@@ -51,7 +51,7 @@ def delete_modelhost(tag):
 
     except Exception as e:
         print("Exception when calling AppsV1Api->delete_namespaced_deployment: %s\n" % e)
-    
+
     try:
         api_response = v1.delete_namespaced_service(
             name=f'modelhost-{tag}', namespace='mlbuffet')
@@ -186,10 +186,9 @@ def create_modelhost(tag, ml_library):
     #################################################################################################
     # |
     # V
-    #################################################################################################    
+    #################################################################################################
     try:
         v1Service = v1.create_namespaced_service(
             namespace=NAMESPACE, body=v1ServiceBody)
     except Exception as e:
         print("Exception when calling CoreV1Api->create_namespaced_service: %s\n" % e)
-    #################################################################################################

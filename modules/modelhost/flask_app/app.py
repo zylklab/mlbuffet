@@ -145,8 +145,8 @@ def log_response(response):
     return response
 
 
-@server.route(path.join(MODELHOST_BASE_URL, 'models/<tag>/prediction'), methods=['POST'])
-def predict(tag):
+@server.route(path.join(MODELHOST_BASE_URL, 'predict'), methods=['POST'])
+def predict():
     metric_manager.increment_model_counter()
 
     model_input = request.json['values']
