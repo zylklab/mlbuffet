@@ -51,7 +51,7 @@ def delete_modelhost(tag):
 
     except Exception as e:
         print("Exception when calling AppsV1Api->delete_namespaced_deployment: %s\n" % e)
-    
+
     try:
         api_response = v1.delete_namespaced_service(
             name=f'modelhost-{tag}', namespace='mlbuffet')
@@ -186,10 +186,9 @@ def create_modelhost(tag, ml_library):
     #################################################################################################
     # |
     # V
-    #################################################################################################    
+    #################################################################################################
     try:
         v1Service = v1.create_namespaced_service(
             namespace=NAMESPACE, body=v1ServiceBody)
     except Exception as e:
         print("Exception when calling CoreV1Api->create_namespaced_service: %s\n" % e)
-    #################################################################################################
