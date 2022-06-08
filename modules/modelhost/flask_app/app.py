@@ -13,10 +13,6 @@ from secrets import compare_digest
 
 # TODO: more prometheus metrics
 # TODO: (endpoint for each modelhost prometheus metrics)
-# TODO: comments
-# TODO: reorder methods
-# TODO: where to update model list
-# TODO: rethink routes
 
 # Path constants
 API_BASE_URL = '/api/v1/'
