@@ -151,61 +151,30 @@ def predict(tag):
 
     model_input = request.json['values']
 
-    ML_LIBRARY = get_model_library(tag)
+    if serve.check_model_exists(tag, model_input):
+        try:
+            prediction = serve.perform_inference(model_input)
+            logger.info('Prediction done')
 
-    if ML_LIBRARY == 'onnx':
-
-        if serve.check_model_exists(tag, model_input):
-            try:
-                prediction = serve.perform_inference(model_input)
-
-                return Prediction(
-                    200, http_status_description='Prediction successful', values=prediction
-                ).get_response()
-
-            except NotImplementedError as error:
-                return Prediction(404, http_status_description=error).get_response()
-
-            except Exception as error:
-                logger.info("Prediction failed")
-                return Prediction(
-                    500, http_status_description=str(error)
-                ).get_response()
-
-        else:
             return Prediction(
-                404,
-                http_status_description=f'{tag} does not exist. '
-                                        f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
+                200, http_status_description='Prediction successful', values=prediction
             ).get_response()
 
-    elif ML_LIBRARY == 'tf':
+        except NotImplementedError as error:
+            return Prediction(404, http_status_description=error).get_response()
 
-        if serve.check_model_exists(tag):
-            try:
-                prediction = serve.perform_inference(model_input)
-
-            except Exception as error:
-                logger.info("Prediction failed")
-                return Prediction(
-                    500, http_status_description=str(error)
-                ).get_response()
+        except Exception as error:
+            logger.error("Prediction failed")
+            return Prediction(
+                500, http_status_description=str(error)
+            ).get_response()
 
     else:
-        error = 'Unsupported library'
-        return Prediction(500, http_status_description=str(error)
-                          ).get_response()
-
-    logger.info('Prediction done')
-    return Prediction(
-        200, http_status_description='Prediction successful', values=prediction
-    ).get_response()
-
-
-@server.route(path.join(MODELHOST_BASE_URL, 'models/<tag>'), methods=['DELETE'])
-def manage_model(tag):
-    # TODO Consider doing this from inferrer or apoptosys
-    return HttpJsonResponse(204).get_response()
+        return Prediction(
+            404,
+            http_status_description=f'{tag} does not exist. '
+                                    f'Visit GET {path.join(API_BASE_URL, "models")} for a list of available models'
+        ).get_response()
 
 
 if __name__ == '__main__':
