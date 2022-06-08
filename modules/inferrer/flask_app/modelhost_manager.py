@@ -66,7 +66,11 @@ def create_modelhost(tag, ml_library):
     v1 = kclient.CoreV1Api()
     api_instance = kclient.AppsV1Api()
 
-#####################################################
+    # Define constants
+    NAMESPACE = 'mlbuffet'
+    NAME = f'modelhost-{tag}'
+
+############################################
 # apiVersion: apps/v1
 # kind: Deployment
 # metadata:
@@ -90,10 +94,8 @@ def create_modelhost(tag, ml_library):
 #           imagePullPolicy: Always
 #           ports:
 #             - containerPort: 8000
-#####################################################
+#############################################
 
-    NAMESPACE = 'mlbuffet'
-    NAME = f'modelhost-{tag}'
     IMAGE = getenv('IMAGE_MLBUFFET_MODELHOST')
 
     # Fill the environment variables list
@@ -144,4 +146,50 @@ def create_modelhost(tag, ml_library):
             namespace=NAMESPACE, body=V1Deployment)
 
     except Exception as e:
-        print("Exception when calling CoreV1Api->create_namespaced_deployment: %s\n" % e)
+        print("Exception when calling AppsV1Api->create_namespaced_deployment: %s\n" % e)
+
+    # Now create a K8S Service to access the Modelhost Pod
+    ###################################
+    # apiVersion: v1
+    # kind: Service
+    # metadata:
+    #   name: modelhost
+    #   namespace: mlbuffet
+    # spec:
+    #   selector:
+    #     app: mlbuffet_modelhost
+    #   ports:
+    #   - protocol: TCP
+    #     port: 8000
+    #     targetPort: 8000
+    #   type: ClusterIP
+    #   internalTrafficPolicy: Cluster
+    ###################################
+
+    ################ This goes in Service Spec ######################################################
+    # Create Service Ports
+    servicePorts = [kclient.V1ServicePort(
+        protocol='TCP', port='8000', target_port='8000')]
+    #################################################################################################
+    # |
+    # V
+    ################ These two go in Service Body ###################################################
+    v1ServiceMeta = kclient.V1ObjectMeta(name=NAME, namespace=NAMESPACE)
+    v1ServiceSpec = kclient.V1ServiceSpec(selector={
+                                          "app": "mlbuffet_modelhost"}, ports=servicePorts, type='ClusterIP', internal_traffic_policy='Cluster')
+    #################################################################################################
+    # |
+    # V
+    ################ Body goes in the API call ######################################################
+    v1ServiceBody = kclient.V1Service(
+        api_version='v1', kind='Service', metadata=v1ServiceMeta, spec=v1ServiceSpec)
+    #################################################################################################
+    # |
+    # V
+    #################################################################################################    
+    try:
+        v1Service = v1.create_namespaced_service(
+            namespace=NAMESPACE, body=v1ServiceBody)
+    except Exception as e:
+        print("Exception when calling CoreV1Api->create_namespaced_service: %s\n" % e)
+    #################################################################################################
