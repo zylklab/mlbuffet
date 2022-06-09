@@ -8,7 +8,7 @@ from werkzeug.exceptions import HTTPException, Unauthorized
 from utils import metric_manager
 from utils.utils import get_model_library
 from utils.container_logger import Logger
-from utils.modelhost_pojos import HttpJsonResponse, Prediction, ModelInformation, ModelListInformation
+from utils.modelhost_pojos import HttpJsonResponse, Prediction
 from secrets import compare_digest
 
 # TODO: more prometheus metrics
