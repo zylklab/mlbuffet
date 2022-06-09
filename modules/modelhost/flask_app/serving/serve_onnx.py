@@ -7,10 +7,10 @@ model_sessions = {}
 
 def check_model_exists(tag):
     # Check that the model exists
-    if tag not in model_sessions.keys():
-        return False
-    else:
+    if tag in model_sessions.keys():
         return True
+    else:
+        return False
 
 
 def perform_inference(tag, model_input):
@@ -59,7 +59,7 @@ def perform_inference(tag, model_input):
             raise NotImplementedError(error)
 
 
-def load_new_model(tag, filename):
+def load_model(tag, filename):
 
     try:
         # Totally uncommented
@@ -81,7 +81,7 @@ def load_new_model(tag, filename):
                             'label_name': label_name}
         model_sessions[tag] = full_description
 
-        return model_sessions[tag]
+        return True
 
-    except Exception as e:
-        return e
+    except Exception:
+        return False
