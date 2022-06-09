@@ -55,8 +55,10 @@ try:
     # Import the corresponding library
     if ML_LIBRARY == 'onnx':
         from serving import serve_onnx as serve
+        logger.info(f'onnxruntime imported as {tag} deployment library.')
     elif ML_LIBRARY == 'tf':
         from serving import serve_tf as serve
+        logger.info(f'Tensorflow imported as {tag} deployment library.')
 
     if serve.load_model(tag, model_name):
         logger.info(f'Model successfully loaded in {ML_LIBRARY} format')
