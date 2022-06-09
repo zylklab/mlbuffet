@@ -32,7 +32,7 @@ def _put(tag, resource, files):
 
 
 def make_a_prediction(tag, model_input):
-    resource = f'/modelhost/prediction'
+    resource = f'/modelhost/predict'
     return _post(tag, resource, {'values': model_input})
 
 

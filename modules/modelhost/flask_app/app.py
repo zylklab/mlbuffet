@@ -137,7 +137,7 @@ def log_response(response):
         logger.info('Models list provided')
     elif request.path == '/modelhost/models/information':
         logger.info('Models & description list provided')
-    elif 'prediction' in request.path:
+    elif 'predict' in request.path:
         logger.info('Prediction tried')
     elif response:
         logger.info(response.get_json())
