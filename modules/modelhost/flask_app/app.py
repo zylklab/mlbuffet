@@ -151,9 +151,9 @@ def predict():
 
     model_input = request.json['values']
 
-    if serve.check_model_exists(tag, model_input):
+    if serve.check_model_exists(tag):
         try:
-            prediction = serve.perform_inference(model_input)
+            prediction = serve.perform_inference(tag, model_input)
             logger.info('Prediction done')
 
             return Prediction(
