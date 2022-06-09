@@ -1,5 +1,5 @@
 import requests
-from os import getcwd, path, getenv
+from os import path, getenv
 
 from flask import Flask, request, Response
 from flask_httpauth import HTTPTokenAuth
@@ -17,8 +17,6 @@ from secrets import compare_digest
 # Path constants
 API_BASE_URL = '/api/v1/'
 MODELHOST_BASE_URL = '/modelhost'
-CACHE_FOLDER = '/root/.cache'
-MODELS_DIR = path.join(getcwd(), 'models')
 
 # Authorization constants
 # TODO: https://github.com/miguelgrinberg/Flask-HTTPAuth/blob/main/examples/token_auth.py
@@ -40,7 +38,6 @@ logger.info('... Flask API successfully started')
 
 # Read ENV variables for the model
 tag = getenv('TAG')
-model_version = getenv('MODEL_VERSION')
 
 try:
     response = requests.get(
