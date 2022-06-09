@@ -58,8 +58,8 @@ try:
     elif ML_LIBRARY == 'tf':
         from serving import serve_tf as serve
 
-    serve.load_new_model(tag, model_name)
-    logger.info(f'Model successfully loaded in {ML_LIBRARY} format')
+    if serve.load_model(tag, model_name):
+        logger.info(f'Model successfully loaded in {ML_LIBRARY} format')
 
 except Exception as e:
     logger.error(
