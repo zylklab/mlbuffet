@@ -66,7 +66,7 @@ def load_model(tag, filename):
         # Take the model parameters
         model = open(filename, 'rb')
 
-        inference_session = rt.InferenceSession(model.stream.read())
+        inference_session = rt.InferenceSession(model.read())
         dimensions = inference_session.get_inputs()[0].shape
         input_name = inference_session.get_inputs()[0].name
         output_name = inference_session.get_outputs()[0].name
