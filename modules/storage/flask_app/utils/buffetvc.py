@@ -8,7 +8,7 @@ from utils.storage_pojos import HttpJsonResponse, ModelList, ML_Library
 from utils.utils import HISTORY, DEFAULT, FILES_DIRECTORY
 
 
-def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str):
+def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str, ml_library: str):
     MODEL_ROOT_DIR = os.path.join(FILES_DIRECTORY, tag)
     history_file = os.path.join(MODEL_ROOT_DIR, HISTORY)
     default_file = os.path.join(MODEL_ROOT_DIR, DEFAULT)
@@ -33,7 +33,8 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str):
                                   model_path=model_path,
                                   file_name=file_name,
                                   description=description,
-                                  default_file=default_file)
+                                  default_file=default_file,
+                                  ml_library=ml_library)
 
 
 def delete_tag(tag: str):
