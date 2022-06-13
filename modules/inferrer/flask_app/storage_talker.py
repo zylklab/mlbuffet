@@ -47,10 +47,10 @@ def _delete(resource):
     return response
 
 
-def upload_new_model(tag, file, file_name, description):
+def upload_new_model(tag, file, file_name, description, ml_library):
     resource = '/storage/models/' + tag
     files = [('path', file), ('model_description',
-                              description), ('filename', file_name)]
+                              description), ('filename', file_name), ('ml_library', ml_library)]
     return _put(resource, files)
 
 
