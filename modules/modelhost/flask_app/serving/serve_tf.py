@@ -83,11 +83,10 @@ def check_model_exists(tag):
 def perform_inference(tag, model_input):
 
     if model_sessions[tag]['model_type'] == 'h5':
-        return model_sessions[tag]['model_object'](model_input)
+        return model_sessions[tag]['model_object'].predict(model_input)
 
     else:
         infer = model_sessions[tag]['infer_layer']
         output_name = model_sessions[tag]['output_name']
 
         return infer(tensorflow.constant(numpy.array(model_input)))[output_name].numpy()
-
