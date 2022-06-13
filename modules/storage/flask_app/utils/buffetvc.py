@@ -47,18 +47,10 @@ def delete_file(tag: str, version: str):
 
     # Clean the history file
     directories, data_history = bvc_utils.clean_history(history_file=history_file,default_file = default_file, version=version)
-    no_files = False
-
     # Check if the directory will be empty
-    try:
-        new_default_file = directories[-2]
-    except IndexError:
-        no_files = True
 
-    # If the directory is empty: remove. Else: manage versions
-    if no_files:
-        tag_directory = os.path.join(FILES_DIRECTORY, name)
-        shutil.rmtree(tag_directory)
+    if len(directories) == 0:
+        delete_tag(tag=tag)
     else:
         # Open the default file and check the file version
         with open(default_file, 'r') as lf:
