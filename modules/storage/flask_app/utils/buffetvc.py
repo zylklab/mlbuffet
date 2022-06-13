@@ -108,8 +108,7 @@ def update_default(name: str, version: str):
     directory_path = os.path.join(FILES_DIRECTORY, name)
 
     try:
-        new_default_file = os.listdir(
-            os.path.join(directory_path, version))[0]
+        os.listdir(os.path.join(directory_path, version))[0]
     except FileNotFoundError:
         return HttpJsonResponse(
             422,
