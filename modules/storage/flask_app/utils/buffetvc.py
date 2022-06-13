@@ -66,6 +66,9 @@ def delete_file(tag: str, version: str):
             hf.close()
         # Remove the file
 
+        if version == 'default':
+            version = last_default
+
         directory_file = os.path.join(FILES_DIRECTORY, tag, str(version))
         shutil.rmtree(directory_file)
 
