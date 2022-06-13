@@ -65,7 +65,8 @@ def delete_file(tag: str, version: str):
             hf.write(json.dumps(data_history, sort_keys=True))
             hf.close()
         # Remove the file
-        directory_file = os.path.join(FILES_DIRECTORY, name, str(version))
+
+        directory_file = os.path.join(FILES_DIRECTORY, tag, str(version))
         shutil.rmtree(directory_file)
 
 
