@@ -113,7 +113,8 @@ def save(tag):
 def delete(tag):
     separator = tag.find(':')
     if separator < 0:
-        version = 'default'
+        bvc.delete_tag(tag)
+
     else:
         name_split = tag.split(':')
         tag = name_split[0]
