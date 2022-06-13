@@ -100,10 +100,13 @@ def save(tag):
     filename = request.files['filename'].stream.read().decode("utf-8")
     description = request.files['model_description'].stream.read().decode(
         "utf-8")
+    ml_library = request.files['ml_library'].stream.read().decode(
+        "utf-8")
     bvc.save_file(file=file,
                   tag=tag,
                   file_name=filename,
-                  description=description)
+                  description=description,
+                  ml_library=ml_library)
 
     return HttpJsonResponse(http_status_code=201,
                             http_status_description=f'File {filename} saved with the tag {tag}').get_response()
