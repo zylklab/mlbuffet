@@ -273,7 +273,7 @@ def model_handling(tag):
         #### CREATE MODELHOST POD ####
         mh_talker.create_modelhost(tag=tag, ml_library=ML_LIBRARY)
 
-        return st_talker.upload_new_model(tag=tag, file=new_model, file_name=model_name, description=desc)
+        return st_talker.upload_new_model(tag=tag, file=new_model, file_name=model_name, description=desc, ml_library=ML_LIBRARY)
 
     # For DELETE requests, delete a given tag from the storage and delete the modelhost Pod
     if request.method == 'DELETE':
