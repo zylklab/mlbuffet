@@ -113,13 +113,14 @@ def save(tag):
 def delete(tag):
     separator = tag.find(':')
     if separator < 0:
-        version = 'default'
+        bvc.delete_tag(tag)
+
     else:
         name_split = tag.split(':')
         tag = name_split[0]
         version = name_split[1]
 
-    bvc.delete_file(name=tag, version=version)
+        bvc.delete_file(tag=tag, version=version)
     return HttpJsonResponse(200, http_status_description=f'{tag} removed\n').get_response()
 
 

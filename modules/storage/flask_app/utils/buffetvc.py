@@ -1,9 +1,9 @@
 import os
-import time
 import json
 import shutil
 import werkzeug.datastructures as ds
-from flask import Response, send_file
+from flask import send_file
+import utils.buffetvc_utils as bvc_utils
 from utils.storage_pojos import HttpJsonResponse, ModelList
 from utils.utils import HISTORY, DEFAULT, FILES_DIRECTORY
 
@@ -14,20 +14,10 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str):
     default_file = os.path.join(MODEL_ROOT_DIR, DEFAULT)
 
     # Create a new model storage directory
-    if not os.path.exists(MODEL_ROOT_DIR):
-        os.makedirs(MODEL_ROOT_DIR)
-        open(history_file, 'x')
-        open(default_file, 'x')
-        with open(history_file, "w") as hf:
-            hf.write('{}')
-        with open(default_file, "w") as lf:
-            lf.write('0')
+    bvc_utils.create_model_directory(MODEL_ROOT_DIR, history_file, default_file)
 
     # Check the default file to find the version of the new file
-    with open(os.path.join(MODEL_ROOT_DIR, DEFAULT), 'r') as default:
-        last_directory = int(default.read())
-        new_directory_version = str(last_directory + 1)
-        model_path = os.path.join(MODEL_ROOT_DIR, new_directory_version)
+    new_directory_version, model_path = bvc_utils.new_default_file(MODEL_ROOT_DIR, default_file, history_file)
 
     # Check the existence of the version directory and save it
     if not os.path.exists(model_path):
@@ -37,72 +27,49 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str):
     file.save(model_location)
 
     # Update history file
-    with open(os.path.join(MODEL_ROOT_DIR, HISTORY), 'r+') as fh:
-        data = json.load(fh)
-        ts = time.time()
-        time_string = time.strftime('%H:%M:%S %d/%m/%Y', time.localtime(ts))
-        data[new_directory_version] = {"path": model_path, "file": file_name,
-                                       "time": time_string, "description": description}
-        fh.seek(0)
-        fh.write(json.dumps(data, sort_keys=True))
-        fh.close()
 
-    # Rewrite the default file with the new version
-    with open(os.path.join(MODEL_ROOT_DIR, DEFAULT), 'w') as fl:
-        fl.write(new_directory_version)
+    bvc_utils.update_history_file(history_file=history_file,
+                                  new_directory_version=new_directory_version,
+                                  model_path=model_path,
+                                  file_name=file_name,
+                                  description=description,
+                                  default_file=default_file)
 
 
-def delete_file(name: str, version: str):
-    default_file = os.path.join(FILES_DIRECTORY, name, DEFAULT)
-    history_file = os.path.join(FILES_DIRECTORY, name, HISTORY)
+def delete_tag(tag: str):
+    tag_directory = os.path.join(FILES_DIRECTORY, tag)
+    shutil.rmtree(tag_directory)
 
-    directories = []
+
+def delete_file(tag: str, version: str):
+    default_file = os.path.join(FILES_DIRECTORY, tag, DEFAULT)
+    history_file = os.path.join(FILES_DIRECTORY, tag, HISTORY)
 
     # Clean the history file
-    with open(history_file, 'r') as hf:
-        data_history = json.load(hf)
-        for i in data_history:
-            i = int(i)
-            directories.append(i)
-        if version == 'default':
-            version = directories[-1]
-        del data_history[str(version)]
-
-    no_files = False
-
+    directories, data_history = bvc_utils.clean_history(history_file=history_file,default_file = default_file, version=version)
     # Check if the directory will be empty
-    try:
-        new_default_file = directories[-2]
-    except IndexError:
-        no_files = True
 
-    # If the directory is empty: remove. Else: manage versions
-    if no_files:
-        tag_directory = os.path.join(FILES_DIRECTORY, name)
-        shutil.rmtree(tag_directory)
+    if len(directories) == 0:
+        delete_tag(tag=tag)
     else:
-        # Open the default file and check the file version
-        with open(default_file, 'r') as lf:
-            data_default = lf.read()
-            if data_default == version or version == 'default':
-                version = data_default
-            lf.close()
-
+        last_default, new_default = bvc_utils.new_default_number(default_file=default_file, history_file=history_file)
         # Rewrite the default file with the last version available
-        with open(default_file, 'w') as lf:
-            if int(data_default) == int(version):
-                lf.write(str(new_default_file))
-            else:
-                lf.write(data_default)
-            lf.close()
+        if version == 'default':
+            with open(default_file, 'w') as lf:
+                new_default = directories[-1]
+                lf.write(str(new_default))
+                lf.close()
 
         # Rewrite the history file without the information of the removed file
         with open(history_file, 'w') as hf:
             hf.write(json.dumps(data_history, sort_keys=True))
             hf.close()
-
         # Remove the file
-        directory_file = os.path.join(FILES_DIRECTORY, name, str(version))
+
+        if version == 'default':
+            version = last_default
+
+        directory_file = os.path.join(FILES_DIRECTORY, tag, str(version))
         shutil.rmtree(directory_file)
 
 
@@ -141,8 +108,7 @@ def update_default(name: str, version: str):
     directory_path = os.path.join(FILES_DIRECTORY, name)
 
     try:
-        new_default_file = os.listdir(
-            os.path.join(directory_path, version))[0]
+        os.listdir(os.path.join(directory_path, version))[0]
     except FileNotFoundError:
         return HttpJsonResponse(
             422,

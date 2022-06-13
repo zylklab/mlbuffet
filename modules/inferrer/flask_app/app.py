@@ -235,6 +235,14 @@ def model_handling(tag):
     # Create a modelhost_tag Pod
     if request.method == 'POST':
         metric_manager.increment_storage_counter()
+
+        # Check that the new tag name is dns-valid
+        dns_valid_chars = [str(n) for n in range(10)] + [chr(i) for i in range(ord('a'), ord('z') + 1)] + ['-']
+        if not all(c in dns_valid_chars for c in tag):
+            return HttpJsonResponse(
+                422, http_status_description=f'Tag name {tag} is not a dns-valid tag name. Only numbers [0-9], '
+                                             'lowercase letters [a-z] and hyphens [-] are allowed.').get_response()
+
         # Check a file path has been provided
         if not request.files or 'path' not in request.files:
             return HttpJsonResponse(422,
@@ -343,6 +351,19 @@ def model_information_handling(tag):
 # Start a new training session.
 def train(tag, model_name):
     metric_manager.increment_train_counter()
+
+    # Check that the new tag name is dns-valid
+    dns_valid_chars = [str(n) for n in range(10)] + [chr(i) for i in range(ord('a'), ord('z') + 1)] + ['-']
+    if not all(c in dns_valid_chars for c in tag):
+        return HttpJsonResponse(
+            422, http_status_description=f'Tag name {tag} is not a dns-valid tag name. Only numbers [0-9], '
+                                         'lowercase letters [a-z] and hyphens [-] are allowed.').get_response()
+
+    # Check that the model extension is allowed
+    if get_file_extension(model_name) not in ALLOWED_EXTENSIONS:
+        return HttpJsonResponse(
+            415, http_status_description='Filename extension not allowed. '
+                                         f'Please use one of these: {ALLOWED_EXTENSIONS}').get_response()
 
     # Check that the script was provided
     if not request.files.getlist('script'):
