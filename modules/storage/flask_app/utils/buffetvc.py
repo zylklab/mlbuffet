@@ -27,19 +27,13 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str):
     file.save(model_location)
 
     # Update history file
-    with open(os.path.join(MODEL_ROOT_DIR, HISTORY), 'r+') as fh:
-        data = json.load(fh)
-        ts = time.time()
-        time_string = time.strftime('%H:%M:%S %d/%m/%Y', time.localtime(ts))
-        data[new_directory_version] = {"path": model_path, "file": file_name,
-                                       "time": time_string, "description": description}
-        fh.seek(0)
-        fh.write(json.dumps(data, sort_keys=True))
-        fh.close()
 
-    # Rewrite the default file with the new version
-    with open(os.path.join(MODEL_ROOT_DIR, DEFAULT), 'w') as fl:
-        fl.write(new_directory_version)
+    bvc_utils.update_history_file(history_file=history_file,
+                                  new_directory_version=new_directory_version,
+                                  model_path=model_path,
+                                  file_name=file_name,
+                                  description=description,
+                                  default_file=default_file)
 
 
 def delete_file(name: str, version: str):
