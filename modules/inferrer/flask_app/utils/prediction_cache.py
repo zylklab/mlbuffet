@@ -4,12 +4,8 @@ import redis
 from utils.container_logger import Logger
 from os import getenv
 
-
-if getenv('ORCHESTRATOR') == 'KUBERNETES':
-    REDIS_HOST = 'cache'
-else:
-    REDIS_HOST = 'mlbuffet_cache'
-
+# Cache K8S service
+REDIS_HOST = 'cache'
 REDIS_PORT = 6379
 
 redis_cli = redis.Redis(host=REDIS_HOST, port=REDIS_PORT)
