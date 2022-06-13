@@ -40,7 +40,6 @@ def delete_file(name: str, version: str):
     default_file = os.path.join(FILES_DIRECTORY, name, DEFAULT)
     history_file = os.path.join(FILES_DIRECTORY, name, HISTORY)
 
-    directories = []
 
     # Clean the history file
     with open(history_file, 'r') as hf:
