@@ -5,7 +5,6 @@ namespace: mlbuffet
 resources:
   - mlbuffet_namespace.yaml
   - rbac.yaml
-  - modelhost.yaml
   - inferrer.yaml
   - cache.yaml
   - metrics.yaml
