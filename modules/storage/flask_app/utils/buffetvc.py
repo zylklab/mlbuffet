@@ -42,15 +42,7 @@ def delete_file(name: str, version: str):
 
 
     # Clean the history file
-    with open(history_file, 'r') as hf:
-        data_history = json.load(hf)
-        for i in data_history:
-            i = int(i)
-            directories.append(i)
-        if version == 'default':
-            version = directories[-1]
-        del data_history[str(version)]
-
+    directories, data_history = bvc_utils.clean_history(history_file=history_file,default_file = default_file, version=version)
     no_files = False
 
     # Check if the directory will be empty
