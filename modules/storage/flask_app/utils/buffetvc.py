@@ -4,7 +4,7 @@ import shutil
 import werkzeug.datastructures as ds
 from flask import send_file
 import utils.buffetvc_utils as bvc_utils
-from utils.storage_pojos import HttpJsonResponse, ModelList
+from utils.storage_pojos import HttpJsonResponse, ModelList, ML_Library
 from utils.utils import HISTORY, DEFAULT, FILES_DIRECTORY
 
 
@@ -163,3 +163,17 @@ def get_model_list():
 
     return ModelList(
         200, http_status_description='Model list provided', model_list=model_list).get_response()
+
+
+def get_ml_library(tag: str):
+    default_file = os.path.join(FILES_DIRECTORY, tag, DEFAULT)
+    history_file = os.path.join(FILES_DIRECTORY, tag, HISTORY)
+    with open(default_file, 'r') as default:
+        last_version = int(default.read())
+    with open(history_file, 'r') as hf:
+        history = json.loads(hf.read())
+        ml_library = history[str(last_version)]['ml_library']
+        print(ml_library)
+    return ML_Library(200,
+                      http_status_description=f'ML Library from tag {tag} provided',
+                      ml_library=ml_library).get_response()
