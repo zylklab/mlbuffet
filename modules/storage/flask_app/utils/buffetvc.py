@@ -36,10 +36,14 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str):
                                   default_file=default_file)
 
 
-def delete_file(name: str, version: str):
-    default_file = os.path.join(FILES_DIRECTORY, name, DEFAULT)
-    history_file = os.path.join(FILES_DIRECTORY, name, HISTORY)
+def delete_tag(tag: str):
+    tag_directory = os.path.join(FILES_DIRECTORY, tag)
+    shutil.rmtree(tag_directory)
 
+
+def delete_file(tag: str, version: str):
+    default_file = os.path.join(FILES_DIRECTORY, tag, DEFAULT)
+    history_file = os.path.join(FILES_DIRECTORY, tag, HISTORY)
 
     # Clean the history file
     directories, data_history = bvc_utils.clean_history(history_file=history_file,default_file = default_file, version=version)
