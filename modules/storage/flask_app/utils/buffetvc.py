@@ -1,9 +1,8 @@
 import os
-import time
 import json
 import shutil
 import werkzeug.datastructures as ds
-from flask import Response, send_file
+from flask import send_file
 from utils.storage_pojos import HttpJsonResponse, ModelList
 from utils.utils import HISTORY, DEFAULT, FILES_DIRECTORY
 
