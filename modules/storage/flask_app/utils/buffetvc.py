@@ -14,14 +14,7 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str):
     default_file = os.path.join(MODEL_ROOT_DIR, DEFAULT)
 
     # Create a new model storage directory
-    if not os.path.exists(MODEL_ROOT_DIR):
-        os.makedirs(MODEL_ROOT_DIR)
-        open(history_file, 'x')
-        open(default_file, 'x')
-        with open(history_file, "w") as hf:
-            hf.write('{}')
-        with open(default_file, "w") as lf:
-            lf.write('0')
+    bvc_utils.create_model_directory(MODEL_ROOT_DIR, history_file, default_file)
 
     # Check the default file to find the version of the new file
     with open(os.path.join(MODEL_ROOT_DIR, DEFAULT), 'r') as default:
