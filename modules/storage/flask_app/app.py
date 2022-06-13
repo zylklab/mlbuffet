@@ -162,5 +162,11 @@ def get_info(tag):
             http_status_description='Tag not found, please check the name introduced').get_response()
 
 
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>/library'), methods=['GET'])
+def get_library(tag):
+    ml_library = bvc.get_ml_library(tag=tag)
+    return ml_library
+
+
 if __name__ == '__main__':
     pass
