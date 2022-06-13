@@ -54,18 +54,16 @@ def delete_file(tag: str, version: str):
     else:
         last_default, new_default = bvc_utils.new_default_number(default_file=default_file, history_file=history_file)
         # Rewrite the default file with the last version available
-        with open(default_file, 'w') as lf:
-            if int(data_default) == int(version):
-                lf.write(str(new_default_file))
-            else:
-                lf.write(data_default)
-            lf.close()
+        if version == 'default':
+            with open(default_file, 'w') as lf:
+                new_default = directories[-1]
+                lf.write(str(new_default))
+                lf.close()
 
         # Rewrite the history file without the information of the removed file
         with open(history_file, 'w') as hf:
             hf.write(json.dumps(data_history, sort_keys=True))
             hf.close()
-
         # Remove the file
         directory_file = os.path.join(FILES_DIRECTORY, name, str(version))
         shutil.rmtree(directory_file)
