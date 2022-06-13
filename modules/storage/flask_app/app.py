@@ -120,7 +120,7 @@ def delete(tag):
         tag = name_split[0]
         version = name_split[1]
 
-    bvc.delete_file(name=tag, version=version)
+        bvc.delete_file(tag=tag, version=version)
     return HttpJsonResponse(200, http_status_description=f'{tag} removed\n').get_response()
 
 
