@@ -71,3 +71,14 @@ class ModelList(HttpJsonResponse):
             model_list = list(model_list)
 
         self.data['model_list'] = model_list
+
+
+class ML_Library(HttpJsonResponse):
+    def __init__(self,
+                 http_status_code: int,
+                 http_status_name: str = None,
+                 http_status_description: str = None,
+                 ml_library: str = None):
+        super().__init__(http_status_code, http_status_name, http_status_description)
+
+        self.data['ml_library'] = ml_library
