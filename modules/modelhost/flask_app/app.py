@@ -41,7 +41,7 @@ tag = getenv('TAG')
 
 try:
     response = requests.get(
-        f'http://storage:8000/storage/model/{tag}')
+        f'http://storage:8000/storage/models/{tag}')
 
     # Take the model name after the filename in the Content-Disposition section of headers.
     model_name = response.headers['Content-Disposition'].split('filename=')[1]

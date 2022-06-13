@@ -94,7 +94,7 @@ def log_response(response):
     return response
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['PUT'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>'), methods=['PUT'])
 def save(tag):
     file = request.files['path']
     filename = request.files['filename'].stream.read().decode("utf-8")
@@ -109,7 +109,7 @@ def save(tag):
                             http_status_description=f'File {filename} saved with the tag {tag}').get_response()
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['DELETE'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>'), methods=['DELETE'])
 def delete(tag):
     separator = tag.find(':')
     if separator < 0:
@@ -124,7 +124,7 @@ def delete(tag):
     return HttpJsonResponse(200, http_status_description=f'{tag} removed\n').get_response()
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['GET'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>'), methods=['GET'])
 def download(tag):
     separator = tag.find(':')
     if separator < 0:
@@ -141,14 +141,14 @@ def model_list():
     return bvc.get_model_list()
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>/default'), methods=['POST'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>/default'), methods=['POST'])
 def update_default_file(tag):
     new_default = request.json['default']
     response = bvc.update_default(name=tag, version=new_default)
     return response
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>/information'), methods=['GET'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>/information'), methods=['GET'])
 def get_info(tag):
     try:
         information = bvc.get_information(tag)
