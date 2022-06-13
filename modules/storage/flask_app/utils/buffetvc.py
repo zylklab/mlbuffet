@@ -52,13 +52,7 @@ def delete_file(tag: str, version: str):
     if len(directories) == 0:
         delete_tag(tag=tag)
     else:
-        # Open the default file and check the file version
-        with open(default_file, 'r') as lf:
-            data_default = lf.read()
-            if data_default == version or version == 'default':
-                version = data_default
-            lf.close()
-
+        last_default, new_default = bvc_utils.new_default_number(default_file=default_file, history_file=history_file)
         # Rewrite the default file with the last version available
         with open(default_file, 'w') as lf:
             if int(data_default) == int(version):
