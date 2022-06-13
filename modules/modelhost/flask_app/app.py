@@ -1,3 +1,5 @@
+import os
+
 import requests
 from os import path, getenv
 
@@ -50,10 +52,12 @@ try:
         downloaded_model.write(response.content)
 
     # Check the model library format
-    ML_LIBRARY = get_model_library(model_name)
+    ML_LIBRARY = get_model_library(tag)
 
+    cmd = f'pip install {ML_LIBRARY}'
+    os.system(cmd)
     # Import the corresponding library
-    if ML_LIBRARY == 'onnx':
+    if ML_LIBRARY == 'onnxruntime':
         from serving import serve_onnx as serve
         logger.info(f'onnxruntime imported as {tag} deployment library.')
     elif ML_LIBRARY == 'tf':
