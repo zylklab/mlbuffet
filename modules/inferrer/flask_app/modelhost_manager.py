@@ -179,8 +179,10 @@ def create_modelhost(tag, ml_library):
     # |
     # V
     ################ Body goes in the API call ######################################################
-    v1ServiceBody = kclient.V1Service(
-        api_version='v1', kind='Service', metadata=v1ServiceMeta, spec=v1ServiceSpec)
+    v1ServiceBody = kclient.V1Service(api_version='v1',
+                                      kind='Service',
+                                      metadata=v1ServiceMeta,
+                                      spec=v1ServiceSpec)
     #################################################################################################
     # |
     # V
