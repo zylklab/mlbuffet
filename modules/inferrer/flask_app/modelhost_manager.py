@@ -48,7 +48,7 @@ def delete_modelhost(tag):
 
     # Make the API requests to delete the Modelhost Deployment and Service
     try:
-        api_response = appsv1.delete_namespaced_deployment(
+        appsv1.delete_namespaced_deployment(
             name=f'modelhost-{tag}', namespace='mlbuffet')
 
     except Exception as e:
