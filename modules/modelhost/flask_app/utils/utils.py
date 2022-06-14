@@ -1,13 +1,16 @@
-from os import path, getcwd
+from os import path
 import shutil
 import requests
+from zipfile import ZipFile
+
 
 URI_SCHEME = 'http://'
 
 
 def unzip_models(file_name):
-    shutil.unpack_archive(file_name, getcwd())
-    return 'Unzipped'
+    zip_ = ZipFile(file_name)
+    zip_.extractall()
+    return zip_.namelist()
 
 
 def _url(resource):
