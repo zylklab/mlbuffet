@@ -1,4 +1,5 @@
-from os import path, getenv
+from os import getenv
+from utils.ipscan import PodNameScan
 from kubernetes import client as kclient, config
 import requests
 
@@ -6,6 +7,7 @@ from utils.inferer_pojos import HttpJsonResponse
 
 # Request constants
 URI_SCHEME = 'http://'
+NAMESPACE = 'mlbuffet'
 
 
 def _url(tag, resource):
