@@ -189,9 +189,27 @@ def create_modelhost(tag, ml_library):
     # |
     # V
     #################################################################################################
+def create_modelhost(tag):
+    # Load K8S Cluster config
+    config.load_incluster_config()
+    v1 = kclient.CoreV1Api()
+    api_instance = kclient.AppsV1Api()
+
     try:
-        v1Service = v1.create_namespaced_service(
-            namespace=NAMESPACE, body=v1ServiceBody)
+        V1Deployment = _create_body_deployement(tag)
+        api_instance.create_namespaced_deployment(namespace=NAMESPACE,
+                                                  body=V1Deployment)
+    except kclient.exceptions.ApiException as e:
+        pod_list = PodNameScan(service='modelhost', tag=tag)
+        for pod in pod_list:
+            v1.delete_namespaced_pod(namespace=NAMESPACE, name=pod)
+    except Exception as e:
+        print("Exception when calling AppsV1Api->create_namespaced_deployment: %s\n" % e)
+
+    try:
+        v1ServiceBody = _create_body_service(tag)
+        v1.create_namespaced_service(namespace=NAMESPACE,
+                                     body=v1ServiceBody)
     except Exception as e:
         print("Exception when calling CoreV1Api->create_namespaced_service: %s\n" % e)
 
