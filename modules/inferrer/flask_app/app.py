@@ -271,9 +271,10 @@ def model_handling(tag):
             desc = request.form['model_description']
 
         #### CREATE MODELHOST POD ####
-        mh_talker.create_modelhost(tag=tag, ml_library=ML_LIBRARY)
+        mh_talker.create_modelhost(tag=tag)
 
-        return st_talker.upload_new_model(tag=tag, file=new_model, file_name=model_name, description=desc, ml_library=ML_LIBRARY)
+        return st_talker.upload_new_model(tag=tag, file=new_model, file_name=model_name, description=desc,
+                                          ml_library=ML_LIBRARY)
 
     # For DELETE requests, delete a given tag from the storage and delete the modelhost Pod
     if request.method == 'DELETE':
@@ -311,8 +312,13 @@ def upload_default(tag):
     if not isinstance(default, int):
         return HttpJsonResponse(422, http_status_description='Default value must be an integer').get_response()
 
-    return st_talker.set_default_model(tag, str(default))
-
+    st_talker.set_default_model(tag, str(default))
+    logger.info('Restart deployment')
+    mh_talker.restart_deployment(tag=tag)
+    return HttpJsonResponse(200, 
+                            http_status_description=f'Modelhost tagged as {tag} updated with default version: {default}')\
+        .get_response()
+    
 
 @server.route(path.join(API_BASE_URL, 'models/<tag>/information'), methods=['GET', 'PUT'])
 def model_information_handling(tag):

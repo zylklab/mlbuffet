@@ -1,5 +1,4 @@
 from kubernetes import client, config
-from os import getenv
 
 
 def IPScan(service: str):
@@ -19,3 +18,19 @@ def IPScan(service: str):
             pass
 
     return servicelist
+
+
+def PodNameScan(service: str, tag: str):
+    """
+    IPScan search the IPs of the services deployed in K8S.
+    """
+    config.load_incluster_config()
+    v1 = client.CoreV1Api()
+    PodList = []
+    service_name = 'mlbuffet_' + service + '_' + tag
+    ret = v1.list_namespaced_pod('mlbuffet')
+    for item in ret.items:
+        if item.metadata.labels['app'] == service_name:
+            PodList.append(item.metadata.name)
+
+    return PodList

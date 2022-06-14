@@ -54,13 +54,15 @@ try:
     # Check the model library format
     ML_LIBRARY = get_model_library(tag)
 
-    cmd = f'pip install {ML_LIBRARY}'
-    os.system(cmd)
     # Import the corresponding library
-    if ML_LIBRARY == 'onnxruntime':
+    if 'onnx' in ML_LIBRARY:
+        cmd = f'pip3 install onnxruntime'
+        os.system(cmd)
         from serving import serve_onnx as serve
         logger.info(f'onnxruntime imported as {tag} deployment library.')
-    elif ML_LIBRARY == 'tf':
+    elif 'tensorflow' in ML_LIBRARY:
+        cmd = f'pip3 install {ML_LIBRARY}'
+        os.system(cmd)
         from serving import serve_tf as serve
         logger.info(f'Tensorflow imported as {tag} deployment library.')
 
