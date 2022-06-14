@@ -1,6 +1,6 @@
 import tensorflow
 import numpy
-from utils import unzip_models
+from utils.utils import unzip_models
 
 # List with preloaded models to do the inference
 model_sessions = {}
