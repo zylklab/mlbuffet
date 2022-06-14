@@ -225,4 +225,4 @@ def restart_deployment(tag: str):
             v1.delete_namespaced_pod(namespace=NAMESPACE, name=pod)
         return f'{NAME} updated \n'
     except Exception as e:
-        print("Exception when calling AppsV1Api->create_namespaced_deployment: %s\n" % e)
+        print("Exception when calling AppsV1Api->delete_namespaced_pod: %s\n" % e)
