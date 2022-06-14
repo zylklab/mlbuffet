@@ -271,7 +271,7 @@ def model_handling(tag):
             desc = request.form['model_description']
 
         #### CREATE MODELHOST POD ####
-        mh_talker.create_modelhost(tag=tag, ml_library=ML_LIBRARY)
+        mh_talker.create_modelhost(tag=tag)
 
         return st_talker.upload_new_model(tag=tag, file=new_model, file_name=model_name, description=desc, ml_library=ML_LIBRARY)
 
