@@ -62,41 +62,36 @@ def delete_modelhost(tag):
         print("Exception when calling CoreV1Api->delete_namespaced_service: %s\n" % e)
 
 
-def create_modelhost(tag, ml_library):
-    # Load K8S Cluster config
-    config.load_incluster_config()
-    v1 = kclient.CoreV1Api()
-    api_instance = kclient.AppsV1Api()
-
+def _create_body_deployement(tag: str):
     # Define constants
-    NAMESPACE = 'mlbuffet'
+
     NAME = f'modelhost-{tag}'
 
-############################################
-# apiVersion: apps/v1
-# kind: Deployment
-# metadata:
-#   name: modelhost
-#   namespace: mlbuffet
-#   labels:
-#     app: mlbuffet_modelhost
-# spec:
-#   replicas: 1
-#   selector:
-#     matchLabels:
-#       app: mlbuffet_modelhost
-#   template:
-#     metadata:
-#       labels:
-#         app: mlbuffet_modelhost
-#     spec:
-#       containers:
-#         - name: modelhost
-#           image: IMAGE_MLBUFFET_MODELHOST
-#           imagePullPolicy: Always
-#           ports:
-#             - containerPort: 8000
-#############################################
+    ############################################
+    # apiVersion: apps/v1
+    # kind: Deployment
+    # metadata:
+    #   name: modelhost
+    #   namespace: mlbuffet
+    #   labels:
+    #     app: mlbuffet_modelhost
+    # spec:
+    #   replicas: 1
+    #   selector:
+    #     matchLabels:
+    #       app: mlbuffet_modelhost
+    #   template:
+    #     metadata:
+    #       labels:
+    #         app: mlbuffet_modelhost
+    #     spec:
+    #       containers:
+    #         - name: modelhost
+    #           image: IMAGE_MLBUFFET_MODELHOST
+    #           imagePullPolicy: Always
+    #           ports:
+    #             - containerPort: 8000
+    #############################################
 
     IMAGE = getenv('IMAGE_MLBUFFET_MODELHOST')
 
@@ -122,15 +117,16 @@ def create_modelhost(tag, ml_library):
     ################ These two go into V1Deployment ################################################
     # Create the Metadata of the Deployment and Pod
     V1ObjectMeta = kclient.V1ObjectMeta(name=NAME, namespace=NAMESPACE, labels={
-                                        "app": "mlbuffet_modelhost"})
+        "app": f"mlbuffet_modelhost_{tag}"})
 
     # Create the Pod Template Spec
     V1PodTemplateSpec = kclient.V1PodTemplateSpec(
-        metadata=kclient.V1ObjectMeta(labels={"app": "mlbuffet_modelhost"}), spec=V1PodSpec)
+        metadata=kclient.V1ObjectMeta(labels={"app": f"mlbuffet_modelhost_{tag}"}), spec=V1PodSpec)
 
     # Create the Deployment Spec
     V1DeploymentSpec = kclient.V1DeploymentSpec(
-        replicas=1, template=V1PodTemplateSpec, selector=kclient.V1LabelSelector(match_labels={"app": "mlbuffet_modelhost"}))
+        replicas=1, template=V1PodTemplateSpec,
+        selector=kclient.V1LabelSelector(match_labels={"app": f"mlbuffet_modelhost_{tag}"}))
     ################################################################################################
     # |
     # V
@@ -141,13 +137,12 @@ def create_modelhost(tag, ml_library):
     ################################################################################################
     # |
     # V
-    try:
-        api_response = api_instance.create_namespaced_deployment(
-            namespace=NAMESPACE, body=V1Deployment)
 
-    except Exception as e:
-        print("Exception when calling AppsV1Api->create_namespaced_deployment: %s\n" % e)
+    return V1Deployment
 
+
+def _create_body_service(tag):
+    NAME = f'modelhost-{tag}'
     # Now create a K8S Service to access the Modelhost Pod
     ###################################
     # apiVersion: v1
@@ -175,8 +170,9 @@ def create_modelhost(tag, ml_library):
     # V
     ################ These two go in Service Body ###################################################
     v1ServiceMeta = kclient.V1ObjectMeta(name=NAME, namespace=NAMESPACE)
-    v1ServiceSpec = kclient.V1ServiceSpec(selector={
-                                          "app": "mlbuffet_modelhost"}, ports=servicePorts, type='ClusterIP', internal_traffic_policy='Cluster')
+    v1ServiceSpec = kclient.V1ServiceSpec(selector={"app": f"mlbuffet_modelhost_{tag}"},
+                                          ports=servicePorts, type='ClusterIP',
+                                          internal_traffic_policy='Cluster')
     #################################################################################################
     # |
     # V
@@ -189,6 +185,9 @@ def create_modelhost(tag, ml_library):
     # |
     # V
     #################################################################################################
+    return v1ServiceBody
+
+
 def create_modelhost(tag):
     # Load K8S Cluster config
     config.load_incluster_config()
