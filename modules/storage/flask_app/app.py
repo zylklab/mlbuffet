@@ -94,22 +94,25 @@ def log_response(response):
     return response
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['PUT'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>'), methods=['PUT'])
 def save(tag):
     file = request.files['path']
     filename = request.files['filename'].stream.read().decode("utf-8")
     description = request.files['model_description'].stream.read().decode(
         "utf-8")
+    ml_library = request.files['ml_library'].stream.read().decode(
+        "utf-8")
     bvc.save_file(file=file,
                   tag=tag,
                   file_name=filename,
-                  description=description)
+                  description=description,
+                  ml_library=ml_library)
 
     return HttpJsonResponse(http_status_code=201,
                             http_status_description=f'File {filename} saved with the tag {tag}').get_response()
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['DELETE'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>'), methods=['DELETE'])
 def delete(tag):
     separator = tag.find(':')
     if separator < 0:
@@ -124,7 +127,7 @@ def delete(tag):
     return HttpJsonResponse(200, http_status_description=f'{tag} removed\n').get_response()
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['GET'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>'), methods=['GET'])
 def download(tag):
     separator = tag.find(':')
     if separator < 0:
@@ -141,14 +144,14 @@ def model_list():
     return bvc.get_model_list()
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>/default'), methods=['POST'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>/default'), methods=['POST'])
 def update_default_file(tag):
     new_default = request.json['default']
     response = bvc.update_default(name=tag, version=new_default)
     return response
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>/information'), methods=['GET'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>/information'), methods=['GET'])
 def get_info(tag):
     try:
         information = bvc.get_information(tag)
@@ -157,6 +160,12 @@ def get_info(tag):
         return HttpJsonResponse(
             422,
             http_status_description='Tag not found, please check the name introduced').get_response()
+
+
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>/library'), methods=['GET'])
+def get_library(tag):
+    ml_library = bvc.get_ml_library(tag=tag)
+    return ml_library
 
 
 if __name__ == '__main__':

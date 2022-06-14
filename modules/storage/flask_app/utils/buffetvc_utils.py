@@ -30,14 +30,17 @@ def new_default_file(MODEL_ROOT_DIR: str, default_file: str, history_file: str):
 
 
 def update_history_file(history_file: str, new_directory_version: str, model_path: str, file_name: str,
-                        description: str, default_file: str):
+                        description: str, default_file: str, ml_library: str):
     # Update history file
     with open(history_file, 'r+') as fh:
         data = json.load(fh)
         ts = time()
         time_string = strftime('%H:%M:%S %d/%m/%Y', localtime(ts))
-        data[new_directory_version] = {"path": model_path, "file": file_name,
-                                       "time": time_string, "description": description}
+        data[new_directory_version] = {"path": model_path,
+                                       "file": file_name,
+                                       "time": time_string,
+                                       "description": description,
+                                       "ml_library": ml_library}
         fh.seek(0)
         fh.write(json.dumps(data, sort_keys=True))
         fh.close()

@@ -4,11 +4,11 @@ import shutil
 import werkzeug.datastructures as ds
 from flask import send_file
 import utils.buffetvc_utils as bvc_utils
-from utils.storage_pojos import HttpJsonResponse, ModelList
+from utils.storage_pojos import HttpJsonResponse, ModelList, ML_Library
 from utils.utils import HISTORY, DEFAULT, FILES_DIRECTORY
 
 
-def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str):
+def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str, ml_library: str):
     MODEL_ROOT_DIR = os.path.join(FILES_DIRECTORY, tag)
     history_file = os.path.join(MODEL_ROOT_DIR, HISTORY)
     default_file = os.path.join(MODEL_ROOT_DIR, DEFAULT)
@@ -33,7 +33,8 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str):
                                   model_path=model_path,
                                   file_name=file_name,
                                   description=description,
-                                  default_file=default_file)
+                                  default_file=default_file,
+                                  ml_library=ml_library)
 
 
 def delete_tag(tag: str):
@@ -46,13 +47,16 @@ def delete_file(tag: str, version: str):
     history_file = os.path.join(FILES_DIRECTORY, tag, HISTORY)
 
     # Clean the history file
-    directories, data_history = bvc_utils.clean_history(history_file=history_file,default_file = default_file, version=version)
+    directories, data_history = bvc_utils.clean_history(history_file=history_file,
+                                                        default_file=default_file,
+                                                        version=version)
     # Check if the directory will be empty
 
     if len(directories) == 0:
         delete_tag(tag=tag)
     else:
-        last_default, new_default = bvc_utils.new_default_number(default_file=default_file, history_file=history_file)
+        last_default, new_default = bvc_utils.new_default_number(default_file=default_file,
+                                                                 history_file=history_file)
         # Rewrite the default file with the last version available
         if version == 'default':
             with open(default_file, 'w') as lf:
@@ -62,7 +66,8 @@ def delete_file(tag: str, version: str):
 
         # Rewrite the history file without the information of the removed file
         with open(history_file, 'w') as hf:
-            hf.write(json.dumps(data_history, sort_keys=True))
+            hf.write(json.dumps(data_history,
+                                sort_keys=True))
             hf.close()
         # Remove the file
 
@@ -90,7 +95,8 @@ def download_file(name: str, version: str):
                          as_attachment=True)
     except FileNotFoundError:
         return HttpJsonResponse(
-            422, http_status_description='File not found, please check the model name is correct!').get_response()
+            422,
+            http_status_description='File not found, please check the model name is correct!').get_response()
 
 
 def get_directory_file(tag: str):
@@ -161,5 +167,20 @@ def get_model_list():
         else:
             pass
 
-    return ModelList(
-        200, http_status_description='Model list provided', model_list=model_list).get_response()
+    return ModelList(200,
+                     http_status_description='Model list provided',
+                     model_list=model_list).get_response()
+
+
+def get_ml_library(tag: str):
+    default_file = os.path.join(FILES_DIRECTORY, tag, DEFAULT)
+    history_file = os.path.join(FILES_DIRECTORY, tag, HISTORY)
+    with open(default_file, 'r') as default:
+        last_version = int(default.read())
+    with open(history_file, 'r') as hf:
+        history = json.loads(hf.read())
+        ml_library = history[str(last_version)]['ml_library']
+        print(ml_library)
+    return ML_Library(200,
+                      http_status_description=f'ML Library from tag {tag} provided',
+                      ml_library=ml_library).get_response()

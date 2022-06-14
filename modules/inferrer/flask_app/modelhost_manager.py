@@ -100,10 +100,8 @@ def create_modelhost(tag, ml_library):
 
     # Fill the environment variables list
     ENV_LIST = []
-    ENV1 = kclient.V1EnvVar(name='ML_LIBRARY', value=f'{ml_library}')
-    ENV2 = kclient.V1EnvVar(name='TAG', value=tag)
-    ENV_LIST.append(ENV1)
-    ENV_LIST.append(ENV2)
+    ENV = kclient.V1EnvVar(name='TAG', value=tag)
+    ENV_LIST.append(ENV)
 
     ################# Fill the container list that goes into V1PodSpec #############################
     CONTAINER_LIST = []

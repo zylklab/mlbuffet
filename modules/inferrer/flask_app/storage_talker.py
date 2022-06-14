@@ -47,20 +47,20 @@ def _delete(resource):
     return response
 
 
-def upload_new_model(tag, file, file_name, description):
-    resource = '/storage/model/' + tag
+def upload_new_model(tag, file, file_name, description, ml_library):
+    resource = '/storage/models/' + tag
     files = [('path', file), ('model_description',
-                              description), ('filename', file_name)]
+                              description), ('filename', file_name), ('ml_library', ml_library)]
     return _put(resource, files)
 
 
 def delete_model(tag):
-    resource = '/storage/model/' + tag
+    resource = '/storage/models/' + tag
     return _delete(resource)
 
 
 def download_model(tag):
-    resource = '/storage/model/' + tag
+    resource = '/storage/models/' + tag
 
     response = _download(resource)
     status = response.status_code
@@ -76,13 +76,13 @@ def download_model(tag):
 
 
 def set_default_model(tag, new_version):
-    resource = '/storage/model/' + tag + '/default'
+    resource = '/storage/models/' + tag + '/default'
     json_data = {'default': new_version}
     return _post(resource, json_data)
 
 
 def get_tag_information(tag):
-    resource = '/storage/model/' + tag + '/information'
+    resource = '/storage/models/' + tag + '/information'
     return _get(resource)
 
 
