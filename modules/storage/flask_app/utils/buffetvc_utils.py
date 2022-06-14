@@ -62,7 +62,6 @@ def clean_history(history_file: str, default_file: str, version):
         if version == 'default':
             with open(default_file, 'r') as default:
                 version = int(default.read())
-            # version = directories[-1]
 
         directories.remove(int(version))
         del data_history[str(version)]
