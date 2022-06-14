@@ -1,7 +1,6 @@
 import tensorflow
 import numpy
-from utils.utils import unzip_models
-
+from utils import unzip_models
 
 # List with preloaded models to do the inference
 model_sessions = {}
@@ -15,6 +14,7 @@ def _pb_load(tag, filename):  # tf model loading when .pb format is detected
     inferlayer = tfmodel.signatures[
         "serving_default"]  # layer where inference happens passing the inputs as a tf.constant(inputs)
     input_name = list(inferlayer.structured_input_signature[1].keys())[0]
+    input_dtype = inferlayer.structured_input_signature[1][input_name].dtype
     output_name = list(inferlayer.structured_outputs.keys())[0]
     dimensions = inferlayer.structured_input_signature[1][input_name].shape.as_list()
     label_name = list(inferlayer.structured_outputs.keys())[0]
@@ -31,6 +31,7 @@ def _pb_load(tag, filename):  # tf model loading when .pb format is detected
                         'model_name': filename,
                         'infer_layer': inferlayer,
                         'input_name': input_name,
+                        'input_dtype': input_dtype,
                         'output_name': output_name,
                         'dimensions': dimensions,
                         'label_name': label_name}
@@ -121,5 +122,6 @@ def perform_inference(tag, model_input):
     else:
         infer = model_sessions[tag]['infer_layer']
         output_name = model_sessions[tag]['output_name']
+        input_dtype = model_sessions[tag]['input_dtype']
 
-        return infer(tensorflow.constant(numpy.array(model_input)))[output_name].numpy()
+        return infer(tensorflow.constant(model_input, dtype=input_dtype))[output_name].numpy()
