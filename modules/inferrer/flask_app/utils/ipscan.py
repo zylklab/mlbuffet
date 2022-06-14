@@ -1,5 +1,4 @@
 from kubernetes import client, config
-from os import getenv
 
 
 def IPScan(service: str):
