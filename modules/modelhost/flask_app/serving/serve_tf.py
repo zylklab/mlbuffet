@@ -1,12 +1,13 @@
 import tensorflow
-import shutil
-import os
 import numpy
+from utils.utils import unzip_models
+
+
 # List with preloaded models to do the inference
 model_sessions = {}
 
 
-def _pb_load(tag, filename, model_name): # tf model loading when .pb format is detected
+def _pb_load(tag, filename):  # tf model loading when .pb format is detected
     """
     Auxiliary method for loading TF model when .pb format is detected
     """
@@ -18,9 +19,16 @@ def _pb_load(tag, filename, model_name): # tf model loading when .pb format is d
     dimensions = inferlayer.structured_input_signature[1][input_name].shape.as_list()
     label_name = list(inferlayer.structured_outputs.keys())[0]
 
+    # Handle model name
+    if filename == '':
+        # if model was not in a directory give a default name
+        filename = 'saved_model.pb'
+    else:
+        # else give directory name to the model, handling trailing '/'s
+        filename = filename[:-1] if filename.endswith('/') else filename
     full_description = {'tag': tag,
-                        'model_type': 'pb', # check for inference tasks
-                        'model_name': model_name,
+                        'model_type': 'pb',  # check for inference tasks
+                        'model_name': filename,
                         'infer_layer': inferlayer,
                         'input_name': input_name,
                         'output_name': output_name,
@@ -32,7 +40,7 @@ def _pb_load(tag, filename, model_name): # tf model loading when .pb format is d
 
 def _keras_load(tag, filename):
     """
-        Auxiliary method for loading TF model when .pb format is detected
+    Auxiliary method for loading TF model when .h5 format is detected
     """
     model = tensorflow.keras.models.load_model(filename)
     input_name = model.input_names
@@ -41,9 +49,9 @@ def _keras_load(tag, filename):
     label_name = model.output_names
 
     full_description = {'tag': tag,
-                        'model_type': 'h5', # check for inference tasks
+                        'model_type': 'h5',  # check for inference tasks
                         'model_object': model,
-                        'model_name': filename,
+                        'model_name': filename.split('/')[-1],
                         'input_name': input_name,
                         'output_name': output_name,
                         'dimensions': dimensions,
@@ -56,25 +64,36 @@ def load_model(tag, filename):
     """
     Method for loading a model
     :param tag: a tag to identify the model
-    :param filename: the stored model file. Either a .zip with the folder, a .pb or a.h5 file
+    :param filename: the stored model file. Either a .zip with the folder, a .pb or a .h5 file
     """
-    if '.zip' in filename:  # check if zip -> unpack in a folder named with the tag
-        shutil.unpack_archive(filename, os.getcwd())
 
-    files = os.listdir(os.getcwd())
-    if any(File.endswith(".pb") for File in files):
-        mfile = [f for f in os.listdir(os.getcwd()) if f.endswith('.pb')][0]
+    filetype = filename.split('.')[-1]
+    if filetype == 'zip':
+        filelist = unzip_models(filename)
+        for file in filelist:
+            splits = file.split('/')
+            if splits[-1] == 'saved_model.pb':
+                filename = ''
+                for split in splits[:-1]:
+                    filename += split + '/'
+                filetype = 'pb'
+                break
+            elif splits[-1].split('.')[-1] == 'h5':
+                filename = file
+                filetype = 'h5'
+                break
+
+    if filetype == 'pb':
         try:
-            # when loading a pb model, using os.getcwd as the directory param required by the load function
-            model_sessions[tag] = _pb_load(tag, os.getcwd(), mfile)
+            model_sessions[tag] = _pb_load(tag, filename)
             return model_sessions[tag]
         except Exception as e:
             print(e)
             return e
-    else:  # .h5 model loaded -> keras library
-        mfile = [f for f in os.listdir(os.getcwd()) if f.endswith('.h5')][0]
+    # .h5 model loaded -> keras library
+    elif filetype == 'h5':
         try:
-            model_sessions[tag] = _keras_load(tag, mfile)
+            model_sessions[tag] = _keras_load(tag, filename)
             return model_sessions[tag]
         except Exception as e:
             print(e)
