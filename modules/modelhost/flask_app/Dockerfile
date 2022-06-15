@@ -21,5 +21,5 @@ RUN ["chmod", "+x", "./api_test.py"]
 #RUN python ./api_test.py
 
 # HTTP
-ENTRYPOINT gunicorn -w 1 -b 0.0.0.0:8000 app:server
+ENTRYPOINT gunicorn -w 1 -b 0.0.0.0:8000 app:server --timeout 600
 
