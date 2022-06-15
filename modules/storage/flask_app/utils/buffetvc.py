@@ -16,11 +16,11 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str, 
     history_file = os.path.join(MODEL_ROOT_DIR, HISTORY)
     default_file = os.path.join(MODEL_ROOT_DIR, DEFAULT)
 
-    # Create a new model storage directory
-    bvc_utils.create_model_directory(MODEL_ROOT_DIR, history_file, default_file)
+    # Create a new model directory
+    create_model_directory(MODEL_ROOT_DIR, history_file, default_file)
 
     # Check the default file to find the version of the new file
-    new_directory_version, model_path = bvc_utils.new_default_file(MODEL_ROOT_DIR, default_file, history_file)
+    new_directory_version, model_path = new_default_file(MODEL_ROOT_DIR, default_file, history_file)
 
     # Check the existence of the version directory and save it
     if not os.path.exists(model_path):
