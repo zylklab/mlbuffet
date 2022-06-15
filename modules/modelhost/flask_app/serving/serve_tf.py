@@ -11,13 +11,13 @@ def _pb_load(tag, filename):  # tf model loading when .pb format is detected
     Auxiliary method for loading TF model when .pb format is detected
     """
     tfmodel = tensorflow.saved_model.load(filename)
-    inferlayer = tfmodel.signatures[
-        "serving_default"]  # layer where inference happens passing the inputs as a tf.constant(inputs)
-    input_name = list(inferlayer.structured_input_signature[1].keys())[0]
-    input_dtype = inferlayer.structured_input_signature[1][input_name].dtype
-    output_name = list(inferlayer.structured_outputs.keys())[0]
-    dimensions = inferlayer.structured_input_signature[1][input_name].shape.as_list()
-    label_name = list(inferlayer.structured_outputs.keys())[0]
+    serving_sig = tfmodel.signatures["serving_default"]
+
+    input_name = list(serving_sig.structured_input_signature[1].keys())[0]
+    input_dtype = serving_sig.structured_input_signature[1][input_name].dtype
+    output_name = list(serving_sig.structured_outputs.keys())[0]
+    dimensions = serving_sig.structured_input_signature[1][input_name].shape.as_list()
+    label_name = list(serving_sig.structured_outputs.keys())[0]
 
     # Handle model name
     if filename == '':
@@ -29,7 +29,7 @@ def _pb_load(tag, filename):  # tf model loading when .pb format is detected
     full_description = {'tag': tag,
                         'model_type': 'pb',  # check for inference tasks
                         'model_name': filename,
-                        'infer_layer': inferlayer,
+                        'model_object': tfmodel,
                         'input_name': input_name,
                         'input_dtype': input_dtype,
                         'output_name': output_name,
@@ -67,7 +67,6 @@ def load_model(tag, filename):
     :param tag: a tag to identify the model
     :param filename: the stored model file. Either a .zip with the folder, a .pb or a .h5 file
     """
-
     filetype = filename.split('.')[-1]
     if filetype == 'zip':
         filelist = unzip_models(filename)
@@ -120,8 +119,9 @@ def perform_inference(tag, model_input):
         return model_sessions[tag]['model_object'].predict(model_input)
 
     else:
-        infer = model_sessions[tag]['infer_layer']
+        infer = model_sessions[tag]['model_object'].signatures['serving_default']
+        input_name = model_sessions[tag]['input_name']
         output_name = model_sessions[tag]['output_name']
         input_dtype = model_sessions[tag]['input_dtype']
-
-        return infer(tensorflow.constant(model_input, dtype=input_dtype))[output_name].numpy()
+        args = {input_name: tensorflow.constant(numpy.array(model_input), dtype=input_dtype)}
+        return infer(**args)[output_name].numpy()
