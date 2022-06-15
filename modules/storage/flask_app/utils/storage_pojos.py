@@ -70,7 +70,7 @@ class ModelList(HttpJsonResponse):
         except AttributeError:
             model_list = list(model_list)
 
-        self.data['model_list'] = model_list
+        self.data['tag_list'] = model_list
 
 
 class ML_Library(HttpJsonResponse):
