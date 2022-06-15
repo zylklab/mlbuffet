@@ -80,33 +80,40 @@ def delete_file(tag: str, version: str):
                                                   default_file=default_file,
                                                   version=version)
         # Check if the directory will be empty
-
-    if len(directories) == 0:
-        delete_tag(tag=tag)
-    else:
+        if len(directories) == 0:
+            # If is empty, remove the tag
+            response = delete_tag(tag=tag)
+        else:
             # If not is empty, set a new default number
             last_default, new_default = new_default_number(default_file=default_file,
                                                            history_file=history_file)
-        # Rewrite the default file with the last version available
-        if version == 'default':
-            with open(default_file, 'w') as lf:
-                new_default = directories[-1]
-                lf.write(str(new_default))
-                lf.close()
+            # Rewrite the default file with the last version available
+            if version == 'default':
+                with open(default_file, 'w') as lf:
+                    new_default = directories[-1]
+                    lf.write(str(new_default))
+                    lf.close()
 
-        # Rewrite the history file without the information of the removed file
-        with open(history_file, 'w') as hf:
-            hf.write(json.dumps(data_history,
-                                sort_keys=True))
-            hf.close()
-        # Remove the file
+            # Rewrite the history file without the information of the removed file
+            with open(history_file, 'w') as hf:
+                hf.write(json.dumps(data_history,
+                                    sort_keys=True))
+                hf.close()
+            # Remove the file
 
-        if version == 'default':
-            version = last_default
+            if version == 'default':
+                version = last_default
 
-        directory_file = os.path.join(FILES_DIRECTORY, tag, str(version))
-        shutil.rmtree(directory_file)
+            directory_file = os.path.join(FILES_DIRECTORY, tag, str(version))
+            shutil.rmtree(directory_file)
 
+            response = HttpJsonResponse(200, http_status_description=f'{tag} removed\n').get_response()
+    except FileNotFoundError:
+        response = HttpJsonResponse(
+            422,
+            http_status_description=f'File not found, please check if the tag {tag} is correct').get_response()
+
+    return response
 
 
 def download_file(tag: str, version: str):
