@@ -126,15 +126,15 @@ def delete(tag):
     separator = tag.find(':')
     if separator < 0:
         # If there is no version, remove the entire tag
-
+        response = bvc.delete_tag(tag)
     else:
         # If there is version, remove the file
         name_split = tag.split(':')
         tag = name_split[0]
         version = name_split[1]
+        response = bvc.delete_file(tag=tag, version=version)
 
-        bvc.delete_file(tag=tag, version=version)
-    return HttpJsonResponse(200, http_status_description=f'{tag} removed\n').get_response()
+    return response
 
 
 @server.route(path.join(STORAGE_BASE_URL, 'models/<tag>'), methods=['GET'])
