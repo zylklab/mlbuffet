@@ -1,6 +1,3 @@
-import os
-
-import requests
 from os import path, getenv
 
 from flask import Flask, request, Response
@@ -8,7 +5,6 @@ from flask_httpauth import HTTPTokenAuth
 from werkzeug.exceptions import HTTPException, Unauthorized
 
 from utils import metric_manager
-from utils.utils import get_model_library
 from utils.container_logger import Logger
 from utils.modelhost_pojos import HttpJsonResponse, Prediction
 from secrets import compare_digest
@@ -35,39 +31,25 @@ logger.info('Starting Flask API...')
 server = Flask(__name__)
 logger.info('... Flask API successfully started')
 
-######## This is executed at server startup. ########
-######## Downloads the model from Storage.   ########
+# ####### This is executed at server startup.               ####### #
+# ####### Imports the library required to deploy the model. ####### #
 
 # Read ENV variables for the model
 tag = getenv('TAG')
+ml_library = getenv('ml_library')
+model_name = getenv('filename')
 
 try:
-    response = requests.get(
-        f'http://storage:8000/storage/models/{tag}')
-
-    # Take the model name after the filename in the Content-Disposition section of headers.
-    model_name = response.headers['Content-Disposition'].split('filename=')[1]
-
-    with open(f'{model_name}', 'wb') as downloaded_model:
-        downloaded_model.write(response.content)
-
-    # Check the model library format
-    ML_LIBRARY = get_model_library(tag)
-
     # Import the corresponding library
-    if 'onnx' in ML_LIBRARY:
-        cmd = f'pip3 install onnxruntime'
-        os.system(cmd)
+    if 'onnx' in ml_library:
         from serving import serve_onnx as serve
-        logger.info(f'onnxruntime imported as {tag} deployment library.')
-    elif 'tensorflow' in ML_LIBRARY:
-        cmd = f'pip3 install {ML_LIBRARY}'
-        os.system(cmd)
+        logger.info(f'Library onnxruntime imported for deploying {tag}.')
+    elif 'tensorflow' in ml_library:
         from serving import serve_tf as serve
-        logger.info(f'Tensorflow imported as {tag} deployment library.')
+        logger.info(f'Library tensorflow imported for deploying {tag}.')
 
     if serve.load_model(tag, model_name):
-        logger.info(f'Model successfully loaded in {ML_LIBRARY} format')
+        logger.info(f'Model successfully loaded in {ml_library} format')
 
 except Exception as e:
     logger.error(
