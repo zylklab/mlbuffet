@@ -223,14 +223,14 @@ def get_model_list():
     return st_talker.get_model_list()
 
 
-@server.route(path.join(API_BASE_URL, 'models/<tag>'), methods=['GET', 'POST', 'DELETE'])
+@server.route(path.join(API_BASE_URL, 'models/<complete_tag>'), methods=['GET', 'POST', 'DELETE'])
 # This resource is used for model management. Performs operations on models and manages models in the server.
-def model_handling(tag):
+def model_handling(complete_tag):
     # Download model
     if request.method == 'GET':
         metric_manager.increment_storage_counter()
 
-        return st_talker.download_model(tag=tag)
+        return st_talker.download_model(tag=complete_tag)
 
     # Create a modelhost_tag Pod
     if request.method == 'POST':
@@ -238,9 +238,9 @@ def model_handling(tag):
 
         # Check that the new tag name is dns-valid
         dns_valid_chars = [str(n) for n in range(10)] + [chr(i) for i in range(ord('a'), ord('z') + 1)] + ['-']
-        if not all(c in dns_valid_chars for c in tag):
+        if not all(c in dns_valid_chars for c in complete_tag):
             return HttpJsonResponse(
-                422, http_status_description=f'Tag name {tag} is not a dns-valid tag name. Only numbers [0-9], '
+                422, http_status_description=f'Tag name {complete_tag} is not a dns-valid tag name. Only numbers [0-9], '
                                              'lowercase letters [a-z] and hyphens [-] are allowed.').get_response()
 
         # Check a file path has been provided
@@ -271,9 +271,9 @@ def model_handling(tag):
             desc = request.form['model_description']
 
         #### CREATE MODELHOST POD ####
-        mh_talker.create_modelhost(tag=tag)
+        mh_talker.create_modelhost(tag=complete_tag)
 
-        return st_talker.upload_new_model(tag=tag, file=new_model, file_name=model_name, description=desc,
+        return st_talker.upload_new_model(tag=complete_tag, file=new_model, file_name=model_name, description=desc,
                                           ml_library=ML_LIBRARY)
 
     # For DELETE requests, delete a given tag from the storage and delete the modelhost Pod
@@ -315,7 +315,7 @@ def upload_default(tag):
     # Send to the storage the tag and the new default version
     st_talker.set_default_model(tag, str(default))
 
-    # Restart the deployment to lift up again with the new model.
+    # Restart the deployment to lift again with the new model.
 
     mh_talker.restart_deployment(tag=tag)
 
