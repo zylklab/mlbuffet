@@ -12,6 +12,15 @@ from utils.utils import HISTORY, DEFAULT, FILES_DIRECTORY
 
 
 def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str, ml_library: str):
+    """
+    Method to save the files
+    :param file: File to save
+    :param tag: Tag associated to the model
+    :param file_name: File name of the file
+    :param description: Description of the file
+    :param ml_library: Library of the file
+    """
+    # Set the variables with the model root path, history file path and default file path.
     MODEL_ROOT_DIR = os.path.join(FILES_DIRECTORY, tag)
     history_file = os.path.join(MODEL_ROOT_DIR, HISTORY)
     default_file = os.path.join(MODEL_ROOT_DIR, DEFAULT)
@@ -26,6 +35,7 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str, 
     if not os.path.exists(model_path):
         os.makedirs(model_path)
 
+    # Save the file
     model_location = os.path.join(model_path, file_name)
     file.save(model_location)
 
@@ -40,11 +50,23 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str, 
 
 
 def delete_tag(tag: str):
+    """
+    This method deletes the entire path associated to a tag
+    :param tag: tag to delete
+    """
     tag_directory = os.path.join(FILES_DIRECTORY, tag)
     shutil.rmtree(tag_directory)
 
 
 def delete_file(tag: str, version: str):
+    """
+    This method deletes a version, his information of the history file and if is the default model,
+    modify the default file
+    :param tag: Tag of the model
+    :param version: Version of the tag
+    """
+
+    # Set the default and history files
     default_file = os.path.join(FILES_DIRECTORY, tag, DEFAULT)
     history_file = os.path.join(FILES_DIRECTORY, tag, HISTORY)
 
@@ -53,7 +75,7 @@ def delete_file(tag: str, version: str):
         directories, data_history = clean_history(history_file=history_file,
                                                   default_file=default_file,
                                                   version=version)
-    # Check if the directory will be empty
+        # Check if the directory will be empty
 
     if len(directories) == 0:
         delete_tag(tag=tag)
@@ -82,57 +104,58 @@ def delete_file(tag: str, version: str):
         shutil.rmtree(directory_file)
 
 
-def download_file(name: str, version: str):
-    # Return the file
+
+def download_file(tag: str, version: str):
+    """
+    Method to download a file.
+    :param tag: Tag of the file
+    :param version: Version of the file
+    """
     try:
-        # Check default file
+        # If the version is 'default', search the number into the default file
         if version == 'default':
-            with open(os.path.join(FILES_DIRECTORY, name, DEFAULT), 'r') as df:
+            with open(os.path.join(FILES_DIRECTORY, tag, DEFAULT), 'r') as df:
                 version = df.read()
                 df.close()
-        directory_path = os.path.join(FILES_DIRECTORY, name, version)
-
+        # Set path of the file
+        directory_path = os.path.join(FILES_DIRECTORY, tag, version)
         file_name = os.listdir(directory_path)[0]
         file = os.path.join(directory_path, file_name)
+        # Send the file
         return send_file(path_or_file=file,
                          mimetype='application/octet-stream',
                          as_attachment=True)
     except FileNotFoundError:
         return HttpJsonResponse(
             422,
-            http_status_description='File not found, please check the model name is correct!').get_response()
+            http_status_description=f'File not found, please check if the tag {tag} is correct').get_response()
 
 
-def get_directory_file(tag: str):
-    with open(os.path.join(FILES_DIRECTORY, tag, DEFAULT), 'r') as df:
-        version = df.read()
-        df.close()
-    directory_path = os.path.join(FILES_DIRECTORY, tag, version)
-    file_name = os.listdir(directory_path)[0].__str__()
-    path_file = os.path.join(directory_path, file_name)
-    return path_file
-
-
-def update_default(name: str, version: str):
+def update_default(tag: str, version: str):
+    """
+    Method to update the default version of a tag to a specified version
+    :param tag: Tag to update
+    :param version: Number of the new default version
+    """
+    # Set variables
     version = str(version)
-    directory_path = os.path.join(FILES_DIRECTORY, name)
-
+    directory_path = os.path.join(FILES_DIRECTORY, tag)
+    # Check if the new version is available
     try:
         os.listdir(os.path.join(directory_path, version))[0]
     except FileNotFoundError:
         return HttpJsonResponse(
             422,
-            http_status_description='Version not found, please check the version!').get_response()
+            http_status_description=f'Version from tag {tag} not found, please check the version').get_response()
 
     try:
         # Rewrite .default file with the new default tag
         with open(os.path.join(directory_path, DEFAULT), 'w') as lf:
             lf.write(version)
             lf.close()
-
         response = HttpJsonResponse(
             200,
-            http_status_description=f'The tag {name} with the version {version} has been set as default').get_response()
+            http_status_description=f'The tag {tag} with the version {version} has been set as default').get_response()
 
     except FileNotFoundError:
         response = HttpJsonResponse(
@@ -153,6 +176,9 @@ def get_information(name: str):
 
 
 def get_model_list():
+    """
+    Method to get the tag list.
+    """
     model_list = []
 
     for model_directory in os.listdir(FILES_DIRECTORY):
@@ -177,14 +203,20 @@ def get_model_list():
 
 
 def get_ml_library(tag: str):
+    """
+    Method to get the Framework of the default file from a tag. This method is only used by the Modelhost.
+    :param tag: Tag to find the library
+    """
+    # Set the variables
     default_file = os.path.join(FILES_DIRECTORY, tag, DEFAULT)
     history_file = os.path.join(FILES_DIRECTORY, tag, HISTORY)
+    # Open the default file to find the default version
     with open(default_file, 'r') as default:
         last_version = int(default.read())
+    # Open the history file to find the required library
     with open(history_file, 'r') as hf:
         history = json.loads(hf.read())
         ml_library = history[str(last_version)]['ml_library']
-        print(ml_library)
     return ML_Library(200,
                       http_status_description=f'ML Library from tag {tag} provided',
                       ml_library=ml_library).get_response()
