@@ -34,6 +34,7 @@ my_stopwatch = stopwatch.Stopwatch(logger.info)
 server = Flask(__name__)
 logger.info('... MLBuffet - INFERRER API succesfully started')
 
+
 # TODO: endpoint information models... :/
 # TODO: Federated Learning module
 
@@ -279,18 +280,40 @@ def model_handling(complete_tag):
     # For DELETE requests, delete a given tag from the storage and delete the modelhost Pod
     if request.method == 'DELETE':
         metric_manager.increment_storage_counter()
-
-        try:
-            #### DELETE MODELHOST POD  ####
+        # Delete the model on storage module
+        st_talker.delete_model(complete_tag)
+        tag = complete_tag.split(':')[0]
+        # If the complete_tag is given without version, it removes the entire tag and the modelhost
+        if len(tag) == 1:
             mh_talker.delete_modelhost(tag=tag)
-            logger.info('Modelhost deleted successfully!')
-
-        except Exception as e:
-            logger.error(
-                f'modelhost-{tag} could not be deleted. ' + 'Reason: ' + e)
+            response = HttpJsonResponse(200,
+                                        http_status_description=f'Tag {tag} removed successfully') \
+                .get_response()
+        else:
+            # Check if there are not any file associated to that tag.
+            model_list_response = st_talker.get_model_list()
+            model_list = model_list_response['tag_list']
+            # If there is not any file associated, remove the deployment
+            if tag not in model_list:
+                mh_talker.delete_modelhost(tag=tag)
+                response = HttpJsonResponse(200,
+                                            http_status_description=f'Tag {complete_tag} removed successfully') \
+                    .get_response()
+            # If there is any file associated, restart the deployment
+            else:
+                try:
+                    #### DELETE MODELHOST POD  ####
+                    mh_talker.restart_deployment(tag=tag)
+                    logger.info('Modelhost deleted successfully!')
+                    response = HttpJsonResponse(200,
+                                                http_status_description=f'Tag {tag} updated to new default version successfully') \
+                        .get_response()
+                except Exception as e:
+                    logger.error(
+                        f'modelhost-{complete_tag} could not be deleted. ' + 'Reason: ' + e)
 
         # Send the tag as HTTP delete request
-        return st_talker.delete_model(tag)
+        return response
 
 
 @server.route(path.join(API_BASE_URL, 'models/<tag>/default'), methods=['POST'])
