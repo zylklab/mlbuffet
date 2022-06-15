@@ -194,6 +194,14 @@ def create_modelhost(tag):
     v1 = kclient.CoreV1Api()
     api_instance = kclient.AppsV1Api()
 
+    """
+    Not intuitive behaviour of try/except in this function:
+    create_modelhost function tries to create a new deployment while a new model is uploaded to MLBUFFET.
+    While a new version is uploaded, the deployment already exists, so this returns an exception with that information, 
+        and nothing occurs. When this happens, the pods of the existing deployment are deleted, and the own deployment
+        lifts them up again with the new version of the model. 
+    """
+    # TODO: Check the existence of the deployments before create them.
     try:
         V1Deployment = _create_body_deployement(tag)
         api_instance.create_namespaced_deployment(namespace=NAMESPACE,

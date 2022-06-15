@@ -120,18 +120,12 @@ Several methods for model handling can be used from the API:
 {
   "http_status": {
     "code": 200,
-    "description": "OK",
+    "description": "Tag list provided",
     "name": "OK"
   },
   "model_list": [
-    {
-      "description": "",
-      "model": "diabetes.onnx"
-    },
-    {
-      "description": "Clasificación de especies de flores de Iris. Se clasifican en setosa, versicolor o virginica dependiendo de las medidas de sépalo y pétalo",
-      "model": "iris.onnx"
-    }
+    "iris",
+    "diabetes"
   ]
 }
 ```
@@ -153,26 +147,21 @@ You can read the relevant information of the models associated with a tag:
     "1": {
       "description": "Not description provided",
       "file": "iris.onnx",
-      "folder": "files/iris_model/1",
+      "ml_library": "onnx",
+      "path": "files/iris_model/1",
       "time": "11:05:06 25/03/2022"
     },
     "2": {
       "description": "second version",
       "file": "iris_v2.onnx",
-      "folder": "files/iris_model/2",
+      "ml_library": "onnx",
+      "path": "files/iris_model/2",
       "time": "11:21:23 25/03/2022"
     }
   }
 }
 
 ```
-
-**Update model information**
-
-A model may have incomplete information, wrong information or no information at all. You can update the description of a
-model using PUT method:
-
-`curl -X PUT -H "Content-Type: application/json" --data '{"model_description":"This model classifies a 4 element array input between different species of Iris flowers."}' http://<INFERRER-IP>:8000/api/v1/models/iris_model/information`
 
 **Upload a new model**
 
@@ -183,8 +172,6 @@ You can upload your own models to MLBuffet using POST method:
 You can also give some information of the version changes:
 
 `curl -X POST -F "path=@/path/to/local/model" -F "model_description=version description of the file" http://<INFERRER-IP>:8000/api/v1/models/<tag>`
-
-> Note: you will not be able to change this version description.
 
 When a new version is uploaded, that will be associated as the default model, and read by the modelhosts.
 
@@ -212,7 +199,9 @@ three ways:
 * `<tag>:default`
 * `<tag>:<version>`
 
-The first two methods remove the file set as default, and the last one removes the specified version.
+The first method, remove the entire tag.
+
+The second method remove the file set as default, and the last one removes the specified version.
 
 `curl -X DELETE http://<INFERRER-IP>:8000/api/v1/models/<tag>`
 

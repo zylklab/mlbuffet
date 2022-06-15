@@ -21,12 +21,6 @@ def _get(resource):
     return requests.get(_url(resource)).json()
 
 
-def get_tag_library(tag):
+def get_model_library(tag):
     resource = '/storage/models/' + tag + '/library'
-    return _get(resource)
-
-
-def get_model_library(file_name):
-
-    resource = '/storage/models/' + file_name + '/library'
     return _get(resource)['ml_library']

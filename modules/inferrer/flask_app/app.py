@@ -34,6 +34,7 @@ my_stopwatch = stopwatch.Stopwatch(logger.info)
 server = Flask(__name__)
 logger.info('... MLBuffet - INFERRER API succesfully started')
 
+
 # TODO: endpoint information models... :/
 # TODO: Federated Learning module
 
@@ -223,14 +224,14 @@ def get_model_list():
     return st_talker.get_model_list()
 
 
-@server.route(path.join(API_BASE_URL, 'models/<tag>'), methods=['GET', 'POST', 'DELETE'])
+@server.route(path.join(API_BASE_URL, 'models/<complete_tag>'), methods=['GET', 'POST', 'DELETE'])
 # This resource is used for model management. Performs operations on models and manages models in the server.
-def model_handling(tag):
+def model_handling(complete_tag):
     # Download model
     if request.method == 'GET':
         metric_manager.increment_storage_counter()
 
-        return st_talker.download_model(tag=tag)
+        return st_talker.download_model(tag=complete_tag)
 
     # Create a modelhost_tag Pod
     if request.method == 'POST':
@@ -238,9 +239,9 @@ def model_handling(tag):
 
         # Check that the new tag name is dns-valid
         dns_valid_chars = [str(n) for n in range(10)] + [chr(i) for i in range(ord('a'), ord('z') + 1)] + ['-']
-        if not all(c in dns_valid_chars for c in tag):
+        if not all(c in dns_valid_chars for c in complete_tag):
             return HttpJsonResponse(
-                422, http_status_description=f'Tag name {tag} is not a dns-valid tag name. Only numbers [0-9], '
+                422, http_status_description=f'Tag name {complete_tag} is not a dns-valid tag name. Only numbers [0-9], '
                                              'lowercase letters [a-z] and hyphens [-] are allowed.').get_response()
 
         # Check a file path has been provided
@@ -271,26 +272,48 @@ def model_handling(tag):
             desc = request.form['model_description']
 
         #### CREATE MODELHOST POD ####
-        mh_talker.create_modelhost(tag=tag)
+        mh_talker.create_modelhost(tag=complete_tag)
 
-        return st_talker.upload_new_model(tag=tag, file=new_model, file_name=model_name, description=desc,
+        return st_talker.upload_new_model(tag=complete_tag, file=new_model, file_name=model_name, description=desc,
                                           ml_library=ML_LIBRARY)
 
     # For DELETE requests, delete a given tag from the storage and delete the modelhost Pod
     if request.method == 'DELETE':
         metric_manager.increment_storage_counter()
-
-        try:
-            #### DELETE MODELHOST POD  ####
+        # Delete the model on storage module
+        st_talker.delete_model(complete_tag)
+        tag = complete_tag.split(':')[0]
+        # If the complete_tag is given without version, it removes the entire tag and the modelhost
+        if len(tag) == 1:
             mh_talker.delete_modelhost(tag=tag)
-            logger.info('Modelhost deleted successfully!')
-
-        except Exception as e:
-            logger.error(
-                f'modelhost-{tag} could not be deleted. ' + 'Reason: ' + e)
+            response = HttpJsonResponse(200,
+                                        http_status_description=f'Tag {tag} removed successfully') \
+                .get_response()
+        else:
+            # Check if there are not any file associated to that tag.
+            model_list_response = st_talker.get_model_list()
+            model_list = model_list_response['tag_list']
+            # If there is not any file associated, remove the deployment
+            if tag not in model_list:
+                mh_talker.delete_modelhost(tag=tag)
+                response = HttpJsonResponse(200,
+                                            http_status_description=f'Tag {complete_tag} removed successfully') \
+                    .get_response()
+            # If there is any file associated, restart the deployment
+            else:
+                try:
+                    #### DELETE MODELHOST POD  ####
+                    mh_talker.restart_deployment(tag=tag)
+                    logger.info('Modelhost deleted successfully!')
+                    response = HttpJsonResponse(200,
+                                                http_status_description=f'Tag {tag} updated to new default version successfully') \
+                        .get_response()
+                except Exception as e:
+                    logger.error(
+                        f'modelhost-{complete_tag} could not be deleted. ' + 'Reason: ' + e)
 
         # Send the tag as HTTP delete request
-        return st_talker.delete_model(tag)
+        return response
 
 
 @server.route(path.join(API_BASE_URL, 'models/<tag>/default'), methods=['POST'])
@@ -312,45 +335,27 @@ def upload_default(tag):
     if not isinstance(default, int):
         return HttpJsonResponse(422, http_status_description='Default value must be an integer').get_response()
 
+    # Send to the storage the tag and the new default version
     st_talker.set_default_model(tag, str(default))
-    logger.info('Restart deployment')
-    mh_talker.restart_deployment(tag=tag)
-    return HttpJsonResponse(200, 
-                            http_status_description=f'Modelhost tagged as {tag} updated with default version: {default}')\
-        .get_response()
-    
 
-@server.route(path.join(API_BASE_URL, 'models/<tag>/information'), methods=['GET', 'PUT'])
+    # Restart the deployment to lift again with the new model.
+
+    mh_talker.restart_deployment(tag=tag)
+
+    return HttpJsonResponse(200,
+                            http_status_description=f'Modelhost tagged as {tag} updated with default version: {default}') \
+        .get_response()
+
+
+@server.route(path.join(API_BASE_URL, 'models/<tag>/information'), methods=['GET'])
 def model_information_handling(tag):
-    """ GET model information and PUT (update) model information """
+    """ GET model information"""
 
     # Get information of the model tag
     if request.method == 'GET':
         metric_manager.increment_storage_counter()
 
         return st_talker.get_tag_information(tag)
-
-    # Update the information of the model tag
-    if request.method == 'PUT':
-        metric_manager.increment_model_counter()
-
-        # Check that any json data has been provided
-        if not request.json:
-            return HttpJsonResponse(
-                422,
-                http_status_description='No json data provided {model_description:string}').get_response()
-
-        # Check that model_description has been provided
-        if 'model_description' not in request.json:
-            return HttpJsonResponse(422, http_status_description='No model_description provided').get_response()
-
-        description = request.json['model_description']
-
-        # Check that model_description is a string
-        if not isinstance(description, str):
-            return HttpJsonResponse(422, http_status_description='model_description must be a string').get_response()
-
-        return mh_talker.write_model_description(tag, description)
 
 
 @server.route(path.join(API_BASE_URL, 'train/<tag>/<model_name>'), methods=['POST'])
