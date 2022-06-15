@@ -11,6 +11,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
 COPY api_test.py .
+COPY entrypoint.sh .
 
 COPY utils utils
 COPY serving serving
@@ -21,5 +22,4 @@ RUN ["chmod", "+x", "./api_test.py"]
 #RUN python ./api_test.py
 
 # HTTP
-ENTRYPOINT gunicorn -w 1 -b 0.0.0.0:8000 app:server --timeout 600
-
+ENTRYPOINT ["entrypoint.sh"]
