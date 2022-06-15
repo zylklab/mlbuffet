@@ -62,7 +62,7 @@ def delete_modelhost(tag):
         print("Exception when calling CoreV1Api->delete_namespaced_service: %s\n" % e)
 
 
-def _create_body_deployement(tag: str):
+def _create_body_deployment(tag: str):
     # Define constants
 
     NAME = f'modelhost-{tag}'
@@ -203,7 +203,7 @@ def create_modelhost(tag):
     """
     # TODO: Check the existence of the deployments before create them.
     try:
-        V1Deployment = _create_body_deployement(tag)
+        V1Deployment = _create_body_deployment(tag)
         api_instance.create_namespaced_deployment(namespace=NAMESPACE,
                                                   body=V1Deployment)
     except kclient.exceptions.ApiException as e:
