@@ -3,7 +3,10 @@ import json
 import shutil
 import werkzeug.datastructures as ds
 from flask import send_file
-import utils.buffetvc_utils as bvc_utils
+from os.path import exists
+from os import makedirs
+from os.path import join
+from time import time, strftime, localtime
 from utils.storage_pojos import HttpJsonResponse, ModelList, ML_Library
 from utils.utils import HISTORY, DEFAULT, FILES_DIRECTORY
 
@@ -27,14 +30,13 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str, 
     file.save(model_location)
 
     # Update history file
-
-    bvc_utils.update_history_file(history_file=history_file,
-                                  new_directory_version=new_directory_version,
-                                  model_path=model_path,
-                                  file_name=file_name,
-                                  description=description,
-                                  default_file=default_file,
-                                  ml_library=ml_library)
+    update_history_file(history_file=history_file,
+                        new_version=new_directory_version,
+                        model_path=model_path,
+                        file_name=file_name,
+                        description=description,
+                        default_file=default_file,
+                        ml_library=ml_library)
 
 
 def delete_tag(tag: str):
@@ -46,17 +48,19 @@ def delete_file(tag: str, version: str):
     default_file = os.path.join(FILES_DIRECTORY, tag, DEFAULT)
     history_file = os.path.join(FILES_DIRECTORY, tag, HISTORY)
 
-    # Clean the history file
-    directories, data_history = bvc_utils.clean_history(history_file=history_file,
-                                                        default_file=default_file,
-                                                        version=version)
+    try:
+        # Clean the history file deleting the information
+        directories, data_history = clean_history(history_file=history_file,
+                                                  default_file=default_file,
+                                                  version=version)
     # Check if the directory will be empty
 
     if len(directories) == 0:
         delete_tag(tag=tag)
     else:
-        last_default, new_default = bvc_utils.new_default_number(default_file=default_file,
-                                                                 history_file=history_file)
+            # If not is empty, set a new default number
+            last_default, new_default = new_default_number(default_file=default_file,
+                                                           history_file=history_file)
         # Rewrite the default file with the last version available
         if version == 'default':
             with open(default_file, 'w') as lf:
@@ -184,3 +188,115 @@ def get_ml_library(tag: str):
     return ML_Library(200,
                       http_status_description=f'ML Library from tag {tag} provided',
                       ml_library=ml_library).get_response()
+
+
+def create_model_directory(MODEL_ROOT_DIR: str, history_file: str, default_file: str):
+    # If not exist, create the root path for the tag. Then, create the default and history files.
+    if not exists(MODEL_ROOT_DIR):
+        makedirs(MODEL_ROOT_DIR)
+        with open(history_file, "w") as hf:
+            hf.write('{}')
+        with open(default_file, "w") as lf:
+            lf.write('0')
+
+
+def new_default_file(MODEL_ROOT_DIR: str, default_file: str, history_file: str):
+    """
+    This method gives the new version number and the path of that version.
+    :param MODEL_ROOT_DIR: The root of the tag
+    :param default_file: The path of the default file tag
+    :param history_file: The path of the history file tag
+    """
+    # Reads the history file
+    with open(history_file, 'r') as hf:
+        hf_json = json.loads(hf.read())
+    # Open the default file
+    with open(default_file, 'r') as default:
+        last_directory = int(default.read())
+        new_directory_version = last_directory + 1
+        # With the history file loaded, searches the next version available
+        for i in hf_json:
+            if new_directory_version <= int(i):
+                new_directory_version = int(i) + 1
+        new_directory_version = str(new_directory_version)
+        model_path = join(MODEL_ROOT_DIR, new_directory_version)
+    # Returns the new version and his path
+    return new_directory_version, model_path
+
+
+def update_history_file(history_file: str, new_version: str, model_path: str, file_name: str,
+                        description: str, default_file: str, ml_library: str):
+    """
+    Method to updatte the history file with new information and the default version
+    :param history_file: Path of the history file
+    :param new_version: Number of the new version
+    :param model_path: Path of the new file
+    :param file_name: Name of the file
+    :param description: Description of the file
+    :param default_file: Default version
+    :param ml_library: Library which the model is build
+    """
+    # Update history file with the new information
+    with open(history_file, 'r+') as fh:
+        data = json.load(fh)
+        ts = time()
+        time_string = strftime('%H:%M:%S %d/%m/%Y', localtime(ts))
+        data[new_version] = {"path": model_path,
+                                       "file": file_name,
+                                       "time": time_string,
+                                       "description": description,
+                                       "ml_library": ml_library}
+        fh.seek(0)
+        fh.write(json.dumps(data, sort_keys=True))
+        fh.close()
+
+    # Rewrite the default file with the new version
+    with open(default_file, 'w') as fl:
+        fl.write(new_version)
+
+
+def clean_history(history_file: str, default_file: str, version):
+    """
+    Method to remove required version of a specified tag
+    :param history_file: Path of the history file
+    :param default_file: Path of the default file
+    :param version: Version to delete
+    """
+    directories = []
+    # Open the history file
+    with open(history_file, 'r') as hf:
+        data_history = json.load(hf)
+        for i in data_history:
+            i = int(i)
+            directories.append(i)
+        directories.sort()
+        if version == 'default':
+            with open(default_file, 'r') as default:
+                version = int(default.read())
+
+        directories.remove(int(version))
+        del data_history[str(version)]
+    directories.sort()
+    return directories, data_history
+
+
+def new_default_number(default_file, history_file):
+    """
+    This method sets a new default number
+    :param default_file: Path of the default file
+    :param history_file: Path of the history file
+    """
+    # Open the history file
+    with open(history_file, 'r') as hf:
+        hf_json = json.loads(hf.read())
+    # Open the default file
+    with open(default_file, 'r') as default:
+        # Reads the last default version
+        last_version = int(default.read())
+        new_version = last_version
+        # Search the new default version with the information taken by the history file
+        for i in hf_json:
+            if new_version <= int(i):
+                new_version = int(i)
+    # Return both the old and new default versions
+    return last_version, new_version
