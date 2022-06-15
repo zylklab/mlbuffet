@@ -342,42 +342,20 @@ def upload_default(tag):
 
     mh_talker.restart_deployment(tag=tag)
 
-    return HttpJsonResponse(200, 
-                            http_status_description=f'Modelhost tagged as {tag} updated with default version: {default}')\
+    return HttpJsonResponse(200,
+                            http_status_description=f'Modelhost tagged as {tag} updated with default version: {default}') \
         .get_response()
-    
 
-@server.route(path.join(API_BASE_URL, 'models/<tag>/information'), methods=['GET', 'PUT'])
+
+@server.route(path.join(API_BASE_URL, 'models/<tag>/information'), methods=['GET'])
 def model_information_handling(tag):
-    """ GET model information and PUT (update) model information """
+    """ GET model information"""
 
     # Get information of the model tag
     if request.method == 'GET':
         metric_manager.increment_storage_counter()
 
         return st_talker.get_tag_information(tag)
-
-    # Update the information of the model tag
-    if request.method == 'PUT':
-        metric_manager.increment_model_counter()
-
-        # Check that any json data has been provided
-        if not request.json:
-            return HttpJsonResponse(
-                422,
-                http_status_description='No json data provided {model_description:string}').get_response()
-
-        # Check that model_description has been provided
-        if 'model_description' not in request.json:
-            return HttpJsonResponse(422, http_status_description='No model_description provided').get_response()
-
-        description = request.json['model_description']
-
-        # Check that model_description is a string
-        if not isinstance(description, str):
-            return HttpJsonResponse(422, http_status_description='model_description must be a string').get_response()
-
-        return mh_talker.write_model_description(tag, description)
 
 
 @server.route(path.join(API_BASE_URL, 'train/<tag>/<model_name>'), methods=['POST'])
