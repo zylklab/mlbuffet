@@ -190,26 +190,10 @@ def get_model_list():
     """
     Method to get the tag list.
     """
-    model_list = []
-
-    for model_directory in os.listdir(FILES_DIRECTORY):
-
-        with open(os.path.join(FILES_DIRECTORY, model_directory, DEFAULT), 'r') as df:
-            version = df.read()
-            df.close()
-
-        directory_path = os.path.join(
-            FILES_DIRECTORY, model_directory, version)
-
-        file_name = os.listdir(directory_path)[0]
-
-        if file_name is not None:
-            model_list.append(file_name)
-        else:
-            pass
+    model_list = os.listdir(FILES_DIRECTORY)
 
     return ModelList(200,
-                     http_status_description='Model list provided',
+                     http_status_description='Tag list provided',
                      model_list=model_list).get_response()
 
 
@@ -285,10 +269,10 @@ def update_history_file(history_file: str, new_version: str, model_path: str, fi
         ts = time()
         time_string = strftime('%H:%M:%S %d/%m/%Y', localtime(ts))
         data[new_version] = {"path": model_path,
-                                       "file": file_name,
-                                       "time": time_string,
-                                       "description": description,
-                                       "ml_library": ml_library}
+                             "file": file_name,
+                             "time": time_string,
+                             "description": description,
+                             "ml_library": ml_library}
         fh.seek(0)
         fh.write(json.dumps(data, sort_keys=True))
         fh.close()
