@@ -29,7 +29,8 @@ def save_file(file: ds.FileStorage, tag: str, file_name: str, description: str, 
     create_model_directory(MODEL_ROOT_DIR, history_file, default_file)
 
     # Check the default file to find the version of the new file
-    new_directory_version, model_path = new_default_file(MODEL_ROOT_DIR, default_file, history_file)
+    new_directory_version, model_path = new_default_file(
+        MODEL_ROOT_DIR, default_file, history_file)
 
     # Check the existence of the version directory and save it
     if not os.path.exists(model_path):
@@ -107,7 +108,8 @@ def delete_file(tag: str, version: str):
             directory_file = os.path.join(FILES_DIRECTORY, tag, str(version))
             shutil.rmtree(directory_file)
 
-            response = HttpJsonResponse(200, http_status_description=f'{tag} removed\n').get_response()
+            response = HttpJsonResponse(
+                200, http_status_description=f'{tag} removed\n').get_response()
     except FileNotFoundError:
         response = HttpJsonResponse(
             422,
@@ -254,7 +256,7 @@ def new_default_file(MODEL_ROOT_DIR: str, default_file: str, history_file: str):
 def update_history_file(history_file: str, new_version: str, model_path: str, file_name: str,
                         description: str, default_file: str, ml_library: str):
     """
-    Method to updatte the history file with new information and the default version
+    Method to update the history file with new information and the default version
     :param history_file: Path of the history file
     :param new_version: Number of the new version
     :param model_path: Path of the new file
