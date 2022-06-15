@@ -54,8 +54,12 @@ def delete_tag(tag: str):
     This method deletes the entire path associated to a tag
     :param tag: tag to delete
     """
-    tag_directory = os.path.join(FILES_DIRECTORY, tag)
-    shutil.rmtree(tag_directory)
+    try:
+        tag_directory = os.path.join(FILES_DIRECTORY, tag)
+        shutil.rmtree(tag_directory)
+        return HttpJsonResponse(200, http_status_description=f'{tag} removed\n').get_response()
+    except FileNotFoundError:
+        return HttpJsonResponse(405, http_status_description=f'{tag} not found\n').get_response()
 
 
 def delete_file(tag: str, version: str):
