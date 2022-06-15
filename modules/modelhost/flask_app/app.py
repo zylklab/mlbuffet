@@ -148,7 +148,7 @@ def predict():
             ).get_response()
 
         except NotImplementedError as error:
-            return Prediction(404, http_status_description=error).get_response()
+            return Prediction(404, http_status_description=str(error)).get_response()
 
         except Exception as error:
             logger.error("Prediction failed")
