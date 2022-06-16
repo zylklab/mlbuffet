@@ -1,7 +1,9 @@
 from os import getenv
-from utils.ipscan import PodNameScan
+from utils.ipscan import DeploymentNameScan, PodNameScan
 from kubernetes import client as kclient, config
 import requests
+
+import datetime
 
 from utils.inferer_pojos import HttpJsonResponse
 
@@ -195,30 +197,62 @@ def create_modelhost(tag):
     api_instance = kclient.AppsV1Api()
 
     """
-    Not intuitive behaviour of try/except in this function:
-    create_modelhost function tries to create a new deployment while a new model is uploaded to MLBUFFET.
-    While a new version is uploaded, the deployment already exists, so this returns an exception with that information, 
-        and nothing occurs. When this happens, the pods of the existing deployment are deleted, and the own deployment
-        lifts them up again with the new version of the model. 
+    This function first checks that the Deployment name does not already exist for a given tag.
+    If the Deployment exists, it performs a rollout restart that will restart the Modelhost Pod, 
+    forcing it to download the correct version of the model from Storage.
+    If the deployment does not exist, it creates a new Deployment and binds it to a new Service.
     """
-    # TODO: Check the existence of the deployments before create them.
-    try:
-        V1Deployment = _create_body_deployment(tag)
-        api_instance.create_namespaced_deployment(namespace=NAMESPACE,
-                                                  body=V1Deployment)
-    except kclient.exceptions.ApiException as e:
-        pod_list = PodNameScan(service='modelhost', tag=tag)
-        for pod in pod_list:
-            v1.delete_namespaced_pod(namespace=NAMESPACE, name=pod)
-    except Exception as e:
-        print("Exception when calling AppsV1Api->create_namespaced_deployment: %s\n" % e)
 
-    try:
-        v1ServiceBody = _create_body_service(tag)
-        v1.create_namespaced_service(namespace=NAMESPACE,
-                                     body=v1ServiceBody)
-    except Exception as e:
-        print("Exception when calling CoreV1Api->create_namespaced_service: %s\n" % e)
+    if f'modelhost-{tag}' in DeploymentNameScan():
+
+        """
+        https://github.com/kubernetes-client/python/issues/1378
+        'kubectl rollout restart deployment' command does not exists out of the box in the Python API.
+        This issue describes how to do it with the Python Client, by sending the same API call as the Kubectl.
+        """
+
+        try:
+            now = datetime.datetime.utcnow()
+            now = str(now.isoformat("T") + "Z")
+
+            restart_body = {
+                'spec': {
+                    'template': {
+                        'metadata': {
+                            'annotations': {
+                                'kubectl.kubernetes.io/restartedAt': now
+                            }
+                        }
+                    }
+                }
+            }
+
+            api_instance.patch_namespaced_deployment(
+                namespace=NAMESPACE, name=f'modelhost-{tag}', body=restart_body)
+        except Exception as e:
+            print(
+                "Exception when calling AppsV1Api->patch_namespaced_deployment: %s\n" % e)
+
+        else:
+            # Create the Deployment and Service if it does not previously exist
+
+            # Deployment creation
+            try:
+                V1Deployment = _create_body_deployment(tag)
+                api_instance.create_namespaced_deployment(namespace=NAMESPACE,
+                                                          body=V1Deployment)
+            except Exception as e:
+                print(
+                    "Exception when calling AppsV1Api->create_namespaced_deployment: %s\n" % e)
+
+            # Service creation
+            try:
+                v1ServiceBody = _create_body_service(tag)
+                v1.create_namespaced_service(namespace=NAMESPACE,
+                                             body=v1ServiceBody)
+            except Exception as e:
+                print(
+                    "Exception when calling CoreV1Api->create_namespaced_service: %s\n" % e)
 
 
 def restart_deployment(tag: str):
