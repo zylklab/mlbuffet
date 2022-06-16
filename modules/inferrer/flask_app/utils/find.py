@@ -1,8 +1,6 @@
 import glob
-from sys import argv
 from os import getenv, path
 import requests
-from zipfile import ZipFile
 import shutil
 
 #######################################################################
