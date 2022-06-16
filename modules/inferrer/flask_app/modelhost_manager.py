@@ -254,17 +254,3 @@ def create_modelhost(tag):
             print(
                 "Exception when calling CoreV1Api->create_namespaced_service: %s\n" % e)
 
-
-def restart_deployment(tag: str):
-    config.load_incluster_config()
-    v1 = kclient.CoreV1Api()
-
-    # Define constants
-    NAME = f'modelhost-{tag}'
-    try:
-        pod_list = PodNameScan(service='modelhost', tag=tag)
-        for pod in pod_list:
-            v1.delete_namespaced_pod(namespace=NAMESPACE, name=pod)
-        return f'{NAME} updated \n'
-    except Exception as e:
-        print("Exception when calling AppsV1Api->delete_namespaced_pod: %s\n" % e)
