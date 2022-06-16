@@ -49,10 +49,12 @@ class ModelListInformation(HttpJsonResponse):
                  http_status_code: int,
                  http_status_name: str = None,
                  http_status_description: str = None,
-                 tag_list: {} = None):
+                 tag_list: {} = None,
+                 default: str = None):
         super().__init__(http_status_code, http_status_name, http_status_description)
 
         self.data['tag_list_versions'] = tag_list
+        self.data['default_version'] = default
 
 
 class ModelList(HttpJsonResponse):
