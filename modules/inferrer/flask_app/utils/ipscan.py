@@ -48,7 +48,8 @@ def DeploymentNameScan(service: str, tag: str):
     ret = appsv1.list_namespaced_deployment('mlbuffet')
 
     for item in ret.items:
-        if item.metadata.labels['app'] == service_name:
-            DeploymentList.append(item.metadata.name)
+        if item.metadata.labels is not None:
+            if item.metadata.labels['app'] == service_name:
+                DeploymentList.append(item.metadata.name)
 
     return DeploymentList
