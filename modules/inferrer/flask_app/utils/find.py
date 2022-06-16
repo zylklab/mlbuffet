@@ -53,7 +53,7 @@ def search_and_send():
             # For K8S Environments, call the Inferrer service
             if getenv('ORCHESTRATOR') == 'KUBERNETES':
                 response = requests.post(
-                    f'http://inferrer:8000/api/v1/models/{TAG}', files={"path": sendfile, "library_version": library})
+                    f'http://inferrer:8000/api/v1/models/{TAG}', files={"path": sendfile}, data={"library_version": library})
 
             # For other environments, call the standard Docker daemon endpoint
             else:
