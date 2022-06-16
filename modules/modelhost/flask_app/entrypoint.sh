@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # get and install the required library to serve the model
-ml_library=$(curl -X GET storage:8000/storage/models/"$TAG"/library | jq .ml_library |  tr -d 'n \n " \r \')
+ml_library=$(curl -X GET storage:8000/storage/models/"$TAG"/library | jq .ml_library |  tr -d '\n " \r')
 pip install "$ml_library"
 
 # get the model and response headers
