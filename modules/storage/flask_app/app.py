@@ -176,7 +176,8 @@ def update_default_file(tag):
 def get_info(tag):
     try:
         information = bvc.get_information(tag)
-        return ModelListInformation(200, tag_list=information).get_response()
+        default_version = bvc.get_default(tag)
+        return ModelListInformation(200, tag_list=information, default=default_version).get_response()
     except FileNotFoundError:
         return HttpJsonResponse(
             422,
