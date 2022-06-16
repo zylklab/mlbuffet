@@ -30,7 +30,7 @@ with open('./requirements.txt', 'r') as requirements:
     for line in requirements.readlines():
         for module in SUPPORTED_LIBRARIES:
             if module in line:
-                # Import the module and in case it works, set library value
+                # Set library value
                 try:
                     if module == 'onnx':
                         library = 'onnxruntime'
@@ -43,6 +43,8 @@ with open('./requirements.txt', 'r') as requirements:
 def search_and_send():
     for file in glob.glob(f'/home/trainer/**/{FILENAME}', recursive=True):
         if file is not None and get_file_extension(file) in ALLOWED_EXTENSIONS:
+
+            file = path.basename(file)
 
             # For TensorFlow models, compress .pb directory into .zip and send it to Inferrer
             if get_file_extension(file) == '.pb' and path.isdir(file):
