@@ -277,40 +277,49 @@ def model_handling(complete_tag):
         return st_talker.upload_new_model(tag=complete_tag, file=new_model, file_name=model_name, description=desc,
                                           ml_library=ML_LIBRARY)
 
-    # For DELETE requests, delete a given tag from the storage and delete the modelhost Pod
+    # For DELETE requests, delete a given tag from the storage and manage the modelhost deployment
+
     if request.method == 'DELETE':
         metric_manager.increment_storage_counter()
         # Delete the model on storage module
-        st_talker.delete_model(complete_tag)
-        tag = complete_tag.split(':')[0]
+        delete = st_talker.delete_model(complete_tag)
+        if not is_ok(delete['http_status']['code']):
+            return delete
+        tag_version = complete_tag.split(':')
+        tag = tag_version[0]
         # If the complete_tag is given without version, it removes the entire tag and the modelhost
-        if len(tag) == 1:
+        if len(tag_version) == 1:
             mh_talker.delete_modelhost(tag=tag)
             response = HttpJsonResponse(200,
                                         http_status_description=f'Tag {tag} removed successfully') \
                 .get_response()
         else:
+            version = tag_version[1]
             # Check if there are not any file associated to that tag.
-            model_list_response = st_talker.get_model_list()
-            model_list = model_list_response['tag_list']
+            tag_info_response = st_talker.get_tag_information(tag)
             # If there is not any file associated, remove the deployment
-            if tag not in model_list:
+            if tag_info_response['http_status']['code'] == 422:
                 mh_talker.delete_modelhost(tag=tag)
                 response = HttpJsonResponse(200,
-                                            http_status_description=f'Tag {complete_tag} removed successfully') \
+                                            http_status_description=f'Tag {tag} removed successfully') \
                     .get_response()
-            # If there is any file associated, restart the deployment
-            else:
+            # If there is any file associated, but the file is the default file, recreate the deployment
+            elif tag_info_response['default_version'] == version:
                 try:
                     #### DELETE MODELHOST POD  ####
-                    mh_talker.restart_deployment(tag=tag)
+                    mh_talker.create_modelhost(tag=tag)
                     logger.info('Modelhost deleted successfully!')
                     response = HttpJsonResponse(200,
-                                                http_status_description=f'Tag {tag} updated to new default version successfully') \
+                                                http_status_description=f'Tag {tag} updated to new default version '
+                                                                        f'successfully') \
                         .get_response()
                 except Exception as e:
-                    logger.error(
-                        f'modelhost-{complete_tag} could not be deleted. ' + 'Reason: ' + e)
+                    logger.error(f'modelhost-{complete_tag} could not be deleted. ' + 'Reason: ' + e)
+            # If there is any file associated, but the file is not the default file, all remains the same
+            else:
+                response = HttpJsonResponse(200,
+                                            http_status_description=f'Version {version} from tag {tag} removed '
+                                                                    f'successfully').get_response()
 
         # Send the tag as HTTP delete request
         return response
