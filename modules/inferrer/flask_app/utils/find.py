@@ -11,26 +11,35 @@ import shutil
 ALLOWED_EXTENSIONS = [".h5", ".onnx", ".pkl",
                       ".pt", ".pmml", ".pb", ".zip", ".mlmodel"]
 
+# For new supported libraries, include them in this list
+SUPPORTED_LIBRARIES = ['onnx', 'tensorflow']
+
 
 def get_file_extension(file_name):
     return path.splitext(file_name)[1]
+
+
 #######################################################################
 
+# Get what training library has been used
 
-# Get what trining library has been used
 # In case not supported deployment library, set it as null
 library = ""
 
-# Import libraries and in case it works, set library value
-try:
-    import onnxruntime
-    library = 'onnxruntime'
-except Exception as e:
-    try:
-        import tensorflow as tf
-        library = 'tensorflow==' + tf.__version__
-    except Exception as e:
-        pass
+with open('./requirements.txt', 'r') as requirements:
+    for line in requirements.readlines():
+        for module in SUPPORTED_LIBRARIES:
+            if module in line:
+                # Import the module and in case it works, set library value
+                try:
+                    import module
+
+                    if module == 'onnx':
+                        library = 'onnxruntime'
+                    elif module == 'tensorflow':
+                        library = line
+                except Exception as e:
+                    print(e)
 
 
 def search_and_send():
