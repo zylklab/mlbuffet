@@ -349,7 +349,7 @@ def upload_default(tag):
 
     # Restart the deployment to lift again with the new model.
 
-    mh_talker.restart_deployment(tag=tag)
+    mh_talker.create_modelhost(tag=tag)
 
     return HttpJsonResponse(200,
                             http_status_description=f'Modelhost tagged as {tag} updated with default version: {default}') \
