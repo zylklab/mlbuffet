@@ -19,6 +19,22 @@ def get_file_extension(file_name):
 #######################################################################
 
 
+# Get what trining library has been used
+# In case not supported deployment library, set it as null
+library = ""
+
+# Import libraries and in case it works, set library value
+try:
+    import onnxruntime
+    library = 'onnxruntime'
+except Exception as e:
+    try:
+        import tensorflow as tf
+        library = 'tensorflow==' + tf.__version__
+    except Exception as e:
+        pass
+
+
 def search_and_send():
     for file in glob.glob(f'/home/trainer/**/{FILENAME}', recursive=True):
         if file is not None and get_file_extension(file) in ALLOWED_EXTENSIONS:
@@ -37,7 +53,7 @@ def search_and_send():
             # For K8S Environments, call the Inferrer service
             if getenv('ORCHESTRATOR') == 'KUBERNETES':
                 response = requests.post(
-                    f'http://inferrer:8000/api/v1/models/{TAG}', files={"path": sendfile})
+                    f'http://inferrer:8000/api/v1/models/{TAG}', files={"path": sendfile, "library_version": library})
 
             # For other environments, call the standard Docker daemon endpoint
             else:
