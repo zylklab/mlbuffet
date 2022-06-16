@@ -47,7 +47,8 @@ def search_and_send():
         if file is not None and get_file_extension(file) in ALLOWED_EXTENSIONS:
 
             # For TensorFlow models, compress .pb directory into .zip and send it to Inferrer
-            if get_file_extension(file) == '.pb':
+            if get_file_extension(file) == '.pb' and path.isdir(file):
+
                 shutil.make_archive(
                     base_name=f'{file}', base_dir=f'{file}', format='zip')
 
