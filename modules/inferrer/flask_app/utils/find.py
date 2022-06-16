@@ -32,8 +32,6 @@ with open('./requirements.txt', 'r') as requirements:
             if module in line:
                 # Import the module and in case it works, set library value
                 try:
-                    import module
-
                     if module == 'onnx':
                         library = 'onnxruntime'
                     elif module == 'tensorflow':
