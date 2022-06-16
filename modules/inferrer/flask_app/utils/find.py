@@ -35,6 +35,9 @@ with open('./requirements.txt', 'r') as requirements:
                     library = 'onnxruntime'
                 elif module == 'tensorflow':
                     library = line
+# Remove newline characters
+library = library.replace('\n', '')
+library = library.replace('\r', '')
 
 
 def search_and_send():
