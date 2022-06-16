@@ -304,7 +304,7 @@ def model_handling(complete_tag):
                                             http_status_description=f'Tag {tag} removed successfully') \
                     .get_response()
             # If there is any file associated, but the file is the default file, recreate the deployment
-            elif tag_info_response['default_version'] == version:
+            elif tag_info_response['default_version'] == version or version == 'default':
                 try:
                     #### DELETE MODELHOST POD  ####
                     mh_talker.create_modelhost(tag=tag)
