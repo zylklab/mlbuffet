@@ -31,13 +31,10 @@ with open('./requirements.txt', 'r') as requirements:
         for module in SUPPORTED_LIBRARIES:
             if module in line:
                 # Set library value
-                try:
-                    if module == 'onnx':
-                        library = 'onnxruntime'
-                    elif module == 'tensorflow':
-                        library = line
-                except Exception as e:
-                    print(e)
+                if module == 'onnx':
+                    library = 'onnxruntime'
+                elif module == 'tensorflow':
+                    library = line
 
 
 def search_and_send():
