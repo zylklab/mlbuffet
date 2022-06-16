@@ -114,6 +114,11 @@ def delete_file(tag: str, version: str):
         response = HttpJsonResponse(
             422,
             http_status_description=f'File not found, please check if the tag {tag} is correct').get_response()
+    except ValueError:
+        response = HttpJsonResponse(
+            422,
+            http_status_description=f'Version not found, please check if the version {version} is correct')\
+            .get_response()
 
     return response
 
