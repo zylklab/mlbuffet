@@ -334,3 +334,10 @@ def new_default_number(default_file, history_file):
                 new_version = int(i)
     # Return both the old and new default versions
     return last_version, new_version
+
+
+def get_default(tag):
+    default_file = os.path.join(FILES_DIRECTORY, tag, DEFAULT)
+    with open(default_file) as df:
+        version = str(df.read())
+    return version
