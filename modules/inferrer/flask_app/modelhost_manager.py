@@ -203,7 +203,7 @@ def create_modelhost(tag):
     If the deployment does not exist, it creates a new Deployment and binds it to a new Service.
     """
 
-    if f'modelhost-{tag}' in DeploymentNameScan():
+    if f'modelhost-{tag}' in DeploymentNameScan('modelhost', tag):
 
         """
         https://github.com/kubernetes-client/python/issues/1378
@@ -233,26 +233,26 @@ def create_modelhost(tag):
             print(
                 "Exception when calling AppsV1Api->patch_namespaced_deployment: %s\n" % e)
 
-        else:
-            # Create the Deployment and Service if it does not previously exist
+    else:
+        # Create the Deployment and Service if it does not previously exist
 
-            # Deployment creation
-            try:
-                V1Deployment = _create_body_deployment(tag)
-                api_instance.create_namespaced_deployment(namespace=NAMESPACE,
-                                                          body=V1Deployment)
-            except Exception as e:
-                print(
-                    "Exception when calling AppsV1Api->create_namespaced_deployment: %s\n" % e)
+        # Deployment creation
+        try:
+            V1Deployment = _create_body_deployment(tag)
+            api_instance.create_namespaced_deployment(namespace=NAMESPACE,
+                                                      body=V1Deployment)
+        except Exception as e:
+            print(
+                "Exception when calling AppsV1Api->create_namespaced_deployment: %s\n" % e)
 
-            # Service creation
-            try:
-                v1ServiceBody = _create_body_service(tag)
-                v1.create_namespaced_service(namespace=NAMESPACE,
+        # Service creation
+        try:
+            v1ServiceBody = _create_body_service(tag)
+            v1.create_namespaced_service(namespace=NAMESPACE,
                                              body=v1ServiceBody)
-            except Exception as e:
-                print(
-                    "Exception when calling CoreV1Api->create_namespaced_service: %s\n" % e)
+        except Exception as e:
+            print(
+                "Exception when calling CoreV1Api->create_namespaced_service: %s\n" % e)
 
 
 def restart_deployment(tag: str):
