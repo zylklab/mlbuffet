@@ -1,8 +1,6 @@
 import glob
-from sys import argv
 from os import getenv, path
 import requests
-from zipfile import ZipFile
 import shutil
 
 #######################################################################
@@ -13,18 +11,44 @@ import shutil
 ALLOWED_EXTENSIONS = [".h5", ".onnx", ".pkl",
                       ".pt", ".pmml", ".pb", ".zip", ".mlmodel"]
 
+# For new supported libraries, include them in this list
+SUPPORTED_LIBRARIES = ['onnx', 'tensorflow']
+
 
 def get_file_extension(file_name):
     return path.splitext(file_name)[1]
+
+
 #######################################################################
+
+# Get what training library has been used
+
+# In case not supported deployment library, set it as null
+library = ""
+
+with open('./requirements.txt', 'r') as requirements:
+    for line in requirements.readlines():
+        for module in SUPPORTED_LIBRARIES:
+            if module in line:
+                # Set library value
+                if module == 'onnx':
+                    library = 'onnxruntime'
+                elif module == 'tensorflow':
+                    library = line
+# Remove newline characters
+library = library.replace('\n', '')
+library = library.replace('\r', '')
 
 
 def search_and_send():
     for file in glob.glob(f'/home/trainer/**/{FILENAME}', recursive=True):
         if file is not None and get_file_extension(file) in ALLOWED_EXTENSIONS:
 
+            file = path.basename(file)
+
             # For TensorFlow models, compress .pb directory into .zip and send it to Inferrer
-            if get_file_extension(file) == '.pb':
+            if get_file_extension(file) == '.pb' and path.isdir(file):
+
                 shutil.make_archive(
                     base_name=f'{file}', base_dir=f'{file}', format='zip')
 
@@ -37,7 +61,7 @@ def search_and_send():
             # For K8S Environments, call the Inferrer service
             if getenv('ORCHESTRATOR') == 'KUBERNETES':
                 response = requests.post(
-                    f'http://inferrer:8000/api/v1/models/{TAG}', files={"path": sendfile})
+                    f'http://inferrer:8000/api/v1/models/{TAG}', files={"path": sendfile}, data={"library_version": library})
 
             # For other environments, call the standard Docker daemon endpoint
             else:

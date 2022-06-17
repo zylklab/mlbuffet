@@ -15,7 +15,6 @@ RUN mkdir files
 RUN mkdir logs
 
 COPY app.py .
-COPY modelhost_talker.py .
 COPY utils utils
 
 CMD ["gunicorn", "-w", "1", "-b", "0.0.0.0:8000", "app:server"]

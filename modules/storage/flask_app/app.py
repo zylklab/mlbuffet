@@ -9,7 +9,6 @@ from utils import metric_manager
 from utils.container_logger import Logger
 from utils.storage_pojos import HttpJsonResponse, ModelListInformation
 from secrets import compare_digest
-import modelhost_talker as mh_talker
 
 # Path constants
 STORAGE_BASE_URL = '/storage'
@@ -95,79 +94,103 @@ def log_response(response):
     return response
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['PUT'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>'), methods=['PUT'])
 def save(tag):
+    """
+    Method to save the model. The save function saves the model with an associated tag.
+    """
+    # Check the body of the request
     file = request.files['path']
     filename = request.files['filename'].stream.read().decode("utf-8")
     description = request.files['model_description'].stream.read().decode(
         "utf-8")
+    ml_library = request.files['ml_library'].stream.read().decode(
+        "utf-8")
+    # Call save_file function
     bvc.save_file(file=file,
                   tag=tag,
                   file_name=filename,
-                  description=description)
+                  description=description,
+                  ml_library=ml_library)
 
-    path_file = bvc.get_directory_file(tag=tag)
-
-    mh_talker.upload_new_model(tag=tag, new_model=open(path_file, 'rb'), filename=filename)
-
-    return HttpJsonResponse(http_status_code=200,
+    return HttpJsonResponse(http_status_code=201,
                             http_status_description=f'File {filename} saved with the tag {tag}').get_response()
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['DELETE'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>'), methods=['DELETE'])
 def delete(tag):
+    """
+    Method to delete a specific version of a tag, or the entire tag
+    """
+    # Check if is specified a version
     separator = tag.find(':')
     if separator < 0:
-        version = 'default'
+        # If there is no version, remove the entire tag
+        response = bvc.delete_tag(tag)
     else:
+        # If there is version, remove the file
         name_split = tag.split(':')
         tag = name_split[0]
         version = name_split[1]
+        response = bvc.delete_file(tag=tag, version=version)
 
-    bvc.delete_file(name=tag, version=version)
-    mh_talker.delete_model(tag=tag)
-    return HttpJsonResponse(200, http_status_description=f'{tag} removed\n').get_response()
+    return response
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>'), methods=['GET'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>'), methods=['GET'])
 def download(tag):
+    """
+    Method to download a model
+    """
+    # Check if is specified a version
     separator = tag.find(':')
     if separator < 0:
+        # If there is no version, assume that is the default version
         version = 'default'
     else:
         name_splitted = tag.split(':')
         tag = name_splitted[0]
         version = name_splitted[1]
-    return bvc.download_file(name=tag, version=version)
+    return bvc.download_file(tag=tag, version=version)
 
 
 @server.route(path.join(STORAGE_BASE_URL, 'models'), methods=['GET'])
 def model_list():
+    """
+    Method to send the tag list
+    """
     return bvc.get_model_list()
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>/default'), methods=['POST'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>/default'), methods=['POST'])
 def update_default_file(tag):
+    """
+    Method to update the default file from a tag
+    """
     new_default = request.json['default']
-    response = bvc.update_default(name=tag, version=new_default)
+    response = bvc.update_default(tag=tag, version=new_default)
     return response
 
 
-@server.route(path.join(STORAGE_BASE_URL, 'updatemodels'), methods=['GET'])
-def update_models():
-    response = bvc.update_models()
-    return response
-
-
-@server.route(path.join(STORAGE_BASE_URL, 'model/<tag>/information'), methods=['GET'])
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>/information'), methods=['GET'])
 def get_info(tag):
     try:
         information = bvc.get_information(tag)
-        return ModelListInformation(200, tag_list=information).get_response()
+        default_version = bvc.get_default(tag)
+        return ModelListInformation(200, tag_list=information, default=default_version).get_response()
     except FileNotFoundError:
         return HttpJsonResponse(
             422,
-            http_status_description='Tag not found, please check the name introduced').get_response()
+            http_status_description=f'Tag {tag} not found, please check the name introduced').get_response()
+
+
+@server.route(path.join(STORAGE_BASE_URL, 'models/<tag>/library'), methods=['GET'])
+def get_library(tag):
+    """
+    Method to get the Framework of the default file from a tag. This method is only used by the Modelhost.
+    """
+    ml_library = bvc.get_ml_library(tag=tag)
+    return ml_library
 
 
 if __name__ == '__main__':

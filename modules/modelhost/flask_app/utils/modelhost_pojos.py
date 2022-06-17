@@ -25,16 +25,19 @@ class HttpJsonResponse:
             if http_status_code in default_exceptions:  # if provided code belongs to a http exception
                 http_status['name'] = default_exceptions[http_status_code]().name
             else:
-                http_status['name'] = HTTP_STATUS_CODES.get(http_status_code, '')
+                http_status['name'] = HTTP_STATUS_CODES.get(
+                    http_status_code, '')
 
         # if status description was specified
         if http_status_description:
             http_status['description'] = http_status_description
         else:
             if http_status_code in default_exceptions:  # if provided code belongs to a http exception
-                http_status['description'] = default_exceptions[http_status_code]().description
+                http_status['description'] = default_exceptions[http_status_code](
+                ).description
             else:
-                http_status['description'] = HTTP_STATUS_CODES.get(http_status_code, '')
+                http_status['description'] = HTTP_STATUS_CODES.get(
+                    http_status_code, '')
 
         self.data['http_status'] = http_status
 
@@ -76,14 +79,3 @@ class ModelInformation(HttpJsonResponse):
         self.data['num_inputs'] = num_inputs
         self.data['output_name'] = output_name
         self.data['description'] = description
-
-
-class ModelListInformation(HttpJsonResponse):
-    def __init__(self,
-                 http_status_code: int,
-                 http_status_name: str = None,
-                 http_status_description: str = None,
-                 list_descriptions: list = None):
-        super().__init__(http_status_code, http_status_name, http_status_description)
-
-        self.data['model_list_description'] = list_descriptions

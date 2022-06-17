@@ -1,6 +1,3 @@
-###TODO This file should be revisited for non hardcoded IPs and adding these values from a .env file
-### but this functionality does not seem to be supported by prometheus yet.
-
 # my global config
 global:
     scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
@@ -17,9 +14,6 @@ scrape_configs:
     - job_name: 'prometheus'
       scrape_interval: 5s
       static_configs:
-      # SWARM DEPLOYMENT
-      #- targets: ['mlbuffet_prometheus:9090']
-      # KUBERNETES DEPLOYMENT
       - targets: ['127.0.0.1:9090']
 
     - job_name: 'mlbuffet'
@@ -27,9 +21,6 @@ scrape_configs:
       scrape_interval: 5s
       static_configs:
       - targets:
-          # SWARM DEPLOYMENT
-          # - mlbuffet_inferrer:8000
-          # - mlbuffet_modelhost:8000
-          # KUBERNETES DEPLOYMENT
           - inferrer:8000
-          - modelhost:8000
+          - cache:8000
+          - storage:8000

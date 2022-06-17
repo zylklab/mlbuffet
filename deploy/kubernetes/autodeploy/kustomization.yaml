@@ -5,16 +5,12 @@ namespace: mlbuffet
 resources:
   - mlbuffet_namespace.yaml
   - rbac.yaml
-  - modelhost.yaml
   - inferrer.yaml
   - cache.yaml
   - metrics.yaml
   - storage.yaml
 
 images:
-  # Modelhost image name
-  - name: IMAGE_MLBUFFET_MODELHOST
-    newName: localhost:5000/mlbuffet_modelhost
   # Inferrer image name
   - name: IMAGE_MLBUFFET_INFERRER
     newName: localhost:5000/mlbuffet_inferrer
