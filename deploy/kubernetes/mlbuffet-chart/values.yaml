@@ -2,12 +2,13 @@ namespace:
   name: mlbuffet
 
 images:
-  inferrer: mlbuffet-inferrer
-  modelhost: mlbuffet-modelhost
-  storage: mlbuffet-storage
-  metrics: mlbuffet-metrics
-  cache:  mlbuffet-cache
-  imagePullPolicy: IfNotPresent
+  inferrer: IMAGE_MLBUFFET_INFERRER
+  modelhost: IMAGE_MLBUFFET_MODELHOST
+  storage: IMAGE_MLBUFFET_STORAGE
+  metrics: IMAGE_MLBUFFET_METRICS
+  cache:  IMAGE_MLBUFFET_CACHE
+  trainer: IMAGE_MLBUFFET_TRAINER
+  imagePullPolicy: Always
 
 apiVersion:
   deployment: apps/v1
@@ -16,33 +17,37 @@ apiVersion:
   serviceAccount: v1
   roleBinding: rbac.authorization.k8s.io/v1
 
-rolePod:
-  name: modify-pods
-  resources:
-    - pods
-  verbs:
-    - list
-    - get
-    - delete
-    - create
-
-roleDeployment:
-  name: modify-deployments
-  resources:
-    - deployments
-  verbs:
-    - list
-    - get
-    - delete
-    - create
-
-serviceAccount:
-  name: pod-scheduler
+role:
+  scheduler:
+    name: schedule-modelhosts
+    resources:
+      - pods
+      - deployments
+      - services
+    verbs:
+      - list
+      - get
+      - delete
+      - create
+      - patch
+  trainer:
+    name: trainer-apoptosis
+    resources:
+      - pods
+    verbs:
+      - delete
 
 roleBinding:
-  name: modify-pods-to-sa
-  name2: modify-deployments
-  apiGroup: rbac.authorization.k8s.io
+  scheduler:
+    name: modelhost-rolebinding
+  trainer:
+    name: trainer-rb
+
+serviceAccount:
+  scheduler:
+    name: modelhost-creator
+  trainer:
+    name: trainer-sa
 
 orchestratorType: "KUBERNETES"
 

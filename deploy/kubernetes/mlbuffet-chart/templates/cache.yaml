@@ -3,21 +3,17 @@ kind: Deployment
 metadata:
   name: {{ .Values.cache.name}}
   namespace: {{ .Values.namespace.name }}
+  labels:
+    app: {{.Values.namespace.name}}_{{ .Values.cache.name}}
 spec:
   replicas: {{ .Values.cache.deployment.replicas}}
   selector:
     matchLabels:
       app: {{.Values.namespace.name}}_{{ .Values.cache.name}}
-      chart: "{{ .Chart.Name}}_{{ .Chart.Version}}"
-      release: {{ .Release.Name | quote }}
-      heritage: {{ .Release.Service | quote }}
   template:
     metadata:
       labels:
         app: {{.Values.namespace.name}}_{{ .Values.cache.name }}
-        chart: "{{ .Chart.Name}}_{{ .Chart.Version}}"
-        release: {{ .Release.Name | quote }}
-        heritage: {{ .Release.Service | quote }}
     spec:
       containers:
         - name: {{ .Values.cache.name}}
@@ -39,4 +35,4 @@ spec:
   - protocol: {{ .Values.cache.service.ports.protocol}}
     port: {{ .Values.cache.service.ports.port}}
     targetPort: {{ .Values.cache.service.ports.targetport}}
-  type: NodePort
+  type: ClusterIP
