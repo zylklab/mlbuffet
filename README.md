@@ -62,16 +62,7 @@ To configure the Chart, edit the values from `deploy/kubernetes/mlbuffet-chart/V
 
 ### Docker
 
-For **Docker Swarm** deployments, there is a deploy.sh script provided which will deploy automatically and configure your cluster. There are two restrictions:
-
-- Stack name must be set as mlbuffet
- (this is a reserved name for container intracommunication).
-- The mlbuffet_overlay network is used by nodes to communicate. The
-preferred subnet is 10.0.13.0/24.
-
-**Reported issue:** Sometimes after installing docker-compose, the docker-compose tool is unable to access the docker socket
-due to permission issues. To solve
-this problem, include your user in the docker group with `sudo usermod -aG docker $USER`.
+MLBuffet can also be deployed as independent Docker containers, however, some functionalities may result non-functioning and Docker Swarm has been deprecated in MLBuffetV2, because Docker Swarm is an abandoned orchestrator at the moment. For Docker Swarm deployments, go back to MLBuffetV1.
 
 ## Test the API and welcome
 
@@ -100,13 +91,11 @@ Or you can try asking for some help:
 
 ## Model Handling
 
-Some pre-trained models are available to be uploaded in the `probe_models/` directory.
+Some pre-trained models are available to be uploaded in the `sample_models/` directory.
 
-All Modelhost servers get an updated model list from the Storage service.
+Every model must be named by a tag, and the Storage service will take this tag as the reference for that model. When a new model is uploaded to the server, a new Modelhost Pod will be created with the mdoel deployed, as longs as it is part of the supported inference libraries (Tensorflow and ONNX).
 
-Every model must be named by a tag, and the Storage service will take this tag as the reference for that model.
-
-For instance, we can have some versions of the iris model as `irisv1.onnx`, `irisv2.onnx` or `iris_final_version.onnx`, but all of them are several versions of the same model, tagged as `iris_model`.
+For instance, we can have some versions of the iris model as `irisv1.onnx`, `irisv2.onnx` or `iris_final_version.onnx`, but all of them are several versions of the same model, tagged as `iris-model`. Please note that the `tag` associated to a model must be a valid DNS name, otherwise the Modelhost Pod would not be possible to create.
 
 You can upload new versions of a tag model, and they will be stored into the storage module of MLBuffet, only the default versions of each tag will be exposed into the path `modelhost/models/`.
 
@@ -173,41 +162,36 @@ You can also give some information of the version changes:
 
 `curl -X POST -F "path=@/path/to/local/model" -F "model_description=version description of the file" http://<INFERRER-IP>:8000/api/v1/models/<tag>`
 
-When a new version is uploaded, that will be associated as the default model, and read by the modelhosts.
+When a new version is uploaded, that will be associated as the default model, and a new Modelhost Pod will be deployed for inference.
 
 **Download model**
 
-You can download any version of any model tag located in the storage module.
-You can specify the version you want to get from the storage in three ways:
+Any version of a given model tag can be downloaded from the server.
+The version to be downloaded from the storage can be specified in three ways:
 
 * `<tag>`
 * `<tag>:default`
 * `<tag>:<version>`
 
-The first two methods download the file set as default, and the last one downloads the specified version.
+The first two methods download the file set as default, and the last one downloads the specific version.
 
 `wget http://<INFERRER-IP>:8000/api/v1/models/<tag>/download --content-disposition`
 
-You can also download files with your browser with the above URL.
+Models can also be downloaded form the browser.
 
 **Delete a model**
 
-You can delete models you do not need anymore with DELETE method. You can specify the version you want remove of the storage in
-three ways:
+Models can be deleted with the DELETE method:
 
 * `<tag>`
 * `<tag>:default`
 * `<tag>:<version>`
-
-The first method, remove the entire tag.
-
-The second method remove the file set as default, and the last one removes the specified version.
 
 `curl -X DELETE http://<INFERRER-IP>:8000/api/v1/models/<tag>`
 
 **Set model as default**
 
-You can set any version stored into the storage service as the default version:
+Any version in the storage can be set as the default version:
 
 `curl -X POST -H "Content-Type: application/json" --data '{"default": <new default version>}'
 http://<INFERRER-IP>:8000/api/v1/models/<tag>/default`
@@ -216,9 +200,9 @@ http://<INFERRER-IP>:8000/api/v1/models/<tag>/default`
 
 **Get a prediction!**
 
-Once models have been correctly uploaded, the server is ready for inference. Requests must be done with an input in json format. This command will send an HTTP request to the server asking for a prediction on the pre-uploaded Iris model:
+Once models have been correctly uploaded, the server is ready for inference. Requests must be done with an input in json format. This will send an HTTP request to the server asking for a prediction on the previously uploaded Iris model:
 
-`curl -X POST -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 4]}' http://<INFERRER-IP>:8000/api/v1/models/iris_model/prediction`
+`curl -X POST -H "Content-Type: application/json" --data '{"values":[2, 5, 1, 4]}' http://<INFERRER-IP>:8000/api/v1/models/iris-model/prediction`
 
 ```json
 {
@@ -234,11 +218,11 @@ Once models have been correctly uploaded, the server is ready for inference. Req
 
 ```
 
-The field "values":[1] is the prediction for the input flower. You are now ready to upload your own models and make
-predictions!
+The field "values":[1] is the prediction for the input flower. You are now ready to upload your own models and make predictions!
 
-You can predict objects with more complex models. For now, the server only is enabled to predict with images, but other
-types could be allowed in the future. For that predictions, the command to send the HTTP request is the following:
+You can predict objects with more complex models. For now, the server only is enabled to predict with images and json inputs, but other types are being implemented.
+
+To send images as inputs the following request must be done:
 
 `curl -X GET -F "file=@dog_resized.jpeg" http://<INFERRER-IP>:8000/api/v1/models/dog_model/prediction | jq`
 
@@ -263,13 +247,13 @@ types could be allowed in the future. For that predictions, the command to send 
 
 **Prepare your trining scripts**
 
-MLBuffet is able to train your own models and automatically upload them for inference or model management.
+MLBuffet is able to train models and automatically upload them for inference or model management.
 
-There are two ways to perform trainings depending on your installation method. Both work fundamentally the same way, but the recommended one is the Kubernetes Trainer, as it does not require external configuration and works out of the box:
+There are two ways to perform trainings depending on your installation method and preferred Container Runtime Interface. Both work fundamentally the same way, but the recommended one is the Kubernetes Trainer, as it does not require external configuration and works out of the box:
 
 ### MLBuffet Kubernetes Trainer
 
-The MLBuffet Kubernetes Trainer is not a module itself, but an operation performed by Inferrer. Provided the training files through a POST request, the Inferrer will spin a Pod called `trainer` which will execute the training script sequentally. Then, the Pod will be scanned looking for the name of the output model, provided in the URL resource, and this model will be sent back to the Inferrer to be loaded as a new model.
+The MLBuffet Kubernetes Trainer is not a module itself, but an operation performed by Inferrer. Provided the training files through a POST request, the Inferrer will spin up a Pod called `trainer` which will execute the training script sequentally. Then, the Pod will be scanned looking for the name of the output model, provided in the URL resource, and this model will be sent back to the Inferrer to be loaded as a new model.
 
 ```
 curl -X POST <INFERRER-IP>:8000/api/v1/train/<tag>/<model_name> -F "dataset=@/path/to/dataset.csv" -F "script=@/path/to/train.py" -F "requirements=@/path/to/requirements.txt"
@@ -277,9 +261,11 @@ curl -X POST <INFERRER-IP>:8000/api/v1/train/<tag>/<model_name> -F "dataset=@/pa
 Where `<tag>` is the model tag you want to upload to the MLBuffet server, and `<model_name>` is the exact name of the file that will be the result of the traning (or directory, like `model.pb` or `iris.onnx`).
 
 MLBuffet supports training using any Python-based library. You will need 3 files to perform training on a virtualized container environment, which are your custom
-`train.py` script, `requirements.txt` with all the libraries and tools to be imported during training, and `dataset.csv`
-or any other data file which must be read during runtime by the training script to make operations over the dataset and
-perform the training.
+`train.py` script, `requirements.txt` with all the libraries and tools to be imported during training, and `dataset.csv` or any other data file which must be read during runtime by the training script to make operations over the dataset and perform the training.
+
+Take into account that these code will be executed inside a containerized environment and the resulting model must be
+able to be located by the Trainer container to auto-upload it into the system. The tag associated to the model must be
+provided in `<tag>`. The model name must be the same that you sent in the HTTP request `<model_name>`.
 
 ### MLBuffet Docker Trainer
 
@@ -293,7 +279,3 @@ Your client cert, key and ca-certs must be located at `inferrer/flask_app/utils/
 Example `curl` request:
 
 ```curl -X POST <INFERRER-IP>:8000/api/v1/train/<tag>/<model_name> -F "dataset=@/path/to/dataset.csv" -F "script=@/path/to/train.py" -F "requirements=@/path/to/requirements.txt"```
-
-Take into account that these code will be executed inside a containerized environment and the resulting model must be
-able to be located by the Trainer container to auto-upload it into the system. The tag associated to the model must be
-provided in `<tag>`. The model name must be the same that you sed in the HTTP request `<model_name>`.
