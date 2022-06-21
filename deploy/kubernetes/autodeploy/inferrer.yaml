@@ -13,21 +13,20 @@ spec:
       labels:
         app: mlbuffet_inferrer
     spec:
-     serviceAccountName: pod-scheduler  
+     serviceAccountName: modelhost-creator  
      containers:
         - name: inferrer
-          image: IMAGE_MLBUFFET_INFERRER
+          image: IMAGE_MLBUFFET_INFERRER 
           imagePullPolicy: Always
           ports:
             - containerPort: 8000
           env:
-            - name: ORCHESTRATOR
-              value: "KUBERNETES"
-            - name: MODELHOST_REPLICAS
-              value: "4"
+            - name: TRAINER_MANAGER
+              value: KUBERNETES
             - name: IMAGE_MLBUFFET_TRAINER
-              value: IMAGE_MLBUFFET_TRAINER_NAME
-
+              value: IMAGE_MLBUFFET_TRAINER
+            - name: IMAGE_MLBUFFET_MODELHOST
+              value: IMAGE_MLBUFFET_MODELHOST
 ---
 
 apiVersion: v1

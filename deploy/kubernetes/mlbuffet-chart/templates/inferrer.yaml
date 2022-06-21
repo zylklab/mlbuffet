@@ -3,23 +3,19 @@ kind: Deployment
 metadata:
   name: {{ .Values.inferrer.name}}
   namespace: {{ .Values.namespace.name }}
+  labels:
+    app: {{.Values.namespace.name}}_{{ .Values.inferrer.name }}
 spec:
   replicas: {{ .Values.inferrer.deployment.replicas}}
   selector:
     matchLabels:
       app: {{.Values.namespace.name}}_{{ .Values.inferrer.name}}
-      chart: "{{ .Chart.Name}}_{{ .Chart.Version}}"
-      release: {{ .Release.Name | quote }}
-      heritage: {{ .Release.Service | quote }}
   template:
     metadata:
       labels:
         app: {{.Values.namespace.name}}_{{ .Values.inferrer.name }}
-        chart: "{{ .Chart.Name}}_{{ .Chart.Version}}"
-        release: {{ .Release.Name | quote }}
-        heritage: {{ .Release.Service | quote }}
     spec:
-     serviceAccountName: {{ .Values.serviceAccount.name }}
+     serviceAccountName: {{ .Values.serviceAccount.scheduler.name }}
      containers:
         - name: {{ .Values.inferrer.name}}
           image: {{ .Values.images.inferrer}}
@@ -29,6 +25,10 @@ spec:
           env:
             - name: ORCHESTRATOR
               value: {{ .Values.orchestratorType | quote}}
+            - name: IMAGE_MLBUFFET_TRAINER
+              value: {{ .Values.images.trainer}}
+            - name: IMAGE_MLBUFFET_MODELHOST
+              value: {{ .Values.images.modelhost}}
 
 ---
 

@@ -1,6 +1,6 @@
 apiVersion: v2
 name: mlbuffet
-description: MLBuffet is a model-server for deployed by Zylk.net
+description: MLBuffet is a Machine Learning model-server that allows model storage, version control, training, and inference. Developed by Zylk.net
 
 home: https://github.com/zylklab/mlbuffet
 

@@ -1,47 +1,55 @@
-import nmap
 from kubernetes import client, config
-from os import getenv
 
 
 def IPScan(service: str):
     """
-    IPScan search the IPs of the service nodes. The way of how IPScan tries to do it, is different if MLBuffet is
-    deployed on Kubernetes or Docker Swarm.
+    IPScan search the IPs of the services deployed in K8S.
     """
-
-    # Key to define the IPScan way.
-
-    key = 'ORCHESTRATOR'
-
-    # If key = 'KUBERNETES', use the Kubernetes way
-
-    if getenv(key) == 'KUBERNETES':
-        config.load_incluster_config()
-        v1 = client.CoreV1Api()
-        servicelist = []
-        service_name = 'mlbuffet_' + service
-        ret = v1.list_namespaced_pod('mlbuffet')
-        for item in ret.items:
-            try:
-                if item.metadata.labels['app'] == service_name:
-                    servicelist.append(item.status.pod_ip)
-            except:
-                pass
-    # For now, we only support Kubernetes and Docker swarm, so this will work in Docker Swarm.
-
-    else:
-        network = getenv('OVERLAY_NETWORK')
-        nm = nmap.PortScanner()
-        nm.scan(hosts=network, arguments="-sn")
-        listaddr = nm.all_hosts()
-        servicelist = []
-
-        for addr in listaddr:
-            try:
-                is_host = nm[addr].get('hostnames')[0]['name']
-            except IndexError:
-                is_host = ''
-            if service in is_host:
-                servicelist.append(addr)
+    config.load_incluster_config()
+    v1 = client.CoreV1Api()
+    servicelist = []
+    service_name = 'mlbuffet_' + service
+    ret = v1.list_namespaced_pod('mlbuffet')
+    for item in ret.items:
+        try:
+            if item.metadata.labels['app'] == service_name:
+                servicelist.append(item.status.pod_ip)
+        except:
+            pass
 
     return servicelist
+
+
+def PodNameScan(service: str, tag: str):
+    """
+    IPScan search the IPs of the services deployed in K8S.
+    """
+    config.load_incluster_config()
+    v1 = client.CoreV1Api()
+    PodList = []
+    service_name = 'mlbuffet_' + service + '_' + tag
+    ret = v1.list_namespaced_pod('mlbuffet')
+    for item in ret.items:
+        if item.metadata.labels['app'] == service_name:
+            PodList.append(item.metadata.name)
+
+    return PodList
+
+
+def DeploymentNameScan(service: str, tag: str):
+    """
+    Search the Deployments deployed in K8S.
+    """
+    config.load_incluster_config()
+    appsv1 = client.AppsV1Api()
+    DeploymentList = []
+    service_name = 'mlbuffet_' + service + '_' + tag
+
+    ret = appsv1.list_namespaced_deployment('mlbuffet')
+
+    for item in ret.items:
+        if item.metadata.labels is not None:
+            if item.metadata.labels['app'] == service_name:
+                DeploymentList.append(item.metadata.name)
+
+    return DeploymentList
