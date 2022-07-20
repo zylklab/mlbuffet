@@ -156,11 +156,11 @@ You can read the relevant information of the models associated with a tag:
 
 You can upload your own models to MLBuffet using POST method:
 
-`curl -X POST -F "path=@/path/to/local/model" http://<INFERRER-IP>:8000/api/v1/models/<tag>`
+`curl -X POST -F "path=@/path/to/local/model" http://<INFERRER-IP>:8000/api/v1/models/<tag> -F "library_version=<library_name==version>"`
 
 You can also give some information of the version changes:
 
-`curl -X POST -F "path=@/path/to/local/model" -F "model_description=version description of the file" http://<INFERRER-IP>:8000/api/v1/models/<tag>`
+`curl -X POST -F "path=@/path/to/local/model" -F "model_description=version description of the file" http://<INFERRER-IP>:8000/api/v1/models/<tag> -F "library_version=<library_name==version>"``
 
 When a new version is uploaded, that will be associated as the default model, and a new Modelhost Pod will be deployed for inference.
 
