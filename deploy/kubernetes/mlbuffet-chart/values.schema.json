@@ -1,0 +1,175 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    "namespace":{
+      "type": "object",
+      "title": "Namespace configuration",
+      "form": true,
+      "properties": {
+        "name": {
+          "type": "string",
+          "form": true
+        }
+      }
+    },
+    "images": {
+      "type": "object",
+      "title": "MLBuffet images",
+      "form": true,
+      "properties": {
+        "inferrer": {
+          "type": "string",
+          "title": "Inferrer image",
+          "form": true
+          },
+        "modelhost": {
+          "type": "string",
+          "title": "Modelhost image",
+          "form": true
+          },
+        "storage": {
+          "type": "string",
+          "title": "Storage image",
+          "form": true
+
+          },
+        "metrics": {
+          "type": "string",
+          "title": "Metrics image",
+          "form": true
+
+          },
+        "cache": {
+          "type": "string",
+          "title": "Cache image",
+          "form": true
+
+          },
+        "imagePullPolicy": {
+          "type": "string",
+          "title": "Image policy of MLBuffet images",
+          "form": true,
+          "enum": ["Always", "IfNotPresent"]
+          }
+        }
+      
+    },
+    "inferrer":{
+      "type": "object",
+      "title": "Inferrer configuration",
+      "form": true,
+      "properties":{
+        "deployment":{
+          "type": "object",
+          "title": "Deployment configuration",
+          "form": true,
+          "properties": {
+              "replicas": {
+                "type": "integer",
+                "title": "Inferrer replicas",
+                "form": true,
+                "render": "slider",
+                "sliderMin": 1,
+                "sliderMax": 10,
+                "description": "Number of inferrer replicas"
+            }
+          }
+        },
+       "service": {
+        "type": "object",
+        "title": "Service configuration",
+        "form": true,
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Inferrer service type",
+            "form": true,
+            "enum": ["ClusterIP", "NodePort"],
+            "description": "Allowed service types: ClusterIP and NodePort"
+          },
+          "nodePort": {
+            "type": "integer",
+            "title": "NodePort",
+            "form": true,
+            "description": "Output port of Inferrer, between ports 30000 to 32767",
+            "hidden": {
+              "path": "inferrer/service/type",
+              "value": "ClusterIP"
+            }
+          }
+        }
+       } 
+      }
+    },
+    "cache":{
+      "type": "object",
+      "title": "Cache configuration",
+      "form": true,
+      "properties":{
+        "deployment":{
+          "type": "object",
+          "title": "Deployment configuration",
+          "form": true,
+          "properties": {
+              "replicas": {
+                "type": "integer",
+                "title": "Cache replicas",
+                "form": true,
+                "render": "slider",
+                "sliderMin": 1,
+                "sliderMax": 10,
+                "description": "Number of cache replicas"
+            }
+          }
+        }   
+      }
+    },
+    "storage":{
+      "type": "object",
+      "title": "Storage configuration",
+      "form": true,
+      "properties":{
+        "deployment":{
+          "type": "object",
+          "title": "Deployment configuration",
+          "form": true,
+          "properties": {
+            "replicas": {
+                "type": "integer",
+                "title": "Storage replicas",
+                "form": true,
+                "render": "slider",
+                "sliderMin": 1,
+                "sliderMax": 10,
+                "description": "Number of storage replicas"
+            }
+          }
+        } 
+      }
+    },
+    "metrics":{
+      "type": "object",
+      "title": "Metrics configuration",
+      "form": true,
+      "properties":{
+        "deployment":{
+          "type": "object",
+          "title": "Deployment configuration",
+          "form": true,
+          "properties": {
+            "replicas": {
+                "type": "integer",
+                "title": "Metrics replicas",
+                "form": true,
+                "render": "slider",
+                "sliderMin": 1,
+                "sliderMax": 10,
+                "description": "Number of metrics replicas"
+            }
+          }
+        } 
+      }
+    }
+  }
+}
