@@ -4,3 +4,13 @@
 
 MLBuffet is a Machine Learning model server developed by Zylk.net.
 For more information on the project go to https://github.com/zylklab/mlbuffet/.
+
+{{- if eq $.Values.inferrer.service.type "NodePort" }}
+Inferrer endpoint:
+http://localhost:{{ .Values.inferrer.service.nodePort}}
+{{- end}}
+{{- if eq $.Values.inferrer.service.type "ClusterIP" }}
+
+kubectl port-forward {{.Values.namespace.name}}_{{ .Values.inferrer.name}} 8000 -n {{ .Values.namespace.name }}
+http://localhost:8000
+{{- end }}

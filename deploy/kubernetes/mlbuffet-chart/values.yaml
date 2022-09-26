@@ -1,102 +1,187 @@
+## section: namespace
+## Namespace options
 namespace:
+  ## namespace.name
+  ## Kubernetes namespace where the MLBuffet chart will be deployed
   name: mlbuffet
+  ## namespace.createNamespace
+  ## Allow to the chart create its own namespace
+  createNamespace: false
 
+## section: images
+## MLBuffet image options
 images:
+  ## images.inferrer
+  ## Inferrer image from the repository
   inferrer: IMAGE_MLBUFFET_INFERRER
+  ## images.modelhost
+  ## Modelhost image from the repository
   modelhost: IMAGE_MLBUFFET_MODELHOST
+  ## images.storage
+  ## Storage image from the repository
   storage: IMAGE_MLBUFFET_STORAGE
+  ## images.metrics
+  ## Metrics image from the repository
   metrics: IMAGE_MLBUFFET_METRICS
-  cache:  IMAGE_MLBUFFET_CACHE
+  ## images.cache
+  ## Cache image from the repository
+  cache: IMAGE_MLBUFFET_CACHE
+  ## images.trainer
+  ## Trainer image from the repository
   trainer: IMAGE_MLBUFFET_TRAINER
-  imagePullPolicy: Always
+  ## images.imagePullPolicy
+  ## Policy of MLBuffet images
+  imagePullPolicy: IfNotPresent
 
+## section: apiVersion
+## API versions of the different APIs
 apiVersion:
+  ## apiVersion.deployment
+  ## API version of the deployment
   deployment: apps/v1
+  ## apiVersion.service
+  ## API version of the service
   service: v1
+  ## apiVersion.role
+  ## API version of the role
   role: rbac.authorization.k8s.io/v1
+  ## apiVersion.serviceAccount
+  ## API version of the service account
   serviceAccount: v1
+  ## apiVersion.roleBinding
+  ## API version of the role binding
   roleBinding: rbac.authorization.k8s.io/v1
 
+## section: role
+## Parameters applied to each role
 role:
+  ## subsection: scheduler
+  ## Role applied to the inferrer
   scheduler:
+    ## role.scheduler.name
+    ## Name of the inferrer's role
     name: schedule-modelhosts
+    ## role.scheduler.resources
+    ## Resources on which the role has an effect
     resources:
       - pods
       - deployments
       - services
+    ## role.scheduler.verbs
+    ## Commands of this role
     verbs:
       - list
       - get
       - delete
       - create
       - patch
+  ## subsection: trainer
+  ## Role applied to the trainer
   trainer:
+    ## role.trainer.name
+    ## Name of the trainer's role
     name: trainer-apoptosis
+    ## role.trainer.resources
+    ## Resources on which the role has an effect
     resources:
       - pods
+    ## role.trainer.verbs
+    ## Commands of this role
     verbs:
       - delete
 
+## section: roleBinding
+## Paraameters applied to the different role bindings
 roleBinding:
+  ## subsection: scheduler
+  ## Parameters applied to the role binding scheduler
   scheduler:
+    ## roleBinding.scheduler.name
+    ## Name of the inferrer's role binding
     name: modelhost-rolebinding
+  ## subsection: trainer
+  ## Parameters applied to the role binding trainer
   trainer:
+    ## roleBinding.trainer.name
+    ## Name of the trainer's role binding
     name: trainer-rb
 
+## section: serviceAccount
+## Parameters applied to the different service accounts
 serviceAccount:
+  ## subsection: scheduler
+  ## Parameters applied to the service account scheduler
   scheduler:
+    ## serviceAccount.scheduler.name
+    ## Name of the scheduler's service account
     name: modelhost-creator
+  ## subsection: trainer
+  ## Parameters applied to the service account trainer
   trainer:
+    ## serviceAccount.trainer.name
+    ## Name of the trainer's service account
     name: trainer-sa
 
+## orchestratorType
+## The orchestrator where MLBuffet will be deployed. This parameter only accepts the value "KUBERNETES"
 orchestratorType: "KUBERNETES"
 
+## section: cache
+## Parameters applied to the cache application
 cache:
+  ## cache.name
+  ## Name of the cache application
   name: cache
-  service:
-    ports:
-      protocol: TCP
-      port: 6379
-      targetPort: 6379
   deployment:
+    ## cache.deployment.replicas
+    ## Number of cache replicas.
     replicas: 1
 
+## section: inferrer
+## Parameters applied to the inferrer application
 inferrer:
+  ## inferrer.name
+  ## Name of the inferrer application
   name: inferrer
+  ## subsection: service
+  ## Parameters applied to the service of this application
   service:
-    ports:
-      protocol: TCP
-      port: 8000
-      targetPort: 8000
+    ## inferrer.service.type
+    ## Type of the inferrer service. Select between "ClusterIP" or NodePort
+    type: ClusterIP
+    ## inferrer.service.nodePort
+    ## This parameter is only available with NodePort service type. 
+    nodePort: 30000
+
+  ## subsection: deployment
+  ## Parameters applied to the deployment of this application
   deployment: 
+    ## inferrer.deployment.replicas
+    ## Number of inferrer replicas.
     replicas: 1
 
-modelhost:
-  name: modelhost
-  service:
-    ports:
-      protocol: TCP
-      port: 8000
-      targetPort: 8000
-  deployment: 
-    replicas: 1
-
+## section: storage
+## Parameters applied to the storage application
 storage:
+  ## storage.name
+  ## Name of the storage application
   name: storage
-  service:
-    ports:
-      protocol: TCP
-      port: 8000
-      targetPort: 8000
+  ## subsection: deployment
+  ## Parameters applied to the deployment of this application
   deployment: 
+    ## storage.deployment.replicas
+    ## Number of storage replicas.
     replicas: 1
 
+## section: metrics
+## Parameters applied to the metrics application
 metrics:
+  ## metrics.name
+  ## Name of the metrics application
   name: metrics
-  service:
-    ports:
-      protocol: TCP
-      port: 9090
-      targetPort: 9090
+  ## subsection: deployment
+  ## Parameters applied to the deployment of this application
   deployment: 
+    ## metrics.deployment.replicas
+    ## Number of metrics replicas.
     replicas: 1
