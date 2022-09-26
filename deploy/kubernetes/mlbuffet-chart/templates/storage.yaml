@@ -20,7 +20,7 @@ spec:
           image: {{ .Values.images.storage }}
           imagePullPolicy: {{ .Values.images.imagePullPolicy }}
           ports:
-            - containerPort: {{ .Values.storage.service.ports.port}}
+            - containerPort: 8000
 
               
 ---
@@ -34,8 +34,8 @@ spec:
   selector:
     app: {{.Values.namespace.name}}_{{ .Values.storage.name}}
   ports:
-  - protocol: {{ .Values.storage.service.ports.protocol}}
-    port: {{ .Values.storage.service.ports.port}}
-    targetPort: {{ .Values.storage.service.ports.targetPort}}
-  type: NodePort
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP
 

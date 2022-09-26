@@ -21,7 +21,7 @@ spec:
           image: {{ .Values.images.inferrer}}
           imagePullPolicy: {{ .Values.images.imagePullPolicy }}
           ports:
-            - containerPort: {{ .Values.inferrer.service.ports.port}}
+            - containerPort: 8000
           env:
             - name: ORCHESTRATOR
               value: {{ .Values.orchestratorType | quote}}
@@ -41,8 +41,11 @@ spec:
   selector:
     app: {{.Values.namespace.name}}_{{ .Values.inferrer.name}}
   ports:
-  - protocol: {{ .Values.inferrer.service.ports.protocol}}
-    port: {{ .Values.inferrer.service.ports.port}}
-    targetPort: {{ .Values.inferrer.service.ports.targetPort}}
-  type: NodePort
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+    {{- if eq $.Values.inferrer.service.type "NodePort"}}
+    nodePort: {{ .Values.inferrer.service.nodePort }}
+    {{- end }}
+  type: {{ .Values.inferrer.service.type }}
 

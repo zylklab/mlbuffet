@@ -20,7 +20,7 @@ spec:
           image: {{ .Values.images.cache}}
           imagePullPolicy: {{ .Values.images.imagePullPolicy }}
           ports:
-            - containerPort: {{ .Values.cache.service.ports.port}}
+            - containerPort: 6379
 
 ---
 apiVersion: {{ .Values.apiVersion.service }}
@@ -32,7 +32,7 @@ spec:
   selector:
     app: {{.Values.namespace.name}}_{{ .Values.cache.name}}
   ports:
-  - protocol: {{ .Values.cache.service.ports.protocol}}
-    port: {{ .Values.cache.service.ports.port}}
-    targetPort: {{ .Values.cache.service.ports.targetport}}
+  - protocol: TCP
+    port: 6379
+    targetPort: 6379
   type: ClusterIP

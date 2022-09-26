@@ -6,9 +6,7 @@ home: https://github.com/zylklab/mlbuffet
 
 type: application
 
-version: 0.1.0
-
-appVersion: "0.1.0"
+version: 1.0.0
 
 icon: https://raw.githubusercontent.com/zylklab/mlbuffet/master/docs/images/MlBuffet_daemon.png
 
@@ -22,3 +20,7 @@ maintainers:
     url: https://github.com/AlfonsoGonz
   - name: sergiomhmh
     url: https://github.com/sergiomhmh
+  - name: koishus
+    url: https://github.com/koishus
+  - name: ruben-naranjo
+    url: https://github.com/ruben-naranjo
